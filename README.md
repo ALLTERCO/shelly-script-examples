@@ -6,6 +6,12 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2021-11
+
+### Added
+- Router Watchdog script
+- Building block snippets
+
 ## 2021-09
 
 ### Added

@@ -42,8 +42,8 @@ function startTimer() {
         function (ud) {
             let alertURL = replace(CONFIG.alertEndpoint,
                 "${message}",
-                "Grandpa: No activity for 12 hours!");
-            RPC.call("HTTP.GET",
+                "Grandpa:_No_activity_for_12_hours!");
+            Shelly.call("HTTP.GET",
                 { url: alertURL },
                 function (res, error_code, error_msg, ud) {
                     if (res.code === 200) {
