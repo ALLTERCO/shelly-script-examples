@@ -9,6 +9,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 ## 2021-11
 
 ### Added
+- Updated wifi-provision to include support for Gen1 devices
+- Added relay control based on weather service temperature reading
 - Router Watchdog script
 - Building block snippets
 
