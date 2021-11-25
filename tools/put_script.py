@@ -23,7 +23,7 @@ import requests
 parser = ArgumentParser()
 parser.add_argument("host", help="IP address or hostname of the Shelly device")
 parser.add_argument("id", help="ID of the script being uploaded")
-parser.add_argument("file", "Local file containing the script code to upload")
+parser.add_argument("file", help="Local file containing the script code to upload")
 
 SYMBOLS_IN_CHUNK = 1024
 
