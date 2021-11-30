@@ -226,7 +226,7 @@ let Scanner = {
     );
   },
 
-  composeStaEndpoint: function (address, gen) {
+  composeStaEndpoint: function (gen) {
     let url = "http://" + CONFIG.shellyAPAddress;
     if (gen === 2) {
       url += "/rpc/wifi.setconfig";
