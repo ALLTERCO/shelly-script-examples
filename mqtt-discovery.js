@@ -27,7 +27,7 @@
 //   broker: 127.0.0.1
 //   discovery: true
 //   discovery_prefix: garage_homeassistant
- 
+
 
 /**
  * @typedef {"switch" | "binary_sensor"} HADeviceType
@@ -70,7 +70,7 @@ function buildMQTTConfigTopic(hatype) {
  * @param   {HATopicType}    topic HA topic 
  * @returns {string}
  */
- function buildMQTTStateCmdTopics(hatype, topic) {
+function buildMQTTStateCmdTopics(hatype, topic) {
   let _t = topic || "";
   if (_t.length) {
     _t = "/" + _t
