@@ -18,7 +18,7 @@
 // Gen1 behavior replicated with scripting
 
 let CONFIG = {
-  toggleTimeout: 10,
+  toggleTimeout: 5,
   inpitId: 0,
   switchId: 0,
 };
@@ -32,14 +32,16 @@ Shelly.call("Switch.SetConfig", {
 
 Shelly.addEventHandler(function (event) {
   if (typeof event.info.event === "undefined") return;
-  if (
-    event.info.event === "single_push" &&
-    event.info.component === "input:" + JSON.stringify(CONFIG.inpitId)
-  ) {
-    Shelly.call("Switch.Set", {
+  if (event.info.component === "input:" + JSON.stringify(CONFIG.inpitId)) {
+    //ignore single_push and double_push events
+    if(event.info.event.indexOf("push")>=0) return;
+    let swParams = {
       id: CONFIG.switchId,
-      on: true,
-      toggle_after: CONFIG.toggleTimeout,
-    });
+      on: true
+    };
+    if (event.info.event === "btn_up") {
+      swParams.toggle_after = CONFIG.toggleTimeout;
+    }
+    Shelly.call("Switch.Set", swParams);
   }
 });
