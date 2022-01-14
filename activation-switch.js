@@ -19,7 +19,7 @@
 
 let CONFIG = {
   toggleTimeout: 5,
-  inpitId: 0,
+  inputId: 0,
   switchId: 0,
 };
 
@@ -32,7 +32,7 @@ Shelly.call("Switch.SetConfig", {
 
 Shelly.addEventHandler(function (event) {
   if (typeof event.info.event === "undefined") return;
-  if (event.info.component === "input:" + JSON.stringify(CONFIG.inpitId)) {
+  if (event.info.component === "input:" + JSON.stringify(CONFIG.inputId)) {
     //ignore single_push and double_push events
     if(event.info.event.indexOf("push")>=0) return;
     let swParams = {
