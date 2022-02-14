@@ -78,8 +78,8 @@ function announceHandler(topic, message) {
 }
 
 function switchControlHandler(topic, message) {
-  if(message !== "on" && message !== "off") return;
-  Shelly.call("Switch.Set", {id:0, on:message==="on"});
+  if (message !== "on" && message !== "off") return;
+  Shelly.call("Switch.Set", { id: 0, on: message === "on" });
 }
 
 function subscribeToTopics() {
@@ -92,10 +92,19 @@ function subscribeToTopics() {
 }
 
 //Start a timer that checks if all fields in CONFIG are populated
-let configReadyTimer = Timer.set(1000, true, function () {
-  if (!isConfigReady()) return;
-  if (!MQTT.isConnected()) return;
-  
-  subscribeToTopics();
-  Timer.clear(configReadyTimer);
+let configReadyTimer;
+function connectToMQTT() {
+  configReadyTimer = Timer.set(1000, true, function () {
+    if (!isConfigReady()) return;
+    if (!MQTT.isConnected()) return;
+
+    subscribeToTopics();
+    Timer.clear(configReadyTimer);
+  });
+}
+
+connectToMQTT();
+
+MQTT.setDisconnectHandler(function () {
+  connectToMQTT();
 });
