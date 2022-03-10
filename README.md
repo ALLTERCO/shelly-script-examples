@@ -6,6 +6,9 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2022-03
+- HomeAssistant MQTT discovery of sensors
+
 ## 2022-01
 
 ### Added
