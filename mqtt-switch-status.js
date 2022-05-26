@@ -21,10 +21,12 @@ let CONFIG = {
   MQTTPublishTopic: "v1/devices/me/telemetry",
 };
 
-Shelly.addEventHandler(function (event) {
-  if (event.component !== "switch:" + JSON.stringify(CONFIG.switchId)) return;
-  if (typeof event.info.output === "undefined") return;
-  MQTTAnnounceSwitch(event.info.output);
+// until 0.10.0 event and notifications were emitted by switch
+// after that only notification is emitted
+Shelly.addStatusHandler(function (notification) {
+  if (notification.component !== "switch:" + JSON.stringify(CONFIG.switchId)) return;
+  if (typeof notification.delta.output === "undefined") return;
+  MQTTAnnounceSwitch(notification.delta.output);
 });
 
 function MQTTAnnounceSwitch(status) {
