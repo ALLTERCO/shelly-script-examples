@@ -94,14 +94,16 @@ function MQTTCmdListener(topic, message) {
 }
 
 Shelly.addStatusHandler(function (notification) {
-  if (typeof notification.delta.output === "undefined") return;
-  let _state_str = notification.delta.output ? "on" : "off";  
   if (notification.component === "switch:0"){
+   if (typeof notification.delta.output === "undefined") return;
+   let _state_str = notification.delta.output ? "on" : "off";
    MQTT.publish(buildMQTTStateCmdTopics("relay/0"), _state_str);
   }
   if (notification.component === "input:0"){
+   if (typeof notification.delta.state === "undefined") return;
+   let _state_str = notification.delta.state ? "on" : "off";
    MQTT.publish(buildMQTTStateCmdTopics("input/0"), _state_str);
-  }  
+  }
 });
 
 function publishState() {
