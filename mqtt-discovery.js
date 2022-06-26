@@ -100,12 +100,14 @@ function MQTTCmdListener(topic, message) {
   switchActivate(_sw_state);
 }
 
-Shelly.addEventHandler(function (ev_data) {
-  if (ev_data.component === "switch:0" && typeof ev_data.info.output !== "undefined") {
-    let _state_str = ev_data.info.output ? "on" : "off";
-    MQTT.publish(buildMQTTStateCmdTopics("switch", "state"), _state_str);
-  }
-})
+// until 0.10.0 event and notifications were emitted by switch
+// after that only notification is emitted
+Shelly.addStatusHandler(function (notification) {
+  if (notification.component !== "switch:0") return;
+  if (typeof notification.delta.output === "undefined") return;
+  let _state_str = notification.delta.output ? "on" : "off";
+  MQTT.publish(buildMQTTStateCmdTopics("switch", "state"), _state_str);
+});
 
 function initMQTT() {
   MQTT.subscribe(buildMQTTStateCmdTopics("switch", "cmd"), MQTTCmdListener);
