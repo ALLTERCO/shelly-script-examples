@@ -117,6 +117,9 @@ wifi-provision.js: Provisioning of new Shelly Plus gen 2 devices
 This scripts periodically scans for access points with SSID matching the template for Shelly Plus device APs and if 
 found, will connect to that AP and provision WiFi credentials.
 
+mqtt-switch-status-announce.js: Periodically send Switch status to MQTT topic:"<topic_prefix>/status/switch:0"
+===
+Use MQTT in scripting to periodically provide switch status updates on the mentioned topic "<topic_prefix>/status/switch:0"
 
 howto/input-event.js: Example - Input events
 ===
