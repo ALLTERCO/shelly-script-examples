@@ -17,6 +17,13 @@ The script, when run, will fetch via REST api from a weather service the current
 cloud coverage is above or below certain percentage and respectively open or close window shades by calling a Shelly
 2.5 (Gen1) endpoint.
 
+precipitation-irrigation.js: Turn on/off watering based on precipitation in last 24 hours (based on AccuWeather data)
+===
+If there was precipitation in the past period (24h) skip an irrigation cycle. Data is retrieved from a public wather API service for the location.
+You can use any Shelly Plus 1/Pro 1 ot Pro 2 to control your irrigation system.
+Don't forger to add AutoOFF for max Irrigation time and set a Schedule which start irrigation in device webUI.
+Note: Configure your Accuweather APIKEY and end points in the script once you add it.
+
 
 failure-monitor.js: Load monitoring and alerting in Shelly Gen2
 ===
