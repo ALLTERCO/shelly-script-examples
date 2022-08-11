@@ -60,7 +60,7 @@ function decideIfToIrrigate(RainValue) {
 }
 
 Shelly.addStatusHandler(function (e) {
-    if (e.component === "switch:0") {
+    if (e.component === "switch:" + JSON.stringify(CONFIG.switchId)) {
         if (e.delta.output === true) {
             print("Switch is on, triggered source:", e.delta.source);
             ReadRainHistory();
