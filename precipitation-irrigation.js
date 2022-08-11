@@ -5,8 +5,10 @@
 // Configure Accuweather APIKEY and end points
 let CONFIG = {
     accuWeatherAPIKEY: "YourACCUWEATHERKeyGoesHere",
-//  weatherForecastEndpoint: "http://dataservice.accuweather.com/forecasts/v1/daily/1day/",
     weatherCurrentEndpoint: "http://dataservice.accuweather.com/currentconditions/v1/",
+    switchId: 0,
+    // turn off, if rain in the last 24h was > 4.5mm
+    rainMmValue: 4.5,
 //  List of locations
     locations: {
         "Sofia": 51097,
@@ -48,11 +50,11 @@ function ReadRainHistory() {
 // This function check are the rain in enought and switch off the valve
 function decideIfToIrrigate(RainValue) {
     print(here, " Rain Last 24h - ", RainValue, " mm ");
-    if (RainValue > 4.5) {
+    if (RainValue > CONFIG.rainMmValue) {
 //        Can be use to caluculate irrigration time base of amount the Rain last 24h
 //        let seconds_to_irrigate = (10 - RainValue) * 30;
 //        Shelly.call("Switch.Set", {"id": 0, "on": true, "toggle_after": seconds_to_irrigate});
-        Shelly.call("Switch.Set", {"id": 0, "on": false}); // Disable if you calculate irrigration time
+        Shelly.call("Switch.Set", {"id": CONFIG.switchId, "on": false}); // Disable if you calculate irrigration time
         print("Irrigration not needed");
     }
 }
