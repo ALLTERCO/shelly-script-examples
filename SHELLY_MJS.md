@@ -2,6 +2,9 @@ activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
 
+cycle-switch.js: Configurable Cycle switch
+===
+Replicate Cycle switch feature from Gen1 devices. Allows for custom list of operations to cycle through.
 
 consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming certain amount of power
 ===
