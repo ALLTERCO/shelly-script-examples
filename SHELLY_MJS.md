@@ -85,6 +85,10 @@ remoterpc.js: Example of remote calling a Shelly Gen2
 ===
 A remote Shelly abstraction Call an RPC method on the remote Shelly
 
+restore-schedule.js: After boot scan schedules and run active one
+===
+When device boots and there is a schedule that has to be active at the moment it won't be executed. This script
+walks through the configured schedules and runs the one that should be active at that moment of time.
 
 router-watchdog.js: Router Watchdog
 ===
