@@ -85,6 +85,10 @@ remoterpc.js: Example of remote calling a Shelly Gen2
 ===
 A remote Shelly abstraction Call an RPC method on the remote Shelly
 
+register-scheduled-script.js: Schedule script function for execution into the system schedule
+===
+When the script is run it will check if it is registered in the schedule and if not will register itself
+
 restore-schedule.js: After boot scan schedules and run active one
 ===
 When device boots and there is a schedule that has to be active at the moment it won't be executed. This script
