@@ -53,7 +53,7 @@ function decideIfToIrrigate(RainValue) {
     if (RainValue > CONFIG.rainMmValue) {
 //        Can be use to caluculate irrigration time base of amount the Rain last 24h
 //        let seconds_to_irrigate = (10 - RainValue) * 30;
-//        Shelly.call("Switch.Set", {"id": 0, "on": true, "toggle_after": seconds_to_irrigate});
+//        Shelly.call("Switch.Set", {"id": CONFIG.switchId, "on": true, "toggle_after": seconds_to_irrigate});
         Shelly.call("Switch.Set", {"id": CONFIG.switchId, "on": false}); // Disable if you calculate irrigration time
         print("Irrigration not needed");
     }
