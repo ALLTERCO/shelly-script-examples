@@ -1,78 +1,76 @@
-// the script show how perform mutliple action with a double classic switch
-// it support simple press and double press on each switch and press on both button at the same time 
+// the script show how perform mutliple action with a double classic switch used to toggle light.
+// They keep their state once pressed, it usefull when the switch directly control the light.
+// However it complicate double press actions when paired with a shelly. This script aim to solve this issue
+// This version is designed for double switch, check double press switch if you have a simple one or don't plan 
+// to use to bonus action full off action to turn all light off when pressing the two button at the same time.
 
-let timer = undefined;
+
+let CONFIG = {
+    simpleClickAction1: 'http://shelly1-ip/rpc/Switch.Toggle?id=0',
+    doubleClickAction1: 'http://shelly1-ip/rpc/Switch.Toggle?id=1',
+    simpleClickAction2: 'http://shelly2-ip/rpc/Switch.Toggle?id=0',
+    doubleClickAction2: 'http://shelly2-ip/rpc/Switch.Toggle?id=1',
+
+    simpleClickAction1FullOff: 'http://shelly1-ip/rpc/Switch.Set?id=0&on=false',
+    doubleClickAction1FullOff: 'http://shelly1-ip/rpc/Switch.Set?id=1&on=false',
+    simpleClickAction2FullOff: 'http://shelly2-ip/rpc/Switch.Set?id=0&on=false',
+    doubleClickAction2FullOff: 'http://shelly2-ip/rpc/Switch.Set?id=1&on=false',
+
+    doubleClickDelay: 250,
+
+    buttonId1: 0,
+    buttonId2: 1
+};
+
 let previouHitButtonId = undefined;
+let timer = undefined;
 
-let simpleClickAction1 = 'http://shelly1-ip/rpc/Switch.Toggle?id=0';
-let doubleClickAction1 = 'http://shelly1-ip/rpc/Switch.Toggle?id=1';
-let simpleClickAction2 = 'http://shelly2-ip/rpc/Switch.Toggle?id=0';
-let doubleClickAction2 = 'http://shelly2-ip/rpc/Switch.Toggle?id=1';
-
-let simpleClickAction1FullOff = 'http://shelly1-ip/rpc/Switch.Set?id=0&on=false';
-let doubleClickAction1FullOff = 'http://shelly1-ip/rpc/Switch.Set?id=1&on=false';
-let simpleClickAction2FullOff = 'http://shelly2-ip/rpc/Switch.Set?id=0&on=false';
-let doubleClickAction2FullOff = 'http://shelly2-ip/rpc/Switch.Set?id=1&on=false';
-
-let doubleClickDelay = 250;
-
-let buttonId1 = 0;
-let buttonId2 = 1;
-
-function reset() {
+function resetTimer() {
     Timer.clear(timer);
     timer = undefined;
     previouHitButtonId = undefined;
 }
 
 function toggleLight(action) {
-    reset();
+    resetTimer();
 
-    Shelly.call(
-        "http.get", {
-            url: action
-        },
-        function (response, error_code, error_message, ud) {
-        },
-        null
-    );
+    Shelly.call("http.get", {url: action});
 }
 
 Shelly.addEventHandler(
     function (event, user_data) {
-        //print(JSON.stringify(event));
         if (typeof event.info.event !== 'undefined' && event.info.event === 'toggle') {
 
-            if (timer === undefined && event.info.id === buttonId1) {
+            if (timer === undefined && event.info.id === CONFIG.buttonId1) {
                 
-                timer = Timer.set(doubleClickDelay, 0, toggleLight, simpleClickAction1);
-                previouHitButtonId = buttonId1;
+                timer = Timer.set(CONFIG.doubleClickDelay, 0, toggleLight, CONFIG.simpleClickAction1);
+                previouHitButtonId = CONFIG.buttonId1;
 
-            } else if (timer === undefined && event.info.id === buttonId2) {
+            } else if (timer === undefined && event.info.id === CONFIG.buttonId2) {
                 
-                timer = Timer.set(doubleClickDelay, 0, toggleLight, simpleClickAction2);
-                previouHitButtonId = buttonId2;
+                timer = Timer.set(CONFIG.doubleClickDelay, 0, toggleLight, CONFIG.simpleClickAction2);
+                previouHitButtonId = CONFIG.buttonId2;
 
             } else if (timer !== undefined && event.info.id === previouHitButtonId) {
-                if (event.info.id === buttonId1) {
+                if (event.info.id === CONFIG.buttonId1) {
 
-                    reset();
+                    resetTimer();
 
-                    toggleLight(doubleClickAction1);
-                } else if (event.info.id === buttonId2) {
+                    toggleLight(CONFIG.doubleClickAction1);
+                } else if (event.info.id === CONFIG.buttonId2) {
 
-                    reset();
+                    resetTimer();
 
-                    toggleLight(doubleClickAction2);
+                    toggleLight(CONFIG.doubleClickAction2);
                 }
             } else if (timer !== undefined && event.info.id !== previouHitButtonId) {
 
-                reset();
+                resetTimer();
 
-                toggleLight(simpleClickAction1FullOff);
-                toggleLight(doubleClickAction1FullOff);
-                toggleLight(simpleClickAction2FullOff);
-                toggleLight(doubleClickAction2FullOff);
+                toggleLight(CONFIG.simpleClickAction1FullOff);
+                toggleLight(CONFIG.doubleClickAction1FullOff);
+                toggleLight(CONFIG.simpleClickAction2FullOff);
+                toggleLight(CONFIG.doubleClickAction2FullOff);
             }
         }
     }
