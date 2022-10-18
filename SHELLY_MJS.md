@@ -2,6 +2,9 @@ activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
 
+cycle-switch.js: Configurable Cycle switch
+===
+Replicate Cycle switch feature from Gen1 devices. Allows for custom list of operations to cycle through.
 
 consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming certain amount of power
 ===
@@ -82,6 +85,14 @@ remoterpc.js: Example of remote calling a Shelly Gen2
 ===
 A remote Shelly abstraction Call an RPC method on the remote Shelly
 
+register-scheduled-script.js: Schedule script function for execution into the system schedule
+===
+When the script is run it will check if it is registered in the schedule and if not will register itself
+
+restore-schedule.js: After boot scan schedules and run active one
+===
+When device boots and there is a schedule that has to be active at the moment it won't be executed. This script
+walks through the configured schedules and runs the one that should be active at that moment of time.
 
 router-watchdog.js: Router Watchdog
 ===
