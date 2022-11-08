@@ -61,10 +61,7 @@ let RuuviParser = {
 
     getData: function(res) {
         let data = BLE.GAP.ParseManufacturerData(res.advData);
-        if (data.length < 26) {
-            return null;
-        }
-        if (typeof (data) !== "string" || data.slice(0, 2) !== "\x99\x04") {
+        if (typeof (data) !== "string" || data.length < 26 || data.slice(0, 2) !== "\x99\x04") {
             return null;
         }
         if (data.charCodeAt(2) !== 5) {
