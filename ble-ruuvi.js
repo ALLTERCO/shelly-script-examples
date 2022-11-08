@@ -1,5 +1,8 @@
 let CONFIG = {
-    "temperature": 26,
+    "temperature_thr": 26,
+    "switch_id": 0,
+    "mqtt_topic": "ruuvi",
+    "event_name": "ruuvi.measurement"
 };
 
 // https://docs.ruuvi.com/communication/bluetooth-advertisements/data-format-5-rawv2
@@ -86,17 +89,17 @@ let RuuviParser = {
 };
 
 function publishToMqtt(measurement) {
-    MQTT.publish("ruuvi/" + measurement.addr, JSON.stringify(measurement));
+    MQTT.publish(CONFIG.mqtt_topic + "/" + measurement.addr, JSON.stringify(measurement));
 }
 
 function emitOverWs(measurement) {
-    Shelly.emitEvent("ruuvi.measurement", measurement);
+    Shelly.emitEvent(CONFIG.event_name, measurement);
 }
 
 function triggerAutomation(measurement) {
-    if (measurement.temperature < CONFIG.temperature) {
+    if (measurement.temperature < CONFIG.temperature_thr) {
         // turn the heater on
-        Shelly.call("Switch.Set", {id: 0, on: true});
+        Shelly.call("Switch.Set", {id: CONFIG.switch_id, on: true});
     }
 }
 
@@ -112,5 +115,4 @@ function scanCB(ev, res) {
     }
 }
 
-// BLE.Scanner.Subscribe(scanCB, null);
 BLE.Scanner.Start({ duration_ms: -1}, scanCB);
