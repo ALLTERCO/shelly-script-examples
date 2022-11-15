@@ -7,6 +7,11 @@ ble-ruuvi.js: BLE in Scripting - Ruuvi example
 Example how to use a 3rd party BLE sensor, read data and turn on switch based on the data. (Requires firmware version 
 0.12.0-beta1 or newer)
 
+ble-bparasite.js: BLE in Scripting - b-parasite example
+===
+Example how to use a 3rd party BLE sensor, read environment data. (Requires firmware version 
+0.12.0-beta1 or newer)
+
 cycle-switch.js: Configurable Cycle switch
 ===
 Replicate Cycle switch feature from Gen1 devices. Allows for custom list of operations to cycle through.
