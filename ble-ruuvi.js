@@ -1,5 +1,6 @@
 // For ruuvi data format see
 // https://docs.ruuvi.com/communication/bluetooth-advertisements/data-format-5-rawv2
+
 let CONFIG = {
   scan_duration: BLE.Scanner.INFINITE_SCAN,
   temperature_thr: 18,
