@@ -152,7 +152,8 @@ function publishState() {
 /**
  * Activate periodic updates
  */
-if(CONFIG.update_period > 0) Timer.set(CONFIG.update_period, true, publishState);
+if (CONFIG.update_period > 0)
+  Timer.set(CONFIG.update_period, true, publishState);
 
 /**
  * Initialize listeners and configure switch and sensors entries

@@ -20,17 +20,15 @@
 //     "component": "switch:0"
 // }
 
-Shelly.addStatusHandler(
-    function (status) {
-        //check if the event source is a switch
-        //and if the id of the input is 0
-        if (status.name === "switch" && status.id === 0) {
-            if (typeof status.delta.apower === 'undefined') {
-                return;
-            }
-            if (status.delta.apower > 4) {
-                print("Using more than 4W power");
-            }
-        }
+Shelly.addStatusHandler(function (status) {
+  //check if the event source is a switch
+  //and if the id of the input is 0
+  if (status.name === "switch" && status.id === 0) {
+    if (typeof status.delta.apower === "undefined") {
+      return;
     }
-);
+    if (status.delta.apower > 4) {
+      print("Using more than 4W power");
+    }
+  }
+});

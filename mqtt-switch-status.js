@@ -24,7 +24,8 @@ let CONFIG = {
 // until 0.10.0 event and notifications were emitted by switch
 // after that only notification is emitted
 Shelly.addStatusHandler(function (notification) {
-  if (notification.component !== "switch:" + JSON.stringify(CONFIG.switchId)) return;
+  if (notification.component !== "switch:" + JSON.stringify(CONFIG.switchId))
+    return;
   if (typeof notification.delta.output === "undefined") return;
   MQTTAnnounceSwitch(notification.delta.output);
 });

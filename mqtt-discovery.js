@@ -21,13 +21,12 @@
 // but you can have a totally different virtual device: valve, light, scene
 // Reference:
 // https://www.home-assistant.io/docs/mqtt/discovery/
-// 
+//
 // MQTT configuration.yaml contains this section:
 // mqtt:
 //   broker: 127.0.0.1
 //   discovery: true
 //   discovery_prefix: garage_homeassistant
-
 
 /**
  * @typedef {"switch" | "binary_sensor"} HADeviceType
@@ -42,20 +41,16 @@ let CONFIG = {
   device_name: "VIRTUAL_SWITCH",
   payloads: {
     on: "on",
-    off: "off"
-  }
+    off: "off",
+  },
 };
 
-Shelly.call(
-  "Shelly.GetDeviceInfo",
-  {},
-  function (result) {
-    CONFIG.shelly_id = result.id;
-    CONFIG.shelly_mac = result.mac;
-    CONFIG.shelly_fw_id = result.fw_id;
-    initMQTT();
-  }
-)
+Shelly.call("Shelly.GetDeviceInfo", {}, function (result) {
+  CONFIG.shelly_id = result.id;
+  CONFIG.shelly_mac = result.mac;
+  CONFIG.shelly_fw_id = result.fw_id;
+  initMQTT();
+});
 
 /**
  * @param   {HADeviceType}   hatype HA device type
@@ -67,33 +62,30 @@ function buildMQTTConfigTopic(hatype) {
 
 /**
  * @param   {HADeviceType}   hatype HA device type
- * @param   {HATopicType}    topic HA topic 
+ * @param   {HATopicType}    topic HA topic
  * @returns {string}
  */
 function buildMQTTStateCmdTopics(hatype, topic) {
   let _t = topic || "";
   if (_t.length) {
-    _t = "/" + _t
+    _t = "/" + _t;
   }
   return CONFIG.shelly_id + "/" + hatype + _t;
 }
 
 /**
- * @param {boolean} sw_state 
+ * @param {boolean} sw_state
  */
 function switchActivate(sw_state) {
-  Shelly.call(
-    "Switch.Set",
-    {
-      id: 0,
-      on: sw_state
-    }
-  );
+  Shelly.call("Switch.Set", {
+    id: 0,
+    on: sw_state,
+  });
 }
 
 /**
- * @param {string} topic 
- * @param {string} message 
+ * @param {string} topic
+ * @param {string} message
  */
 function MQTTCmdListener(topic, message) {
   let _sw_state = message === "on" ? true : false;
@@ -115,21 +107,21 @@ function initMQTT() {
     buildMQTTConfigTopic("switch"),
     JSON.stringify({
       name: CONFIG.device_name,
-      "device": {
-        "name": CONFIG.device_name,
-        "ids": [CONFIG.device_name],
-        "mdl": "virtual-Shelly",
-        "mf": "Allterco",
-        "sw_version": CONFIG.shelly_fw_id
+      device: {
+        name: CONFIG.device_name,
+        ids: [CONFIG.device_name],
+        mdl: "virtual-Shelly",
+        mf: "Allterco",
+        sw_version: CONFIG.shelly_fw_id,
       },
-      "unique_id": CONFIG.shelly_mac + ":" + CONFIG.device_name,
-      "pl_on": CONFIG.payloads.on,
-      "pl_off": CONFIG.payloads.off,
-      "cmd_t": "~/cmd",
-      "stat_t": "~/state",
-      "~": buildMQTTStateCmdTopics("switch")
+      unique_id: CONFIG.shelly_mac + ":" + CONFIG.device_name,
+      pl_on: CONFIG.payloads.on,
+      pl_off: CONFIG.payloads.off,
+      cmd_t: "~/cmd",
+      stat_t: "~/state",
+      "~": buildMQTTStateCmdTopics("switch"),
     }),
     0,
     true
-  )
+  );
 }
