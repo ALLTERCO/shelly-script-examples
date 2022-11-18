@@ -32,8 +32,8 @@ let CONFIG = {
     },
   ],
   provisionAP: {
-    ssid: 'YourWiFiSSID',
-    pass: 'YourPassword',
+    ssid: "YourWiFiSSID",
+    pass: "YourPassword",
     enable: false,
   },
   shellyAPAddress: "192.168.33.1",

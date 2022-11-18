@@ -34,10 +34,10 @@ Shelly.addEventHandler(function (event) {
   if (typeof event.info.event === "undefined") return;
   if (event.info.component === "input:" + JSON.stringify(CONFIG.inputId)) {
     //ignore single_push and double_push events
-    if(event.info.event.indexOf("push")>=0) return;
+    if (event.info.event.indexOf("push") >= 0) return;
     let swParams = {
       id: CONFIG.switchId,
-      on: true
+      on: true,
     };
     if (event.info.event === "btn_up") {
       swParams.toggle_after = CONFIG.toggleTimeout;

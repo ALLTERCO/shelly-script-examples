@@ -21,176 +21,178 @@
 // simple schene player
 
 let CONFIG = {
-    mac: 0
+  mac: 0,
 };
 
 Shelly.call(
-    "sys.getstatus",
-    {},
-    function (result, error_code, error_message, user_data) {
-        if (error_code === 0) {
-            CONFIG.mac = result.mac;
-        }
-    },
-    null
+  "sys.getstatus",
+  {},
+  function (result, error_code, error_message, user_data) {
+    if (error_code === 0) {
+      CONFIG.mac = result.mac;
+    }
+  },
+  null
 );
 
 let RemoteShelly = {
-    _cb: function (result, error_code, error_message, callback) {
-        let rpcResult = JSON.parse(result.body);
-        let rpcCode = result.code;
-        let rpcMessage = result.message;
-        callback(rpcResult, rpcCode, rpcMessage)
-    },
-    composeEndpoint: function (method) {
-        return "http://" + this.address + "/rpc/" + method;
-    },
-    call: function (rpc, data, callback) {
-        let postData = {
-            url: this.composeEndpoint(rpc),
-            body: data
-        };
-        Shelly.call(
-            "HTTP.POST",
-            postData,
-            RemoteShelly._cb,
-            callback
-        );
-    },
-    getInstance: function (address) {
-        let rs = Object.create(this);
-        // remove static method
-        rs.getInstance = null;
-        rs.address = address;
-        return rs;
-    }
+  _cb: function (result, error_code, error_message, callback) {
+    let rpcResult = JSON.parse(result.body);
+    let rpcCode = result.code;
+    let rpcMessage = result.message;
+    callback(rpcResult, rpcCode, rpcMessage);
+  },
+  composeEndpoint: function (method) {
+    return "http://" + this.address + "/rpc/" + method;
+  },
+  call: function (rpc, data, callback) {
+    let postData = {
+      url: this.composeEndpoint(rpc),
+      body: data,
+    };
+    Shelly.call("HTTP.POST", postData, RemoteShelly._cb, callback);
+  },
+  getInstance: function (address) {
+    let rs = Object.create(this);
+    // remove static method
+    rs.getInstance = null;
+    rs.address = address;
+    return rs;
+  },
 };
 
 let blueShelly1 = RemoteShelly.getInstance("192.168.205.31");
 let blueShelly2 = RemoteShelly.getInstance("192.168.205.42");
 let blueShelly3 = RemoteShelly.getInstance("192.168.205.101");
 
-
 function setSwitch(swObj, how) {
-    swObj.call(
-        "switch.set",
-        { id: 0, on: how },
-        function (result, error_code, message) {
-            print(JSON.stringify(result), error_code, message);
-        }
-    );
-};
+  swObj.call(
+    "switch.set",
+    { id: 0, on: how },
+    function (result, error_code, message) {
+      print(JSON.stringify(result), error_code, message);
+    }
+  );
+}
 
 let Scene = [
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(Shelly, true);
-        }
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(Shelly, true);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly1, true);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly1, true);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly2, true);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly2, true);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly3, true);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly3, true);
     },
-    {
-        //cond will check the return value of fn to decide to continue
-        type: "cond",
-        fn: function () { return true; }
+  },
+  {
+    //cond will check the return value of fn to decide to continue
+    type: "cond",
+    fn: function () {
+      return true;
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(Shelly, false);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(Shelly, false);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly1, false);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly1, false);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly2, false);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly2, false);
     },
-    {
-        delay: 1000,
-        fn: function () {
-            setSwitch(blueShelly3, false);
-        }
+  },
+  {
+    delay: 1000,
+    fn: function () {
+      setSwitch(blueShelly3, false);
     },
-    {
-        //run will just execute fn
-        fn: function () { print("end-of-scene"); }
-    }
+  },
+  {
+    //run will just execute fn
+    fn: function () {
+      print("end-of-scene");
+    },
+  },
 ];
 
 let ScenePlayer = {
-    currentScene: null,
-    sceneCounter: -1,
-    sceneTimer: null,
-    loop: false,
-    play: function (scene, loop) {
-        if (typeof loop !== 'undefined') {
-            this.loop = loop;
-        };
-        Timer.clear(this.sceneTimer);
-        this.sceneCounter = -1;
-        this.currentScene = scene;
-        this.next();
-    },
-    next: function () {
-        if (!this.currentScene) {
-            return;
-        };
-        this.sceneCounter++;
-        let delay = 1;
-        if (this.sceneCounter === this.currentScene.length) {
-            if (this.loop) {
-                this.sceneCounter = -1;
-                this.step(delay);
-            };
-            return;
-        };
-        if (this.currentScene[this.sceneCounter].type === "cond"
-            && !this.currentScene[this.sceneCounter].fn()) {
-            return;
-        };
-        this.currentScene[this.sceneCounter].fn();
-        if (typeof this.currentScene[this.sceneCounter].delay !== "undefined") {
-            delay = this.currentScene[this.sceneCounter].delay;
-        };
-        this.step(delay);
-    },
-    step: function (delay) {
-        this.sceneTimer = Timer.set(delay,
-            false,
-            function (sp) {
-                sp.next();
-            },
-            this);
-    },
-    cancel: function () {
-        Timer.clear(this.sceneTimer);
-        this.sceneCounter = -1;
-        this.currentScene = null;
+  currentScene: null,
+  sceneCounter: -1,
+  sceneTimer: null,
+  loop: false,
+  play: function (scene, loop) {
+    if (typeof loop !== "undefined") {
+      this.loop = loop;
     }
+    Timer.clear(this.sceneTimer);
+    this.sceneCounter = -1;
+    this.currentScene = scene;
+    this.next();
+  },
+  next: function () {
+    if (!this.currentScene) {
+      return;
+    }
+    this.sceneCounter++;
+    let delay = 1;
+    if (this.sceneCounter === this.currentScene.length) {
+      if (this.loop) {
+        this.sceneCounter = -1;
+        this.step(delay);
+      }
+      return;
+    }
+    if (
+      this.currentScene[this.sceneCounter].type === "cond" &&
+      !this.currentScene[this.sceneCounter].fn()
+    ) {
+      return;
+    }
+    this.currentScene[this.sceneCounter].fn();
+    if (typeof this.currentScene[this.sceneCounter].delay !== "undefined") {
+      delay = this.currentScene[this.sceneCounter].delay;
+    }
+    this.step(delay);
+  },
+  step: function (delay) {
+    this.sceneTimer = Timer.set(
+      delay,
+      false,
+      function (sp) {
+        sp.next();
+      },
+      this
+    );
+  },
+  cancel: function () {
+    Timer.clear(this.sceneTimer);
+    this.sceneCounter = -1;
+    this.currentScene = null;
+  },
 };
 
 ScenePlayer.play(Scene, true);
