@@ -1,32 +1,40 @@
+// For ruuvi data format see
+// https://docs.ruuvi.com/communication/bluetooth-advertisements/data-format-5-rawv2
+
 let CONFIG = {
-  temperature_thr: 26,
+  scan_duration: BLE.Scanner.INFINITE_SCAN,
+  temperature_thr: 18,
   switch_id: 0,
   mqtt_topic: "ruuvi",
   event_name: "ruuvi.measurement",
 };
 
-// https://docs.ruuvi.com/communication/bluetooth-advertisements/data-format-5-rawv2
+let RUUVI_MFD_ID_LE = 0x9904;
+let RUUVI_DATA_FMT = 5;
+
 let RuuviParser = {
+  getUInt16BE: function (bytes) {
+    return (bytes.at(0) << 8) | bytes.at(1);
+  },
+
   getInt16BE: function (bytes) {
-    let num = bytes.at(0) * 256 + bytes.at(1);
-    if (num >= 0x8000) {
-      num = num - 0x10000;
-    }
+    let num = this.getUInt16BE(bytes);
+    //two's complement
+    if (num & 0x8000) num = num - 0x10000;
     return num;
   },
 
+  //3,4
   getTemperature: function (mfd) {
-    let temp = this.getInt16BE(mfd.slice(3, 5));
-    temp = temp * 0.005;
-    return temp;
+    return this.getInt16BE(mfd.slice(3)) * 0.005;
   },
 
   getHumidity: function (mfd) {
-    return (mfd.at(5) * 256 + mfd.at(6)) * 0.0025;
+    return this.getUInt16BE(mfd.slice(5)) * 0.0025;
   },
 
   getPressure: function (mfd) {
-    return mfd.at(7) * 256 + mfd.at(8) + 50000;
+    return this.getUInt16BE(mfd.slice(7)) + 50000;
   },
 
   getAccelXYZ: function (mfd) {
@@ -38,7 +46,7 @@ let RuuviParser = {
   },
 
   getBatteryMv: function (mfd) {
-    let power_info = mfd.at(15) * 256 + mfd.at(16);
+    let power_info = this.getUInt16BE(mfd.slice(15));
     let battery_mv = (power_info >> 5) + 1600;
     return battery_mv;
   },
@@ -52,7 +60,7 @@ let RuuviParser = {
   },
 
   getSequence: function (mfd) {
-    return mfd.at(18) * 256 + mfd.at(19);
+    return this.getUInt16BE(mfd.slice(18));
   },
 
   getMac: function (mfd) {
@@ -63,15 +71,12 @@ let RuuviParser = {
 
   getData: function (res) {
     let data = BLE.GAP.ParseManufacturerData(res.advData);
-    if (
-      typeof data !== "string" ||
-      data.length < 26 ||
-      data.slice(0, 2) !== "\x99\x04"
-    ) {
-      return null;
-    }
-    if (data.charCodeAt(2) !== 5) {
+    if (typeof data !== "string" || data.length < 26) return null;
+    //Manufacturer ID is at the beginning of the result
+    if (this.getUInt16BE(data) !== RUUVI_MFD_ID_LE) return null;
+    if (data.at(2) !== RUUVI_DATA_FMT) {
       print("unsupported data format from", res.addr);
+      print("expected format", RUUVI_DATA_FMT);
       return null;
     }
     let m = {
@@ -110,15 +115,13 @@ function triggerAutomation(measurement) {
 }
 
 function scanCB(ev, res) {
-  if (ev === BLE.Scanner.SCAN_RESULT) {
-    let measurement = RuuviParser.getData(res);
-    if (measurement === null) return;
-    print("ruuvi measurement:", JSON.stringify(measurement));
-
-    publishToMqtt(measurement);
-    emitOverWs(measurement);
-    triggerAutomation(measurement);
-  }
+  if (ev !== BLE.Scanner.SCAN_RESULT) return;
+  let measurement = RuuviParser.getData(res);
+  if (measurement === null) return;
+  print("ruuvi measurement:", JSON.stringify(measurement));
+  publishToMqtt(measurement);
+  emitOverWs(measurement);
+  triggerAutomation(measurement);
 }
 
-BLE.Scanner.Start({ duration_ms: -1 }, scanCB);
+BLE.Scanner.Start({ duration_ms: CONFIG.scan_duration }, scanCB);
