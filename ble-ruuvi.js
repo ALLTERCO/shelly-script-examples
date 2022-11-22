@@ -88,7 +88,7 @@ let RuuviParser = {
       tx_power: this.getTxPower(data),
       movement_counter: this.getMovementCounter(data),
       sequence: this.getSequence(data),
-      mac: this.getMac(data),
+      //mac: this.getMac(data),
       addr: res.addr.slice(0, -2),
       rssi: res.rssi,
     };
