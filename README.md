@@ -6,6 +6,9 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2022-11
+- BLE scanner examples - ruuvi and b-parasite support
+
 ## 2022-09
 - Schedule usage scripts and schedule registering scripts
 ## 2022-03
