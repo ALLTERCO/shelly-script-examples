@@ -4,7 +4,7 @@ Replicate activation_switch profile from Gen1 devices.
 
 ble-ruuvi.js: BLE in Scripting - Ruuvi example
 ===
-Example how to use a 3rd party BLE sensor, read data and turn on switch based on the data. (Requires firmware version 
+Example how to use a 3rd party BLE sensor, read data and turn on switch based on the data. (Requires firmware version
 0.12.0-beta1 or newer)
 
 ble-bparasite.js: BLE in Scripting - b-parasite example
@@ -16,6 +16,11 @@ cycle-switch.js: Configurable Cycle switch
 ===
 Replicate Cycle switch feature from Gen1 devices. Allows for custom list of operations to cycle through.
 
+http-notify-on-power-threshold.js: Shelly XPM - Send HTTP notification if power goes above threshold
+===
+This script subscribes for notifications, monitors the instanteneous power of the output switch and if that
+goes above a threshold value and if current time is within the active time window will send an HTTP notification
+
 consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming certain amount of power
 ===
 This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus
@@ -26,7 +31,7 @@ It is accumulated in a counter and if the combined consumption is over a thresho
 
 cover-control-weather.js: Control a Shelly 2.5 (Gen1) depending on current cloud conditions
 ===
-The script, when run, will fetch via REST api from a weather service the current conditions for a location check if 
+The script, when run, will fetch via REST api from a weather service the current conditions for a location check if
 cloud coverage is above or below certain percentage and respectively open or close window shades by calling a Shelly
 2.5 (Gen1) endpoint.
 
@@ -40,13 +45,13 @@ Note: Configure your Accuweather APIKEY and end points in the script once you ad
 
 failure-monitor.js: Load monitoring and alerting in Shelly Gen2
 ===
-This script listens for events when power changes to 0 and if the switch is still on then it alerts that something 
+This script listens for events when power changes to 0 and if the switch is still on then it alerts that something
 might have happened to the load.
 
 
 idle-alert.js: Alert on inactivity
 ===
-Script that will monitor the inputs of a Shelly and if there was no user interaction with the input(s) It will call an 
+Script that will monitor the inputs of a Shelly and if there was no user interaction with the input(s) It will call an
 URL with a predefined message
 
 
@@ -136,13 +141,13 @@ Turn on when temperature is below CONFIG.tempBelowTurnOn.
 
 Turn off when temperature is above CONFIG.tempAboveTurnOff.
 
-For getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy 
+For getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy
 the key and paste it here.
 
 
 wifi-provision.js: Provisioning of new Shelly Plus gen 2 devices
 ===
-This scripts periodically scans for access points with SSID matching the template for Shelly Plus device APs and if 
+This scripts periodically scans for access points with SSID matching the template for Shelly Plus device APs and if
 found, will connect to that AP and provision WiFi credentials.
 
 mqtt-switch-status-announce.js: Periodically send Switch status to MQTT topic:"<topic_prefix>/status/switch:0"
