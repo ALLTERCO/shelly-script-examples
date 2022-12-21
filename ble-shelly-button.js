@@ -1,3 +1,10 @@
+/**
+ * This script uses the BLE active scan functionality in scripting
+ * Selects Shelly BLU Buttons from the aired advertisements, decodes
+ * the service data payload and toggles a relay on the device on
+ * button push
+ */
+
 let CONFIG = {
   scan_duration: BLE.Scanner.INFINITE_SCAN,
   scan_active: true,
@@ -20,6 +27,7 @@ let int16 = 3;
 let uint24 = 4;
 let int24 = 5;
 
+//https://bthome.io/format/
 let BTH = [];
 BTH[0x00] = { n: "pid", t: uint8 };
 BTH[0x01] = { n: "Battery", t: uint8, u: "%" };
@@ -53,11 +61,11 @@ let BTHomeDecoder = {
     let result = {};
     let dib = this.buffer.at(0);
     result["encryption"] = dib & 0x1 ? true : false;
+    //Can't handle encrypted data
+    if (result["encryption"] === 1) return null;
     result["BTHome_version"] = dib >> 5;
     //Can handle only v2
     if (result["BTHome_version"] !== 2) return null;
-    //Can't handle encrypted data
-    if (result["encryption"] === 1) return null;
     this.buffer = this.buffer.slice(1);
 
     while (this.buffer.length > 0) {
@@ -108,6 +116,7 @@ function scanCB(ev, res) {
   if (last_pid === buttonState.pid) return;
   last_pid = buttonState.pid;
   //Decide on number of button pushes
+  //1 - single_push, 2 - double_push, 3 - triple_push
   //if(buttonState.Button === 1) {}
   triggerAutomation();
 }
