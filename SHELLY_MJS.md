@@ -2,9 +2,20 @@ activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
 
-ble-shelly-button.js: BLE in Scripting - Shelly BLU Button example
+
+ble-shelly-btn.js: BLE in Scripting - Shelly BLU Button script actions
 ===
 Example how to use a Shelly BLU Button, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
+ble-shelly-dw.js: BLE in Scripting - Shelly BLU DoorWindow script actions
+===
+Example how to use a Shelly BLU DoorWindow, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
+ble-shelly-scanner.js: BLE in Scripting - Shelly BLU Scanner
+===
+This script will scan aired advertisement data, select Shelly BLU devices and will print their name and address (Requires firmware version
 0.12.0-beta1 or newer)
 
 
