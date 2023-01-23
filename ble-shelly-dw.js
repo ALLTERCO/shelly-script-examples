@@ -202,8 +202,8 @@ function scanCB(ev, res) {
   // skip if parsing failed
   if (BTHparsed === null) return;
   // skip, we are deduping results
-  if (last_pid === BTHparsed.pid) return;
-  last_pid = BTHparsed.pid;
+  if (last_packet_id === BTHparsed.pid) return;
+  last_packet_id = BTHparsed.pid;
   console.log(JSON.stringify(BTHparsed));
   // execute actions from CONFIG
   let aIdx = null;
