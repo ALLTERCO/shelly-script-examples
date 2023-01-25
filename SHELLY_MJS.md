@@ -2,6 +2,23 @@ activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
 
+
+ble-shelly-btn.js: BLE in Scripting - Shelly BLU Button script actions
+===
+Example how to use a Shelly BLU Button, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
+ble-shelly-dw.js: BLE in Scripting - Shelly BLU DoorWindow script actions
+===
+Example how to use a Shelly BLU DoorWindow, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
+ble-shelly-scanner.js: BLE in Scripting - Shelly BLU Scanner
+===
+This script will scan aired advertisement data, select Shelly BLU devices and will print their name and address (Requires firmware version
+0.12.0-beta1 or newer)
+
+
 ble-ruuvi.js: BLE in Scripting - Ruuvi example
 ===
 Example how to use a 3rd party BLE sensor, read data and turn on switch based on the data. (Requires firmware version
@@ -9,7 +26,7 @@ Example how to use a 3rd party BLE sensor, read data and turn on switch based on
 
 ble-bparasite.js: BLE in Scripting - b-parasite example
 ===
-Example how to use a 3rd party BLE sensor, read environment data. (Requires firmware version 
+Example how to use a 3rd party BLE sensor, read environment data. (Requires firmware version
 0.12.0-beta1 or newer)
 
 cycle-switch.js: Configurable Cycle switch
@@ -25,7 +42,6 @@ consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming cert
 ===
 This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus
 every minute.
-
 It is accumulated in a counter and if the combined consumption is over a threshold the output is turned off.
 
 
@@ -82,8 +98,6 @@ This script is registering a virtual switch device in HA.
 Switch sensors are also registered as entities.
 
 Note: Requires configuration.yaml change in HA, please refer to the comments in the code of this file.
-
-
 
 
 mqtt-switch-status.js: Send Switch status to a custom MQTT topic
