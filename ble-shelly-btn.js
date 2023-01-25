@@ -73,9 +73,6 @@ let CONFIG = {
 let ALLTERCO_MFD_ID_STR = "0ba9";
 let BTHOME_SVC_ID_STR = "fcd2";
 
-let ALLTERCO_MFD_ID = JSON.parse("0x" + ALLTERCO_MFD_ID_STR);
-let BTHOME_SVC_ID = JSON.parse("0x" + BTHOME_SVC_ID_STR);
-
 let SCAN_DURATION = BLE.Scanner.INFINITE_SCAN;
 let ACTIVE_SCAN =
   typeof CONFIG.shelly_blu_name_prefix !== "undefined" &&
