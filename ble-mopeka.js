@@ -30,10 +30,7 @@ function rawLevel(bleData) {
 
 // Accel values are stored as signed bytes
 function byteToSignedInt(val) {
-  if (val & 0x7f) {
-    return 0 - (val & 0x7f);
-  }
-  return val;
+  return (val & 0x80) ?  val - 0x100 : val;
 }
 
 let MopekaBLEParser = {
