@@ -228,4 +228,21 @@ function scanCB(ev, res) {
   }
 }
 
-BLE.Scanner.Start({ duration_ms: SCAN_DURATION, active: ACTIVE_SCAN }, scanCB);
+// retry several times to start the scanner if script was started before
+// BLE infrastructure was up in the Shelly
+function startBLEScan() {
+  let bleScanSuccess = BLE.Scanner.Start({ duration_ms: SCAN_DURATION, active: ACTIVE_SCAN }, scanCB);
+  if( bleScanSuccess === false ) {
+    Timer.set(1000, false, startBLEScan);
+  } else {
+    console.log('Success: BLU button scanner running');
+  }
+}
+
+//Check for BLE config and print a message if BLE is not enabled on the device
+let BLEConfig = Shelly.getComponentConfig('ble');
+if(BLEConfig.enable === false) {
+  console.log('Error: BLE not enabled');
+} else {
+  Timer.set(1000, false, startBLEScan);
+}
