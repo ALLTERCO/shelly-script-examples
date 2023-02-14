@@ -62,7 +62,7 @@ function pingEndpoints() {
         //set the output with toggling back
         Shelly.call(
           "Switch.Set",
-          { id: 0, on: true, toggle_after: CONFIG.toggleTime },
+          { id: 0, on: false, toggle_after: CONFIG.toggleTime },
           function () {}
         );
         return;
