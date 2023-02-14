@@ -58,7 +58,6 @@ function pingEndpoints() {
       if (failCounter >= CONFIG.numberOfFails) {
         print("Too many fails, resetting...");
         failCounter = 0;
-        Timer.clear(pingTimer);
         //set the output with toggling back
         Shelly.call(
           "Switch.Set",
