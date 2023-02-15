@@ -58,6 +58,7 @@ function pingEndpoints() {
       if (failCounter >= CONFIG.numberOfFails) {
         print("Too many fails, resetting...");
         failCounter = 0;
+        Timer.clear(pingTimer);
         //set the output with toggling back
         Shelly.call(
           "Switch.Set",
@@ -78,7 +79,7 @@ Shelly.addEventHandler(function (event) {
   if (
     event.name === "switch" &&
     event.info.source === "timer" &&
-    event.info.output === false
+    event.info.output === true
   ) {
     print("Start watchdog timer");
     pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
