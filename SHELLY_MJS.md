@@ -104,6 +104,9 @@ mqtt-switch-status.js: Send Switch status to a custom MQTT topic
 ===
 Use MQTT in scripting to provide switch status updates on a custom topic
 
+n-way-dimmer.js
+===
+Setup an N-Way dimmer wsing the Shelly Plus Wall Dimmer. One dimmer is connected to the light while the other dimmer switches can be useed to remotly conntrol the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicated directly with esch other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
 
 objects.js: mJS example of how to create custom Objects that interact with components (Switch in this case)
 ===
