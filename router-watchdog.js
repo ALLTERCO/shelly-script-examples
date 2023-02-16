@@ -62,7 +62,7 @@ function pingEndpoints() {
         //set the output with toggling back
         Shelly.call(
           "Switch.Set",
-          { id: 0, on: true, toggle_after: CONFIG.toggleTime },
+          { id: 0, on: false, toggle_after: CONFIG.toggleTime },
           function () {}
         );
         return;
@@ -79,7 +79,7 @@ Shelly.addEventHandler(function (event) {
   if (
     event.name === "switch" &&
     event.info.source === "timer" &&
-    event.info.output === false
+    event.info.output === true
   ) {
     print("Start watchdog timer");
     pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
