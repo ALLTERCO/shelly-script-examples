@@ -6,6 +6,12 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+# 2023-03
+- shell script for uploading scripts on linux and mac
+- http handler example
+## 2022-12
+- Shelly BLU Button example
+- Shelly BLU Door Window example
 ## 2022-11
 - BLE scanner examples - ruuvi and b-parasite support
 
