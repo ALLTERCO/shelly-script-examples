@@ -1,6 +1,6 @@
 /**
  * Shelly script example of using HTTP handlers
- * Implemeting a simple HTTP server with action handlers
+ * Implementing a simple HTTP server with action handlers
  *
  * Usage:
  * call the setup action on your shelly
@@ -13,41 +13,34 @@
 
 //as hoisting is not supported in Shelly Scripting
 //we introduce a registration method
-const CONFIG = {
+let CONFIG = {
   url_segment: "api",
   action_param: "action",
   actions: {},
-  registerActionHandler: function(actionParamValue,handler) {
+  registerActionHandler: function (actionParamValue, handler) {
     this.actions[actionParamValue] = handler;
-  }
+  },
 };
 
-//prototype of a handler response
-let resultProto = {
-  msg: "",
-  code: 200,
-};
-
-// action handlers below
-
+//action handlers below
 //this is just a dummy handler, nothing interesting
-let handleSetup = function(qsParams, response) {
+let handleSetup = function (qsParams, response) {
   response.code = 200;
   response.body = "Setup: successful";
   response.send();
-}
+};
 
 //switch between detached and follow mode for the first switch
-let handleProfile = function(qsParams, response) {
+let handleProfile = function (qsParams, response) {
   if (typeof qsParams.profile === "undefined") {
     response.code = 424;
     response.body = "Missing parameter profile";
     response.send();
     return;
-  };
-  let _config = {
-    in_mode : "detached"
   }
+  let _config = {
+    in_mode: "detached",
+  };
   if (qsParams.profile === "local") {
     _config.in_mode = "follow";
     _config.initial_state = "off";
@@ -56,7 +49,7 @@ let handleProfile = function(qsParams, response) {
     "switch.setconfig",
     {
       id: 0,
-      config: _config
+      config: _config,
     },
     function (res, err_code, err_msg) {
       if (err_code !== 0) {
@@ -70,10 +63,10 @@ let handleProfile = function(qsParams, response) {
       }
     }
   );
-}
+};
 
-CONFIG.registerActionHandler('setup', handleSetup);
-CONFIG.registerActionHandler('profile', handleProfile);
+CONFIG.registerActionHandler("setup", handleSetup);
+CONFIG.registerActionHandler("profile", handleProfile);
 
 //No need to adapt anything below
 function parseQS(qs) {
@@ -92,7 +85,7 @@ function httpServerHandler(request, response) {
   let responseBody = "";
   let params = parseQS(request.query);
   let actionParam = params[CONFIG.action_param];
-  console.log('Action param', actionParam);
+  console.log("Action param", actionParam);
   console.log(JSON.stringify(params));
   if (
     typeof actionParam === "undefined" ||
