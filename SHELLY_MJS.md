@@ -38,6 +38,11 @@ http-notify-on-power-threshold.js: Shelly XPM - Send HTTP notification if power 
 This script subscribes for notifications, monitors the instanteneous power of the output switch and if that
 goes above a threshold value and if current time is within the active time window will send an HTTP notification
 
+http-handlers.js: Shelly HTTP script handling GET requests, query strings
+===
+This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for
+those requests. Reconfiguration of a Switch component as an example is included
+
 consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming certain amount of power
 ===
 This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus
