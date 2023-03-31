@@ -55,12 +55,11 @@ let handleProfile = function (qsParams, response) {
       if (err_code !== 0) {
         response.code = 400;
         response.body = err_msg;
-        response.send();
       } else {
         response.code = 200;
         response.body = "Successful profile setup";
-        response.send();
       }
+      response.send();
     }
   );
 };
@@ -105,5 +104,5 @@ function httpServerHandler(request, response) {
 }
 
 //we don't handle failure of this method
-//as according to docs it abort the entire script
+//as according to Shelly Gen2 API docs it aborts the script
 HTTPServer.registerEndpoint(CONFIG.url_segment, httpServerHandler);
