@@ -88,7 +88,8 @@ fi
 #$1 shellyrpc/method, $2 params
 call_shelly() {
   local PARAMS=$2
-  local RESULT=$(echo $PARAMS | curl -s -H 'Content-type:application/json' --data-binary @- ${1})
+  echo "PARAMS $PARAMS"
+  local RESULT=$(echo "$PARAMS" | curl -s -H 'Content-type: application/octet-stream' --data @- ${1})
   if [[ $RESULT == *"404"* ]]; then
     echo "Error calling ${1}"
     return 1
