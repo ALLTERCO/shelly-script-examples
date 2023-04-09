@@ -74,14 +74,17 @@ function pingEndpoints() {
 print("Start watchdog timer");
 pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
 
-Shelly.addEventHandler(function (event) {
-  //timeout has expired and we have turned back power
-  if (
-    event.name === "switch" &&
-    event.info.source === "timer" &&
-    event.info.output === true
-  ) {
-    print("Start watchdog timer");
-    pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
-  }
+Shelly.addStatusHandler(function (status) {
+  //is the component a switch
+  if(status.name !== "switch") return;
+  //is it the one with id 0
+  if(status.id !== 0) return;
+  //does it have a delta.source property
+  if(typeof status.delta.source === "undefined") return;
+  //is the source a timer
+  if(status.delta.source !== "timer") return;
+  //is it turned on
+  if(status.delta.output !== true) return;
+  //start the loop to ping the endpoints again
+  pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
 });
