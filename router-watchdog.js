@@ -45,7 +45,7 @@ function pingEndpoints() {
     { url: CONFIG.endpoints[endpointIdx], timeout: CONFIG.httpTimeout },
     function (response, error_code, error_message) {
       //http timeout, magic number, not yet documented
-      if (error_code === -114) {
+      if (error_code === -114 || error_code === -104) {
         print("Failed to fetch ", CONFIG.endpoints[endpointIdx]);
         failCounter++;
         print("Rotating through endpoints");
