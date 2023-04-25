@@ -75,7 +75,7 @@ let packedStruct = {
 let RuuviParser = {
   getData: function (res) {
     let data = BLE.GAP.ParseManufacturerData(res.advData);
-    if (typeof data !== "string" || data.length < 26) return null;
+    if (typeof data !== "string" || data.length < 18) return null;
     packedStruct.setBuffer(data);
     let hdr = packedStruct.unpack('<HB', ['mfd_id', 'data_fmt']);
     if(hdr.mfd_id !== RUUVI_MFD_ID) return null;
