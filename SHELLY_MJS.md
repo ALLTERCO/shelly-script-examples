@@ -1,3 +1,7 @@
+ble-shelly-btn-gateway-for-other-devices.js: Gateway between Shelly BLU button1 and other devices
+===
+Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly devices (no matter Gen1 or Gen2) by sending local requests by their local IP APIs. 
+
 activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
