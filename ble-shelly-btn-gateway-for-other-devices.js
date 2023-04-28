@@ -42,7 +42,7 @@ let CONFIG = {
 
 let urlsPerCall = 3; 
 let urlsQueue = [];
-let queueCounter = 0;
+let callsCounter = 0;
 
 let ALLTERCO_MFD_ID_STR = "0ba9";
 let BTHOME_SVC_ID_STR = "fcd2";
@@ -139,10 +139,10 @@ let BTHomeDecoder = {
 };
 
 function callQueue() {
-    if(queueCounter < urlsPerCall) {
+    if(callsCounter < 6 - urlsPerCall) {
         for(let i = 0; i < urlsPerCall && i < urlsQueue.length; i++) {
             let url = urlsQueue.splice(0, 1)[0];
-            queueCounter++;
+            callsCounter++;
             Shelly.call("HTTP.GET", { 
                 url: url, 
                 timeout: 5
@@ -155,13 +155,14 @@ function callQueue() {
                         console.log("Calling", data.url, "successed");
                     }
 
-                    queueCounter--;
+                    callsCounter--;
                 }, 
                 { url: url }
             );
         }
     }
 
+    //if there are more urls in the queue
     if(urlsQueue.length > 0) {
         Timer.set(
             1000, //the delay
@@ -217,6 +218,7 @@ function bleScanCallback(event, result) {
         return;
     }
 
+    //save all urls into the queue for the current event
     for(let i in CONFIG.actions[actionType]) {
         urlsQueue.push(CONFIG.actions[actionType][i]);
     }
@@ -259,13 +261,13 @@ function init() {
 
     //exit if there isn't a blu button address
     if(typeof CONFIG.bluButtonAddress !== "string") {
-        console.log("Error with the Shelly BLU button1 address");
+        console.log("Error with the Shelly BLU button1's address");
         return;
     }
     
-    //exit if there isn't a actions object
+    //exit if there isn't action object
     if(typeof CONFIG.actions === "undefined") {
-        console.log("Can't find actions object in the config");
+        console.log("Can't find the actions object in the config");
         return;
     }
 
