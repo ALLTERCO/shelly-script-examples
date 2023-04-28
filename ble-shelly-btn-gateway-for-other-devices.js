@@ -206,7 +206,21 @@ function bleScanCallback(event, result) {
         return;
     }
 
-    let receivedData = BTHomeDecoder.unpack(result.service_data[BTHOME_SVC_ID_STR]);
+    let servData = result.service_data;
+
+    //exit if service data is null/device is encrypted
+    if(servData === null || typeof servData === "undefined" || typeof servData[BTHOME_SVC_ID_STR] === "undefined") {
+        console.log("Can't handle encrypted devices");
+        return;
+    }
+
+    let receivedData = BTHomeDecoder.unpack(servData[BTHOME_SVC_ID_STR]);
+
+    //exit if unpacked data is null or the device is encrypted
+    if(receivedData === null || typeof receivedData === "undefined" || receivedData["encryption"]) {
+        console.log("Can't handle encrypted devices");
+        return;
+    }
 
     //exit if the event is duplicated
     if (lastPacketId === receivedData.pid) {
