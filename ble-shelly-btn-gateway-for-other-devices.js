@@ -14,8 +14,6 @@
  *      Limitations can be check here: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#resource-limits
  * 
  * > The order of the execution of the urls can't be guaranteed
- * 
- * > Can't have more than 12 urls per action, because of the limit of 5 timers
  */
 
 
@@ -43,6 +41,8 @@ let CONFIG = {
 /** =============================== STOP CHANGING HERE =============================== */
 
 let urlsPerCall = 3; 
+let urlsQueue = [];
+let queueCounter = 0;
 
 let ALLTERCO_MFD_ID_STR = "0ba9";
 let BTHOME_SVC_ID_STR = "fcd2";
@@ -138,60 +138,39 @@ let BTHomeDecoder = {
     },
 };
 
-function executeActions(actionType, startIndex) {
-    //exit if the event doesn't exist in the config
-    if(typeof CONFIG.actions[actionType] === "undefined") {
-        console.log("Unknown event type in the config");
-        return;
-    }
-
-    let urls = CONFIG.actions[actionType];
-
-    let maxUrls = urlsPerCall * 4; //4 because we can have up to 5 timers
-
-    //exit if the urls limit is reached
-    if(urls.length >= maxUrls) {
-        console.log("Can't have more than", maxUrls, "urls per action");
-        console.log("The execution of", actionType, "is aborted!")
-        return;
-    }
-
-    let endIndex =  Math.min(startIndex + urlsPerCall, urls.length);
-
-    //loop and call next {urlsPerCall} urls or to the end of the list
-    for(startIndex; startIndex < endIndex; startIndex++) {
-        Shelly.call("HTTP.GET", { 
-                url: urls[startIndex], 
+function callQueue() {
+    if(queueCounter < urlsPerCall) {
+        for(let i = 0; i < urlsPerCall && i < urlsQueue.length; i++) {
+            let url = urlsQueue.splice(0, 1)[0];
+            queueCounter++;
+            Shelly.call("HTTP.GET", { 
+                url: url, 
                 timeout: 5
-            }, 
-            function(_, error_code, _, data) {
-                if(error_code !== 0) {
-                    console.log("Calling", data.url, "failed");
-                }
-                else {
-                    console.log("Calling", data.url, "successed");
-                }
-            }, 
-            { url: urls[startIndex] }
+                }, 
+                function(_, error_code, _, data) {
+                    if(error_code !== 0) {
+                        console.log("Calling", data.url, "failed");
+                    }
+                    else {
+                        console.log("Calling", data.url, "successed");
+                    }
+
+                    queueCounter--;
+                }, 
+                { url: url }
+            );
+        }
+    }
+
+    if(urlsQueue.length > 0) {
+        Timer.set(
+            1000, //the delay
+            false, 
+            function() {
+                callQueue();
+            }
         );
     }
-
-    //exit if no urls left to call
-    if(startIndex >= urls.length) {
-        return;
-    }
-
-    //call the rest of the urls with a delay
-    Timer.set(
-        1000, //the delay
-        false, 
-        function(data) {
-            executeActions(data.actionType, data.startIndex);
-        }, {
-            actionType: actionType,
-            startIndex: startIndex
-        }
-    );
 }
 
 let lastPacketId = 0x100;
@@ -232,7 +211,17 @@ function bleScanCallback(event, result) {
     //getting and execuing the action
     let actionType = ["", "singlePush", "doublePush", "triplePush"][receivedData["Button"]];
 
-    executeActions(actionType, 0);
+    //exit if the event doesn't exist in the config    
+    if( !(actionType in CONFIG.actions)) {
+        console.log("Unknown event type in the config");
+        return;
+    }
+
+    for(let i in CONFIG.actions[actionType]) {
+        urlsQueue.push(CONFIG.actions[actionType][i]);
+    }
+
+    callQueue();
 }
 
 function bleScan() {
