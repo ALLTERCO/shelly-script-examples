@@ -216,15 +216,17 @@ function bleScanCallback(event, result) {
     //getting and execuing the action
     let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["Button"]];
 
+    let actionUrls = CONFIG.actions[actionType];
+
     //exit if the event doesn't exist in the config    
-    if( !(actionType in CONFIG.actions)) {
+    if(typeof actionType === "undefined") {
         console.log("Unknown event type in the config");
         return;
     }
 
     //save all urls into the queue for the current event
-    for(let i in CONFIG.actions[actionType]) {
-        urlsQueue.push(CONFIG.actions[actionType][i]);
+    for(let i in actionUrls) {
+        urlsQueue.push(actionUrls[i]);
     }
 
     callQueue();
