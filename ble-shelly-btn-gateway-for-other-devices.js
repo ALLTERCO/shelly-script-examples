@@ -19,7 +19,7 @@
 
 /** =============================== CHANGE HERE =============================== */
 let CONFIG = {
-    bluButtonAddress: "bc:02:6e:c3:aa:1c", //the mac address of shelly blu button1 that will trigger the actions
+    bluButtonAddress: "b4:35:22:fe:56:e5", //the mac address of shelly blu button1 that will trigger the actions
     actions: { //urls to be called on a event
         //when adding urls you must separate them with commas and put them in quotation marks
         singlePush: [ //urls that will be executed at singlePush event from the blu button1
@@ -35,6 +35,10 @@ let CONFIG = {
             "http://192.168.1.38/light/0?turn=on",
             "http://192.168.1.40/rpc/Switch.Set?id=0&on=false",
             "http://192.168.1.40/rpc/Switch.Set?id=1&on=false"
+        ],
+        longPush: [ //urls that will be executed at longPush event from the blu button1
+            "http://192.168.1.41/rpc/Cover.Close",
+            "http://192.168.1.42/rpc/Cover.Close"
         ]
     }
 };
@@ -181,8 +185,12 @@ function bleScanCallback(event, result) {
         return;
     }
 
-    //exit if the data it not comming from a Shelly Blu button1 and if the mac address doesn't match
-    if (result.local_name.indexOf("SBBT") !== 0 || result.addr !== CONFIG.bluButtonAddress) {
+    //exit if the data is not coming from a Shelly Blu button1 and if the mac address doesn't match
+    if (    typeof result.local_name === "undefined" || 
+            typeof result.addr === "undefined" || 
+            result.local_name.indexOf("SBBT") !== 0 || 
+            result.addr !== CONFIG.bluButtonAddress
+    ) {
         return;
     }
 
@@ -210,17 +218,19 @@ function bleScanCallback(event, result) {
     lastPacketId = receivedData["pid"];
 
     //getting and execuing the action
-    let actionType = ["", "singlePush", "doublePush", "triplePush"][receivedData["Button"]];
+    let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["Button"]];
+
+    let actionUrls = CONFIG.actions[actionType];
 
     //exit if the event doesn't exist in the config    
-    if( !(actionType in CONFIG.actions)) {
+    if(typeof actionType === "undefined") {
         console.log("Unknown event type in the config");
         return;
     }
 
     //save all urls into the queue for the current event
-    for(let i in CONFIG.actions[actionType]) {
-        urlsQueue.push(CONFIG.actions[actionType][i]);
+    for(let i in actionUrls) {
+        urlsQueue.push(actionUrls[i]);
     }
 
     callQueue();
