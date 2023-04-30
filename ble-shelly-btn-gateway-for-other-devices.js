@@ -185,8 +185,12 @@ function bleScanCallback(event, result) {
         return;
     }
 
-    //exit if the data it not comming from a Shelly Blu button1 and if the mac address doesn't match
-    if (result.local_name.indexOf("SBBT") !== 0 || result.addr !== CONFIG.bluButtonAddress) {
+    //exit if the data is not coming from a Shelly Blu button1 and if the mac address doesn't match
+    if (    typeof result.local_name === "undefined" || 
+            typeof result.addr === "undefined" || 
+            result.local_name.indexOf("SBBT") !== 0 || 
+            result.addr !== CONFIG.bluButtonAddress
+    ) {
         return;
     }
 
