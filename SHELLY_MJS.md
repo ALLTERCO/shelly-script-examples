@@ -1,3 +1,8 @@
+ble-aranet4.js: Aranet4 example with BLE scripting
+===
+Example how to use a 3rd party BLE sensor and execute actions bsed on conditions. (Requires firmware version
+0.12.0-beta1 or newer)
+
 ble-shelly-btn-gateway-for-other-devices.js: Gateway between Shelly BLU button1 and other devices
 ===
 Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly devices (no matter Gen1 or Gen2) by sending local requests by their local IP APIs. 
@@ -5,7 +10,6 @@ Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly de
 activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
-
 
 ble-shelly-btn.js: BLE in Scripting - Shelly BLU Button script actions
 ===
@@ -21,7 +25,6 @@ ble-shelly-scanner.js: BLE in Scripting - Shelly BLU Scanner
 ===
 This script will scan aired advertisement data, select Shelly BLU devices and will print their name and address (Requires firmware version
 0.12.0-beta1 or newer)
-
 
 ble-ruuvi.js: BLE in Scripting - Ruuvi example
 ===
