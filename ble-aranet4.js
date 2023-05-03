@@ -234,8 +234,11 @@ function scanCB(ev, res) {
     let condKey = null;
     let run = true;
     for (condKey in cond) {
-      if (typeof measurement[condKey] === "undefined") run = false;
+      let measuredValue = measurement[condKey];
 
+      if (typeof measuredValue === "undefined") run = false;
+
+      //check for shorthanded condition
       if (typeof cond[condKey] === "object") {
         let cmp = cond[condKey]["cmp"];
         let value = cond[condKey]["value"];
@@ -246,22 +249,22 @@ function scanCB(ev, res) {
           console.log("Missing required keys at", condKey);
         }
 
-        if(cmp === ">" && typeof value === "number" && typeof measurement[condKey]  === "number") {
-          if(measurement[condKey] < value) {
+        if(cmp === ">" && typeof value === "number" && typeof measuredValue === "number") {
+          if(measuredValue < value) {
             run = false; 
           }
-        } else if(cmp === "<" && typeof value === "number" && typeof measurement[condKey] === "number") {
-          if(measurement[condKey] > value) {
+        } else if(cmp === "<" && typeof value === "number" && typeof measuredValue === "number") {
+          if(measuredValue > value) {
             run = false;
           }
         }
         else if(cmp === "==" || cmp === "===") {
-          if(measurement[condKey] !== value) {
+          if(measuredValue !== value) {
             run = false;
           }
         }
-        else if(cmp === "~=" && typeof value === "number" && typeof measurement[condKey] === "number") {
-          if(Math.round(measurement[condKey]) !== value) {
+        else if(cmp === "~=" && typeof value === "number" && typeof measuredValue === "number") {
+          if(Math.round(measuredValue) !== value) {
             run = false;
           }
         }
@@ -269,7 +272,9 @@ function scanCB(ev, res) {
           console.log("Invalid compare argument at", condKey); 
           run = false;
         }
-      } else if (measurement[condKey] !== cond[condKey]) run = false;
+      } else if (measuredValue !== cond[condKey]) { 
+        run = false;
+      }
     }
     // if all conditions evaluated to true then execute
     if (run) CONFIG.actions[aIdx]["action"](measurement);
