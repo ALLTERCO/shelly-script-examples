@@ -4,6 +4,9 @@
  * Parses BLE advertisements and executes actions depending on conditions
  */
 
+/** =============================== CHANGE HERE =============================== */
+
+//Callback functions
 function printAranetData(aranet_data) {
   print("Aranet temperature condition" );
   Shelly.emitEvent("ARANET4_TEMPERATURE", {
@@ -25,28 +28,61 @@ function printCO2Warning(aranet_data) {
   });
 }
 
-//dedupe==true will de-duplicate Aranet4 packets with same packet id
-//confitions can be simple equality, less than, greater than 
+function printBatteryWarning(aranet_data) {
+  console.log("Aranet battery is low");
+  Shelly.emitEvent("ARANET4_BATTERY", {
+    addr: aranet_data.sys.addr,
+    rssi: aranet_data.sys.rssi,
+    co2_level: aranet_data.co2_aranet_level,
+    co2_pppm: aranet_data.co2_ppm,
+    pid: aranet_data.packet_counter,
+    battery: aranet_data.battery
+  });
+}
+ 
+/**
+ * "dedupe" if true, will de-duplicate Aranet4 packets with the same packet id
+ * Supported conditions:
+ * > ">" - Check if the measured value is greater than the target value
+ * > "<" - Check if the measured value is less than the target value
+ * > "==" - Check if the measured value matches with the target value (Supports non-number values)
+ * > "~=" - Check if the rounded measured value matches the target value
+ */
 let CONFIG = {
   dedupe: true,
   actions: [
     {
-      cond: {
+      cond: {//if measured tC is greater than 19, call printArnetData function
         tC: {
-          cmp: ">",
+          cmp: ">", 
           value: 19
         }
       },
       action: printAranetData
     },
     {
-      cond: {
-        co2_aranet_level: 2
+      cond: { //if co2_aranet_level equals to 2, call printCO2Waring function
+        co2_aranet_level: 2 
       },
       action: printCO2Warning
+    },
+    {
+      cond: { //if the battery is below 50% and the temperature is above 20C, call printBatteryWarning function
+        battery: {
+          cmp: "<",
+          value: 50
+        },
+        tC: {
+          cmp: ">",
+          value: 20
+        }
+      },
+      action: printBatteryWarning
     }
   ]
 };
+
+/** =============================== STOP CHANGING HERE =============================== */
 
 let SCAN_PARAM_WANT = {
   duration_ms: BLE.Scanner.INFINITE_SCAN,
@@ -225,7 +261,7 @@ function scanCB(ev, res) {
           }
         }
         else if(cmp === "~=" && typeof value === "number" && typeof measurement[condKey] === "number") {
-          if(Math.round(measurement[condKey]) !== Math.round(value)) {
+          if(Math.round(measurement[condKey]) !== value) {
             run = false;
           }
         }
