@@ -219,6 +219,16 @@ function scanCB(ev, res) {
             run = false;
           }
         }
+        else if(cmp === "==" || cmp === "===") {
+          if(measurement[condKey] !== value) {
+            run = false;
+          }
+        }
+        else if(cmp === "~=" && typeof value === "number" && typeof measurement[condKey] === "number") {
+          if(Math.round(measurement[condKey]) !== Math.round(value)) {
+            run = false;
+          }
+        }
         else { //default exit
           console.log("Invalid compare argument at", condKey); 
           run = false;
