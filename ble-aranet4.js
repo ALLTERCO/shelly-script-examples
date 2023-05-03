@@ -195,14 +195,14 @@ function scanCB(ev, res) {
     // skip if no condition defined
     if (typeof CONFIG.actions[aIdx]["cond"] === "undefined") continue;
     let cond = CONFIG.actions[aIdx]["cond"];
-    let cIdx = null;
+    let condKey = null;
     let run = true;
-    for (cIdx in cond) {
-      if (typeof measurement[cIdx] === "undefined") run = false;
-      if (typeof cond[cIdx] === "object") {
-        if(cond[cIdx].cmp === ">" && measurement[cIdx] <= cond[cIdx].value) run = false; 
-        if(cond[cIdx].cmp === "<" && measurement[cIdx] >= cond[cIdx].value) run = false; 
-      } else if (measurement[cIdx] !== cond[cIdx]) run = false;
+    for (condKey in cond) {
+      if (typeof measurement[condKey] === "undefined") run = false;
+      if (typeof cond[condKey] === "object") {
+        if(cond[condKey].cmp === ">" && measurement[condKey] <= cond[condKey].value) run = false; 
+        if(cond[condKey].cmp === "<" && measurement[condKey] >= cond[condKey].value) run = false; 
+      } else if (measurement[condKey] !== cond[condKey]) run = false;
     }
     // if all conditions evaluated to true then execute
     if (run) CONFIG.actions[aIdx]["action"](measurement);
