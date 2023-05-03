@@ -199,9 +199,30 @@ function scanCB(ev, res) {
     let run = true;
     for (condKey in cond) {
       if (typeof measurement[condKey] === "undefined") run = false;
+
       if (typeof cond[condKey] === "object") {
-        if(cond[condKey].cmp === ">" && measurement[condKey] <= cond[condKey].value) run = false; 
-        if(cond[condKey].cmp === "<" && measurement[condKey] >= cond[condKey].value) run = false; 
+        let cmp = cond[condKey]["cmp"];
+        let value = cond[condKey]["value"];
+
+        //check if the condition object is valid
+        if(typeof cmp === "undefined" || typeof value === "undefined") {
+          run = false;
+          console.log("Missing required keys at", condKey);
+        }
+
+        if(cmp === ">" && typeof value === "number" && typeof measurement[condKey]  === "number") {
+          if(measurement[condKey] < value) {
+            run = false; 
+          }
+        } else if(cmp === "<" && typeof value === "number" && typeof measurement[condKey] === "number") {
+          if(measurement[condKey] > value) {
+            run = false;
+          }
+        }
+        else { //default exit
+          console.log("Invalid compare argument at", condKey); 
+          run = false;
+        }
       } else if (measurement[condKey] !== cond[condKey]) run = false;
     }
     // if all conditions evaluated to true then execute
