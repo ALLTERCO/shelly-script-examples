@@ -236,7 +236,11 @@ function scanCB(ev, res) {
     for (condKey in cond) {
       let measuredValue = measurement[condKey];
 
-      if (typeof measuredValue === "undefined") run = false;
+      if (typeof measuredValue === "undefined") {
+        run = false;
+        console.log("Invalid condition key at", condKey);
+        break;
+      }
 
       //check for shorthanded condition
       if (typeof cond[condKey] === "object") {
@@ -247,6 +251,7 @@ function scanCB(ev, res) {
         if(typeof cmp === "undefined" || typeof value === "undefined") {
           run = false;
           console.log("Missing required keys at", condKey);
+          break;
         }
 
         if(cmp === ">" && typeof value === "number" && typeof measuredValue === "number") {
