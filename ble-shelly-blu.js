@@ -4,7 +4,7 @@
  * 
  * This script DOESN'T execute actions, only emit event. Can be used with events-scene.js example.
  * 
- * What can the event data containes, each value is explained below. 
+ * All paramerts that the BLU devices can return:
  * Each device will provide data solely from its sensors.
  * - pid - packet ID
  * - battery - the battery level of the device in %
