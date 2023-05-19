@@ -160,6 +160,42 @@ let CONFIG = {
 /****************** STOP CHANGE ******************/
 
 /**
+ * Logs the provided message with an optional prefix to the console.
+ * @param {string} message - The message to log.
+ * @param {string} [prefix] - An optional prefix for the log message.
+ */
+function logger(message, prefix) {
+
+    //exit if the debug isn't enabled
+    if(!CONFIG.debug) {
+        return;
+    }
+
+    let finalText = "";
+
+    //if the message is list loop over it
+    if(typeof message === "object") {
+        for(let i in message) {
+            finalText = finalText + " " + message[i];
+        }
+    }
+    else {
+        finalText = message;
+    }
+
+    //the prefix must be string
+    if(typeof prefix !== "string") {
+        prefix = "";
+    }
+    else {
+        prefix = prefix + " :"
+    }
+
+    //log the result
+    console.log(prefix, finalText);
+}
+
+/**
  * Scene Manager object
  * 
  * Handle scenes based on the events and do automations
@@ -180,10 +216,15 @@ let SceneManager = {
      * @param {Object} data - New data received
      */
     onNewData: function(data) {
-        console.log(JSON.stringify(data));
+        logger(["New data received", JSON.stringify(data)], "Info");
         for(let sceneIndex = 0; sceneIndex < this.scenes.length; sceneIndex++) {
+            logger(["Validating conditions for scene with index=", sceneIndex], "Info");
             if(this.validateConditionsForScene(sceneIndex, data)) {
+                logger(["Conditions are valid for scene with index=", sceneIndex], "Info");
                 this.executeScene(sceneIndex, data);
+            }
+            else {
+                logger(["Conditions are invalid for scene with index=", sceneIndex], "Info");
             }
         }
     },
@@ -196,7 +237,8 @@ let SceneManager = {
     eventHandler: function(eventData, sceneEventObject) {
         let info = eventData.info;
         if(typeof info !== "object") {
-            console.log("ERROR: can't find the info object");
+            console.log("ERROR: ");
+            logger("Can't find the info object", "Error");
             
             return;
         }
@@ -351,6 +393,7 @@ let SceneManager = {
 function init() {
     SceneManager.setScenes(CONFIG.scenes);
     Shelly.addEventHandler(SceneManager.eventHandler, SceneManager);    
+    logger("Scene Manager successfully started", "Info");
 }
 
 init();
