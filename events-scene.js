@@ -155,7 +155,7 @@ let CONFIG = {
     /**
      * When set to true, debug messages will be logged to the console.
      */
-    debug: true,
+    debug: false,
 };
 /****************** STOP CHANGE ******************/
 
@@ -311,7 +311,7 @@ let SceneManager = {
                 compValue = condData.value;
                 compFunc = condData.compare;
             }
-            else if(typeof condData === "string") {
+            else if(typeof condData !== "function") {
                 compFunc = "==";
             }
 
