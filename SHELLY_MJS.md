@@ -1,3 +1,11 @@
+events-scene.js: Event Based Scene Manager
+===
+Example how to catch events and how to use them to trigger automations
+
+ble-shelly-blu.js: Shelly BLU example with BLE API
+===
+Example how to sets up a BLE scanner, listens for advertising data from nearby Shelly BLU devices, decodes the data using a BTHome data structure, and emits the decoded data for further processing.
+
 ble-aranet4.js: Aranet4 example with BLE scripting
 ===
 Example how to use a 3rd party BLE sensor and execute actions bsed on conditions. (Requires firmware version
