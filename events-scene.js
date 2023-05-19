@@ -316,6 +316,7 @@ let SceneManager = {
             }
 
             if( !(this.checkCondition(compFunc, currValue, compValue))) {
+                logger(["Checking failed for", condKey, "in scene with index=", sceneIndex], "Info");
                 return false;
             }
         }
