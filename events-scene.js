@@ -1,6 +1,36 @@
+/**
+ * The `CONFIG` object contains a scenes property which is an array of scene objects. 
+ * Each scene object consists of two properties: `conditions` and `action`. The `conditions` property 
+ * defines the conditions under which the scene should be triggered, and the `action` 
+ * property defines the function to be executed when the conditions are met. 
+ * 
+ * The `conditions` are defined as key-value pairs.
+ * These keys correspond to specific data values received with the event. 
+ * The values associated with these keys can be either a direct value, an object specifying a comparison, or a function that
+ * must return boolean value.
+ * 
+ * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to 
+ * perform specific actions.
+ * 
+ */
+
+/****************** START CHANGE ******************/
 let CONFIG = {
+
+    /**
+     * List of scenes
+     */
     scenes: [
+        /** SCENE START **/
         {
+            /**s
+             * In this case, event and button are the keys , and the condition is that the value of 
+             * button must be greater than 0. The condition is defined using an object with compare and value properties.
+             * And the event value must be equal to "shelly-blu". You can target a specified button by 
+             * adding `addess: <BLU BUTTON ADDRESS>` parameter to the condtions object.
+             * 
+             * NOTE: To use `shelly-blu` event you need to have installed a seperated script called ble-shelly-blu.js
+             */
             conditions: {
                 event: "shelly-blu",
                 button: {
@@ -9,39 +39,153 @@ let CONFIG = {
                 }
             },
 
+            /**
+             * In this example, when the conditions of the scene are met, it simply logs a message to the console.
+             */
             action: function(data) {
                 console.log("The button was pressed");
             }
         },
+        /** SCENE END **/
+
+        /** SCENE START **/
         {
+            /**
+             * In this case, window is the key, and the condition is that the value of window must be equal to 1.
+             * 
+             * NOTE: To use `shelly-blu` event you need to have installed a seperated script called ble-shelly-blu.js
+             */
             conditions: {
                 event: "shelly-blu",
-                button: function(value) {
-                    return typeof value === "number" && value % 2 === 0;
+                window: 1
+            },
+
+            /**
+             * Here when the condtions are met, it will publish a message via MQTT with the addess of the Shelly BLU Door/Window.
+             * 
+             * The MQTT.publish() function is used to publish a message to an MQTT broker. 
+             * It takes two arguments: the topic and the message to be published. More info here: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttpublish
+             */
+            action: function(data) {
+                MQTT.publish(
+                    "mymqttbroker/shelly/window/open",
+                    "The window with addess " + data.address + " was opened"
+                );
+            }
+        },
+        /** SCENE END **/
+
+        /** SCENE START **/
+        {
+            /**
+             * Check if the measured analog value in percentages is less than the random number
+             */
+            conditions: {
+                event: "analog_measurement",
+                percent: function(per) {
+                    /** Get a random number between 0 and 100
+                     * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#math-api
+                     */
+                    let rand = Math.random() * 100;
+
+                    return per < rand;
                 }
             },
 
             action: function(data) {
-                console.log("The button was pressed even number of times");
+
+                /**
+                 * Switch the output with id=0 ON for 4 seconds
+                 * The shelly call function documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellycall
+                 * The switch component documentation: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchset
+                 */
+                Shelly.call(
+                    "Switch.Set", 
+                    {
+                        on: true,
+                        toggle_after: 4,
+                        id: 0
+                    }
+                );
             }
-        }
+        },
+        /** SCENE END **/
+
+        /** SCENE START **/
+        {
+            /**
+             * Here the script will check if the event is `temperature_measurement`, the id is 100 and if the 
+             * temperature sensor id=100 is greater than the temperature sensor id=101.
+             * 
+             * The documentation about Shelly.getComponentStatus: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellygetcomponentstatus
+             * 
+             * NOTE: To have `temperature_measurement` event, you need Shelly Plus Add-on installed on the device
+             */
+            conditions: {
+                event: "temperature_measurement",
+                id: 100,
+                tC: function(firstTempSensor) {
+                    let secondTempSensor = Shelly.getComponentStatus("temperature:101");
+                    if(typeof secondTempSensor !== "object") {
+                        return false;
+                    }
+
+                    return firstTempSensor > secondTempSensor.tC;
+                }
+            },
+
+            /**
+             * Send GET request to another Shelly device with IP=192.168.33.2 to turn off its first output
+             */
+            action: function(data) {
+                Shelly.call(
+                    "HTTP.GET",
+                    {
+                        url: "http://192.168.33.2/relay/0?turn=off",
+                        timeout: 5
+                    }
+                );
+            }
+        },
+        /** SCENE END **/
     ]
 };
+/****************** STOP CHANGE ******************/
 
+/**
+ * Scene Manager object
+ * 
+ * Handle scenes based on the events and do automations
+ */
 let SceneManager = {
     scenes: [],
 
+    /**
+     * Set the scenes for the SceneManager
+     * @param {Array} scenes - Array of scene objects
+     */
     setScenes: function(scenes) {
         this.scenes = scenes;
     },
+
+    /**
+     * Process new data and check if any scenes should be executed
+     * @param {Object} data - New data received
+     */
     onNewData: function(data) {
         console.log(JSON.stringify(data));
-        for(let sceneIndex in this.scenes) {
+        for(let sceneIndex = 0; sceneIndex < this.scenes.length; sceneIndex++) {
             if(this.validateConditionsForScene(sceneIndex, data)) {
                 this.executeScene(sceneIndex, data);
             }
         }
     },
+
+    /**
+     * Event handler for handling events from the device
+     * @param {Object} eventData - Event data
+     * @param {Object} sceneEventObject - Scene manager object
+     */
     eventHandler: function(eventData, sceneEventObject) {
         let info = eventData.info;
         if(typeof info !== "object") {
@@ -54,10 +198,20 @@ let SceneManager = {
             for(let key in info.data) {
                 info[key] = info.data[key];
             }
+
+            info.data = undefined;
         }
 
         sceneEventObject.onNewData(info);
     },
+
+    /**
+     * Check if the conditions are met
+     * @param {string|function} compFunc - Comparison function or operator.
+     * @param {*} currValue - Current value to compare.
+     * @param {*} compValue - Value to compare against.
+     * @returns {boolean} - Whether the conditions are met
+     */
     checkCondition: function(compFunc, currValue, compValue) {
         if(
             typeof currValue === "undefined" || 
@@ -70,13 +224,20 @@ let SceneManager = {
         if(typeof compFunc === "string") {
             compFunc = this.compareFunctions[compFunc];
         }
-
+        
         if(typeof compFunc === "function") {
             return compFunc(currValue, compValue);
         }
 
         return false;
     },
+
+    /**
+     * Validate conditions for a specific scene based on the received data
+     * @param {number} sceneIndex - Index of the scene to validate
+     * @param {Object} receivedData - Data received for validation
+     * @returns {boolean} - Whether the conditions are met
+     */
     validateConditionsForScene: function(sceneIndex, receivedData) {
         if(
             typeof sceneIndex !== "number" || 
@@ -92,8 +253,8 @@ let SceneManager = {
         }
 
         for(let condKey in conditions) {
-            let currValue = receivedData[condKey];
             let condData = conditions[condKey];
+            let currValue = receivedData[condKey];
             let compValue = condData;
             let compFunc = condData;
 
@@ -106,13 +267,18 @@ let SceneManager = {
             }
 
             if( !(this.checkCondition(compFunc, currValue, compValue))) {
-                console.log("FAILED", compFunc, currValue, compValue);
                 return false;
             }
         }
 
         return true;
     },
+
+    /**
+     * Execute the action for a specific scene
+     * @param {number} sceneIndex - Index of the scene to execute
+     * @param {Object} data - Data to be passed to the action
+     */
     executeScene: function(sceneIndex, data) {
         if(
             typeof sceneIndex !== "number" || 
@@ -122,11 +288,15 @@ let SceneManager = {
             return;
         }
 
-        let func = this.scenes[sceneIndex];
+        let func = this.scenes[sceneIndex].action;
         if(typeof func === "function") {
             func(data);
         }
     },
+
+    /**
+     * Comparison functions used for validating conditions.
+     */
     compareFunctions: {
         "==": function(currValue, compValue) {
             if(typeof currValue !== typeof compValue) {
@@ -168,6 +338,9 @@ let SceneManager = {
     }
 };
 
+/**
+ * Initialize function for the scene manager and register the event handler
+ */
 function init() {
     SceneManager.setScenes(CONFIG.scenes);
     Shelly.addEventHandler(SceneManager.eventHandler, SceneManager);    
