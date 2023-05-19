@@ -174,13 +174,13 @@ function logger(message, prefix) {
     let finalText = "";
 
     //if the message is list loop over it
-    if(typeof message === "object") {
-        for(let i in message) {
-            finalText = finalText + " " + message[i];
+    if(typeof message === "array") {
+        for(let i = 0; i < message.length; i++) {
+            finalText = finalText + " " + JSON.stringify(message[i]);
         }
     }
     else {
-        finalText = message;
+        finalText = JSON.stringify(message);
     }
 
     //the prefix must be string
@@ -188,7 +188,7 @@ function logger(message, prefix) {
         prefix = "";
     }
     else {
-        prefix = prefix + " :"
+        prefix = prefix + ":"
     }
 
     //log the result
@@ -339,6 +339,7 @@ let SceneManager = {
 
         let func = this.scenes[sceneIndex].action;
         if(typeof func === "function") {
+            logger(["Executing action for scene with index=", sceneIndex], "Info");
             func(data);
         }
     },
