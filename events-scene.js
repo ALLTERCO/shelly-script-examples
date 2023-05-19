@@ -71,6 +71,8 @@ let CONFIG = {
                     "mymqttbroker/shelly/window/open",
                     "The window with addess " + data.address + " was opened"
                 );
+
+                console.log("The window with addess " + data.address + " was opened");
             }
         },
         /** SCENE END **/
@@ -148,7 +150,12 @@ let CONFIG = {
             }
         },
         /** SCENE END **/
-    ]
+    ],
+
+    /**
+     * When set to true, debug messages will be logged to the console.
+     */
+    debug: true,
 };
 /****************** STOP CHANGE ******************/
 
