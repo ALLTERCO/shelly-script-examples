@@ -11,7 +11,6 @@
  * 
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to 
  * perform specific actions.
- * 
  */
 
 /****************** START CHANGE ******************/
@@ -51,7 +50,7 @@ let CONFIG = {
         /** SCENE START **/
         {
             /**
-             * In this case, window is the key, and the condition is that the value of window must be equal to 1.
+             * In this case, `window` is the key, and the condition is that the value of window must be equal to 1.
              * 
              * NOTE: To use `shelly-blu` event you need to have installed a seperated script called ble-shelly-blu.js
              */
@@ -64,7 +63,8 @@ let CONFIG = {
              * Here when the condtions are met, it will publish a message via MQTT with the addess of the Shelly BLU Door/Window.
              * 
              * The MQTT.publish() function is used to publish a message to an MQTT broker. 
-             * It takes two arguments: the topic and the message to be published. More info here: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttpublish
+             * It takes two arguments: the topic and the message to be published. 
+             * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttpublish
              */
             action: function(data) {
                 MQTT.publish(
@@ -86,6 +86,8 @@ let CONFIG = {
                 event: "analog_measurement",
                 percent: function(per) {
                     /** Get a random number between 0 and 100
+                     * The Math.random() function return random number between 0 and 1.
+                     * Here we are multiplying it by 100 to have it between 0 and 100. 
                      * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#math-api
                      */
                     let rand = Math.random() * 100;
@@ -97,9 +99,9 @@ let CONFIG = {
             action: function(data) {
 
                 /**
-                 * Switch the output with id=0 ON for 4 seconds
-                 * The shelly call function documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellycall
-                 * The switch component documentation: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchset
+                 * Switch the output with id=0 ON for 4 seconds.
+                 * The Shelly.call() function documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellycall
+                 * The `Switch` component documentation: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchset
                  */
                 Shelly.call(
                     "Switch.Set", 
@@ -119,7 +121,8 @@ let CONFIG = {
              * Here the script will check if the event is `temperature_measurement`, the id is 100 and if the 
              * temperature sensor id=100 is greater than the temperature sensor id=101.
              * 
-             * The documentation about Shelly.getComponentStatus: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellygetcomponentstatus
+             * The Shelly.getComponentStatus() function returns object with the status of the provided component name and id
+             * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellygetcomponentstatus
              * 
              * NOTE: To have `temperature_measurement` event, you need Shelly Plus Add-on installed on the device
              */
