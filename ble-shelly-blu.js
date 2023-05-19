@@ -1,11 +1,12 @@
 /**
  * This script sets up a BLE scanner, listens for advertising data from nearby Shelly BLU devices, 
- * decodes the data using a BTHome data structure, and emits the 
- * decoded data for further processing.
+ * decodes the data using a BTHome data structure, and emits the decoded data for further processing.
+ * 
+ * This script DOESN'T execute actions, only emit event. Can be used with events-scene.js example.
  * 
  * What can the event data containes, each value is explained below. 
  * Each device will provide data solely from its sensors.
- * - pid - packet id
+ * - pid - packet ID
  * - battery - the battery level of the device in %
  * - temperature - the temperature value in °C if the device has temperature sensor 
  * - humidity - the himidity value in % if the device has humidity sensor
@@ -68,6 +69,7 @@ let CONFIG = {
 };
 /******************* STOP CHANGE HERE *******************/
 
+//Keeps track of the number of attempts made to start the BLE scanner
 let scannerStartAttempts = 0;
 
 let ALLTERCO_MFD_ID_STR = "0ba9";
