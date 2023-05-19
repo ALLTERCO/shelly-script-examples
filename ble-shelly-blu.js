@@ -81,33 +81,6 @@ let uint24 = 4;
 let int24 = 5;
 
 /**
- * The BTH object defines the structure of the BTHome data. 
- * Each entry in the object represents a data field and can contains the following properties:
- * - n: Name of the data field
- * - t: Type of the data field (uint8, int8, uint16, int16, uint24, int24)
- * - u: Unit of the data field (optional)
- * - f: Factor to multiply the value with (optional)
- */
-let BTH = {};
-BTH[0x00] = { n: "pid", t: uint8 };
-BTH[0x01] = { n: "battery", t: uint8, u: "%" };
-BTH[0x02] = { n: "temperature", t: int16, f: 0.01, u: "tC" };
-BTH[0x03] = { n: "humidity", t: uint16, f: 0.01, u: "%" };
-BTH[0x05] = { n: "illuminance", t: uint24, f: 0.01 };
-BTH[0x21] = { n: "motion", t: uint8 };
-BTH[0x2d] = { n: "window", t: uint8 };
-BTH[0x3a] = { n: "button", t: uint8 };
-BTH[0x3f] = { n: "rotation", t: int16, f: 0.1 };
-
-function getByteSize(type) {
-    if (type === uint8 || type === int8) return 1;
-    if (type === uint16 || type === int16) return 2;
-    if (type === uint24 || type === int24) return 3;
-    //impossible as advertisements are much smaller;
-    return 255;
-}
-
-/**
  * Logs the provided message with an optional prefix to the console.
  * @param {string} message - The message to log.
  * @param {string} [prefix] - An optional prefix for the log message.
@@ -141,6 +114,33 @@ function logger(message, prefix) {
 
     //log the result
     console.log(prefix, finalText);
+}
+
+/**
+ * The BTH object defines the structure of the BTHome data. 
+ * Each entry in the object represents a data field and can contains the following properties:
+ * - n: Name of the data field
+ * - t: Type of the data field (uint8, int8, uint16, int16, uint24, int24)
+ * - u: Unit of the data field (optional)
+ * - f: Factor to multiply the value with (optional)
+ */
+let BTH = {};
+BTH[0x00] = { n: "pid", t: uint8 };
+BTH[0x01] = { n: "battery", t: uint8, u: "%" };
+BTH[0x02] = { n: "temperature", t: int16, f: 0.01, u: "tC" };
+BTH[0x03] = { n: "humidity", t: uint16, f: 0.01, u: "%" };
+BTH[0x05] = { n: "illuminance", t: uint24, f: 0.01 };
+BTH[0x21] = { n: "motion", t: uint8 };
+BTH[0x2d] = { n: "window", t: uint8 };
+BTH[0x3a] = { n: "button", t: uint8 };
+BTH[0x3f] = { n: "rotation", t: int16, f: 0.1 };
+
+function getByteSize(type) {
+    if (type === uint8 || type === int8) return 1;
+    if (type === uint16 || type === int16) return 2;
+    if (type === uint24 || type === int24) return 3;
+    //impossible as advertisements are much smaller;
+    return 255;
 }
 
 /**
