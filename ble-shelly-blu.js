@@ -22,38 +22,18 @@
  * 
  * Emited data example from Shelly BLU button:
     {
+        
         "component": "script:1",
-        "name": "script",
         "id": 1,
-        "now": 1684315357.9794884,
-        "info": { 
-            "component": "script:1",
-            "id": 1,
-            "event": "shelly-blu",
-            "data": {
-                "encryption": false,
-                "BTHome_version": 2,
-                "pid": 33,
-                "battery": 100,
-                "button": 1,
-                "rssi": -66,
-                "address": "bc:02:6e:c3:ce:cc",
-                "ts": 1684315357.98
-            }
-        }
-    }
-    {
-        "component": "switch:0",
-        "name": "switch",
-        "id": 0,
-        "now": 1684322855.926201,
-        "info": {
-            "component": "switch:0",
-            "id": 0,
-            "event": "toggle",
-            "state": false,
-            "ts": 1684322855.93
-        }
+        "event": "shelly-blu",
+        "encryption": false,
+        "BTHome_version": 2,
+        "pid": 33,
+        "battery": 100,
+        "button": 1,
+        "rssi": -66,
+        "address": "bc:02:6e:c3:ce:cc",
+        "ts": 1684315357.98
     }
  */
 
@@ -81,6 +61,9 @@ let CONFIG = {
      */
     activeScan: false,
 
+    /**
+     * When set to true, debug messages will be logged to the console.
+     */
     debug: false,
 };
 /******************* STOP CHANGE HERE *******************/
@@ -97,6 +80,14 @@ let int16 = 3;
 let uint24 = 4;
 let int24 = 5;
 
+/**
+ * The BTH object defines the structure of the BTHome data. 
+ * Each entry in the object represents a data field and can contains the following properties:
+ * - n: Name of the data field
+ * - t: Type of the data field (uint8, int8, uint16, int16, uint24, int24)
+ * - u: Unit of the data field (optional)
+ * - f: Factor to multiply the value with (optional)
+ */
 let BTH = {};
 BTH[0x00] = { n: "pid", t: uint8 };
 BTH[0x01] = { n: "battery", t: uint8, u: "%" };
@@ -116,25 +107,46 @@ function getByteSize(type) {
     return 255;
 }
 
-//TODO: rework
-function logger(prefix, input) {
+/**
+ * Logs the provided message with an optional prefix to the console.
+ * @param {string} message - The message to log.
+ * @param {string} [prefix] - An optional prefix for the log message.
+ */
+function logger(message, prefix) {
+
+    //exit if the debug isn't enabled
     if(!CONFIG.debug) {
         return;
     }
 
     let finalText = "";
-    if(typeof input === "object") {
-        for(let i in input) {
-            finalText = finalText + " " + String(input[i]);
+
+    //if the message is list loop over it
+    if(typeof message === "object") {
+        for(let i in message) {
+            finalText = finalText + " " + message[i];
         }
     }
     else {
-        finalText = JSON.stringify(input);
+        finalText = message;
     }
 
-    console.log(prefix, ":", finalText);
+    //the prefix must be string
+    if(typeof prefix !== "string") {
+        prefix = "";
+    }
+    else {
+        prefix = prefix + " :"
+    }
+
+    //log the result
+    console.log(prefix, finalText);
 }
 
+/**
+ * Functions for decoding and unpacking the service data from Shelly BLU devices. 
+ * It is used to extract specific data fields from the service data received during BLE scanning
+ */
 let BTHomeDecoder = {
     utoi: function (num, bitsz) {
         let mask = 1 << (bitsz - 1);
@@ -171,6 +183,12 @@ let BTHomeDecoder = {
         if (type === int24) res = this.getInt24LE(buffer);
         return res;
     },
+
+    /**
+     * Unpacks the service data buffer from a Shelly BLU device
+     * @param {String} buffer 
+     * @returns {Object|null} an object containing the decoded data fields
+     */
     unpack: function (buffer) {
         //beacons might not provide BTH service data
         if (typeof buffer !== "string" || buffer.length === 0) return null;
@@ -188,7 +206,7 @@ let BTHomeDecoder = {
         while (buffer.length > 0) {
             _bth = BTH[buffer.at(0)];
             if (typeof _bth === "undefined") {
-                logger("BTH", "unknown type");
+                logger("unknown type", "BTH");
                 break;
             }
             buffer = buffer.slice(1);
@@ -203,8 +221,8 @@ let BTHomeDecoder = {
 };
 
 /**
- * Emits the provided data
- * @param {Object} data the decoded BLE data
+ * Еmitting the decoded BLE data to a specified event. It allows other scripts to receive and process the emitted data.
+ * @param {Object} data An object containing the decoded BLE data to be emitted
  */
 function emitData(data) {
     if(typeof data !== "object") {
@@ -218,7 +236,12 @@ function emitData(data) {
 let lastPacketId = 0x100;
 
 /**
- * Callback for the BLE scanner object
+ * Callback for the BLE scanner object. 
+ * It is called when a scan result event occurs. The function processes the received 
+ * advertising data from a Shelly BLU device and extracts the BTHome service data
+ * 
+ * @param {Number} event The event type of the scan result
+ * @param {Object|null} result The scan result object that contains information about the scanned device
  */
 function BLEScanCallback(event, result) {
     //exit if not a result of a scan 
@@ -232,7 +255,7 @@ function BLEScanCallback(event, result) {
         typeof result.service_data === "undefined" || 
         typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined"
     ) {
-        logger("Error", "Encrypted devices are not supported");
+        logger("Encrypted devices are not supported", "Error");
         return;
     }
 
@@ -244,7 +267,7 @@ function BLEScanCallback(event, result) {
         typeof unpackedData === "undefined" || 
         unpackedData["encryption"]
     ) {
-        logger("Error", "Can't unpack the device's data");
+        logger("Can't unpack the device's data", "Error");
         return;
     }
 
@@ -263,24 +286,25 @@ function BLEScanCallback(event, result) {
 }
 
 /**
- * Init the script and check the configuration
+ * Initializes the script and performs the necessary checks and configurations
  */
 function init() {
     //exit if the number of attempts exceeded the limit
     if(scannerStartAttempts > CONFIG.maxScannerStartAttempts) {
         logger(
-            "Error", [
+            [
                 "Error: Unable to start the scanner after", 
                 JSON.stringify(CONFIG.maxScannerStartAttempts), 
                 "attempts"
-            ]
+            ],
+            "Error"
         );
         return;
     }
 
     //exit if can't find the config
     if(typeof CONFIG === "undefined") {
-        logger("Error", "Undefined config");
+        logger("Undefined config", "Error");
         return;
     }
 
@@ -289,7 +313,7 @@ function init() {
 
     //exit if the BLE isn't enabled
     if(!BLEConfig.enable) {
-        logger("Error", "The Bluetooth is not enabled");
+        logger("The Bluetooth is not enabled", "Error");
         return;
     }
 
@@ -306,18 +330,19 @@ function init() {
             scannerStartAttempts++;
 
             logger(
-                "Error", [
+                [
                     "Error: Can not start a new scanner. Retry in",
                     JSON.stringify(CONFIG.scannerStartAttemptAfter),
                     "seconds"
-                ]
+                ],
+                "Error"
             );
 
             Timer.set(CONFIG.scannerStartAttemptDelay * 1000, false, init);
             return;
         }
 
-        logger("Info", "Started a new scanner");
+        logger("Started a new scanner", "Info");
     }
 
     //subscribe a callback to BLE scanner
