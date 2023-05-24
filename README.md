@@ -6,6 +6,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2023-05
+- Push notifications example
 ## 2023-04
 - BLE scanner examples - Aranet4 support
 - Gateway between Shelly BLU button1 and other devices
