@@ -11,6 +11,8 @@
  * 
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to 
  * perform specific actions.
+ * 
+ * This script must be used with at least one of ble examples. 
  */
 
 /****************** START CHANGE ******************/
@@ -22,14 +24,6 @@ let CONFIG = {
     scenes: [
         /** SCENE START **/
         {
-            /**s
-             * In this case, event and button are the keys , and the condition is that the value of 
-             * button must be greater than 0. The condition is defined using an object with compare and value properties.
-             * And the event value must be equal to "shelly-blu". You can target a specified button by 
-             * adding `addess: <BLU BUTTON ADDRESS>` parameter to the condtions object.
-             * 
-             * NOTE: To use `shelly-blu` event you need to have installed a seperated script called ble-shelly-blu.js
-             */
             conditions: {
                 event: "shelly-blu",
                 button: {
@@ -73,83 +67,6 @@ let CONFIG = {
                 );
 
                 console.log("The window with addess " + data.address + " was opened");
-            }
-        },
-        /** SCENE END **/
-
-        /** SCENE START **/
-        {
-            /**
-             * Check if the measured analog value in percentages is less than the random number
-             */
-            conditions: {
-                event: "analog_measurement",
-                percent: function(per) {
-                    /** Get a random number between 0 and 100
-                     * The Math.random() function return random number between 0 and 1.
-                     * Here we are multiplying it by 100 to have it between 0 and 100. 
-                     * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#math-api
-                     */
-                    let rand = Math.random() * 100;
-
-                    return per < rand;
-                }
-            },
-
-            action: function(data) {
-
-                /**
-                 * Switch the output with id=0 ON for 4 seconds.
-                 * The Shelly.call() function documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellycall
-                 * The `Switch` component documentation: https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch#switchset
-                 */
-                Shelly.call(
-                    "Switch.Set", 
-                    {
-                        on: true,
-                        toggle_after: 4,
-                        id: 0
-                    }
-                );
-            }
-        },
-        /** SCENE END **/
-
-        /** SCENE START **/
-        {
-            /**
-             * Here the script will check if the event is `temperature_measurement`, the id is 100 and if the 
-             * temperature sensor id=100 is greater than the temperature sensor id=101.
-             * 
-             * The Shelly.getComponentStatus() function returns object with the status of the provided component name and id
-             * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellygetcomponentstatus
-             * 
-             * NOTE: To have `temperature_measurement` event, you need Shelly Plus Add-on installed on the device
-             */
-            conditions: {
-                event: "temperature_measurement",
-                id: 100,
-                tC: function(firstTempSensor) {
-                    let secondTempSensor = Shelly.getComponentStatus("temperature:101");
-                    if(typeof secondTempSensor !== "object") {
-                        return false;
-                    }
-
-                    return firstTempSensor > secondTempSensor.tC;
-                }
-            },
-
-            /**
-             * Send GET request to another Shelly device with IP=192.168.33.2 to turn off its first output
-             */
-            action: function(data) {
-                Shelly.call(
-                    "HTTP.GET",
-                    {
-                        url: "http://192.168.33.2/relay/0?turn=off",
-                        timeout: 5
-                    }
-                );
             }
         },
         /** SCENE END **/
