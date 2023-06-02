@@ -1,6 +1,6 @@
-events-scene.js: Event Based Scene Manager
+ble-events-handler.js: Handler script for BLE events
 ===
-Example how to catch events and how to use them to trigger automations
+Example how to catch events from BLE devices and how to use them to trigger automations
 
 ble-shelly-blu.js: Shelly BLU example with BLE API
 ===
