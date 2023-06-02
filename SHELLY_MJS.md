@@ -13,7 +13,7 @@ Example how to use a 3rd party BLE sensor and execute actions bsed on conditions
 
 ble-shelly-btn-gateway-for-other-devices.js: Gateway between Shelly BLU button1 and other devices
 ===
-Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly devices (no matter Gen1 or Gen2) by sending local requests by their local IP APIs. 
+Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly devices (no matter Gen1 or Gen2) by sending local requests by their local IP APIs.
 
 activation-switch.js: Activation switch
 ===
@@ -132,6 +132,9 @@ objects.js: mJS example of how to create custom Objects that interact with compo
 ===
 Example of how to create wrappers around RPC calls and using Object.create.
 
+push-pushed.js: Push notifications using Pushed service
+===
+Use a script to notify directly on your mobile phone via a push notification service.
 
 remoterpc.js: Example of remote calling a Shelly Gen2
 ===
