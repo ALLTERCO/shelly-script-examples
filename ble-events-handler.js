@@ -12,18 +12,20 @@
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to 
  * perform specific actions.
  * 
- * This script must be used with at least one of ble examples. 
+ * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.js` example. 
+ * This script CAN'T be used standone for BLE events. 
+ * 
+ * Event name for the `ble-shelly-blu.js` example is `shelly-blu`. 
  */
 
 /****************** START CHANGE ******************/
 let CONFIG = {
 
-    /**
-     * List of scenes
-     */
+    // List of scenes
     scenes: [
-        /** SCENE START **/
+        /** SCENE START 1 **/
         {
+            // when event name is `shelly-blu` and button is pressed more than 0 times
             conditions: {
                 event: "shelly-blu",
                 button: {
@@ -32,58 +34,38 @@ let CONFIG = {
                 }
             },
 
-            /**
-             * In this example, when the conditions of the scene are met, it simply logs a message to the console.
-             */
+            // Logs a message to the console
             action: function(data) {
                 console.log("The button was pressed");
             }
         },
-        /** SCENE END **/
+        /** SCENE END 1 **/
 
-        /** SCENE START **/
+        /** SCENE START 2 **/
         {
-            /**
-             * In this case, `window` is the key, and the condition is that the value of window must be equal to 1.
-             * 
-             * NOTE: To use `shelly-blu` event you need to have installed a seperated script called ble-shelly-blu.js
-             */
+            // when event name is `shelly-blu` and window is equal to 1 (open)
             conditions: {
                 event: "shelly-blu",
                 window: 1
             },
 
-            /**
-             * Here when the condtions are met, it will publish a message via MQTT with the addess of the Shelly BLU Door/Window.
-             * 
-             * The MQTT.publish() function is used to publish a message to an MQTT broker. 
-             * It takes two arguments: the topic and the message to be published. 
-             * Documentation: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttpublish
-             */
+            // publish a message via MQTT with the addess of the Shelly BLU Door/Window
             action: function(data) {
                 MQTT.publish(
                     "mymqttbroker/shelly/window/open",
                     "The window with addess " + data.address + " was opened"
                 );
-
-                console.log("The window with addess " + data.address + " was opened");
             }
         },
-        /** SCENE END **/
+        /** SCENE END 2 **/
     ],
 
-    /**
-     * When set to true, debug messages will be logged to the console.
-     */
+    //When set to true, debug messages will be logged to the console
     debug: false,
 };
 /****************** STOP CHANGE ******************/
 
-/**
- * Logs the provided message with an optional prefix to the console.
- * @param {string} message - The message to log.
- * @param {string} [prefix] - An optional prefix for the log message.
- */
+// Logs the provided message with an optional prefix to the console
 function logger(message, prefix) {
 
     //exit if the debug isn't enabled
@@ -115,26 +97,15 @@ function logger(message, prefix) {
     console.log(prefix, finalText);
 }
 
-/**
- * Scene Manager object
- * 
- * Handle scenes based on the events and do automations
- */
+// Scene Manager object
 let SceneManager = {
     scenes: [],
 
-    /**
-     * Set the scenes for the SceneManager
-     * @param {Array} scenes - Array of scene objects
-     */
     setScenes: function(scenes) {
         this.scenes = scenes;
     },
 
-    /**
-     * Process new data and check if any scenes should be executed
-     * @param {Object} data - New data received
-     */
+    // Process new data and check if any scenes should be executed
     onNewData: function(data) {
         logger(["New data received", JSON.stringify(data)], "Info");
         for(let sceneIndex = 0; sceneIndex < this.scenes.length; sceneIndex++) {
@@ -149,11 +120,7 @@ let SceneManager = {
         }
     },
 
-    /**
-     * Event handler for handling events from the device
-     * @param {Object} eventData - Event data
-     * @param {Object} sceneEventObject - Scene manager object
-     */
+    // Event handler for handling events from the device
     eventHandler: function(eventData, sceneEventObject) {
         let info = eventData.info;
         if(typeof info !== "object") {
@@ -174,13 +141,7 @@ let SceneManager = {
         sceneEventObject.onNewData(info);
     },
 
-    /**
-     * Check if the conditions are met
-     * @param {string|function} compFunc - Comparison function or operator.
-     * @param {*} currValue - Current value to compare.
-     * @param {*} compValue - Value to compare against.
-     * @returns {boolean} - Whether the conditions are met
-     */
+    // Check if the conditions are met
     checkCondition: function(compFunc, currValue, compValue) {
         if(
             typeof currValue === "undefined" || 
@@ -201,12 +162,7 @@ let SceneManager = {
         return false;
     },
 
-    /**
-     * Validate conditions for a specific scene based on the received data
-     * @param {number} sceneIndex - Index of the scene to validate
-     * @param {Object} receivedData - Data received for validation
-     * @returns {boolean} - Whether the conditions are met
-     */
+    // Validate conditions for a specific scene based on the received data
     validateConditionsForScene: function(sceneIndex, receivedData) {
         if(
             typeof sceneIndex !== "number" || 
@@ -244,11 +200,7 @@ let SceneManager = {
         return true;
     },
 
-    /**
-     * Execute the action for a specific scene
-     * @param {number} sceneIndex - Index of the scene to execute
-     * @param {Object} data - Data to be passed to the action
-     */
+    // Execute the action for a specific scene
     executeScene: function(sceneIndex, data) {
         if(
             typeof sceneIndex !== "number" || 
@@ -265,9 +217,7 @@ let SceneManager = {
         }
     },
 
-    /**
-     * Comparison functions used for validating conditions.
-     */
+    // Comparison functions used for validating conditions
     compareFunctions: {
         "==": function(currValue, compValue) {
             if(typeof currValue !== typeof compValue) {
@@ -309,9 +259,7 @@ let SceneManager = {
     }
 };
 
-/**
- * Initialize function for the scene manager and register the event handler
- */
+// Initialize function for the scene manager and register the event handler
 function init() {
     SceneManager.setScenes(CONFIG.scenes);
     Shelly.addEventHandler(SceneManager.eventHandler, SceneManager);    
