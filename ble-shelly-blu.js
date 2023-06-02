@@ -1,8 +1,8 @@
 /**
- * This script sets up a BLE scanner, listens for advertising data from nearby Shelly BLU devices, 
+ * This script will use BLE observer to listen for advertising data from nearby Shelly BLU devices, 
  * decodes the data using a BTHome data structure, and emits the decoded data for further processing.
  * 
- * This script DOESN'T execute actions, only emit event. Can be used with events-scene.js example.
+ * This script DOESN'T execute actions, only emit event. Can be used with ble-events-handler.js example.
  * 
  * All paramerts that the BLU devices can return:
  * Each device will provide data solely from its sensors.
@@ -17,60 +17,17 @@
  * - rotation - the angle of rotatation in ° if the device has gyroscope
  * - rssi - the signal strength is dB
  * - address - The mac address of the Shelly BLU device
- * 
- * 
- * More info about the event structure and data: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellyaddeventhandler-and-shellyaddstatushandler
- * 
- * Emited data example from Shelly BLU button:
-    {
-        
-        "component": "script:1",
-        "id": 1,
-        "event": "shelly-blu",
-        "encryption": false,
-        "BTHome_version": 2,
-        "pid": 33,
-        "battery": 100,
-        "button": 1,
-        "rssi": -66,
-        "address": "bc:02:6e:c3:ce:cc",
-        "ts": 1684315357.98
-    }
  */
 
 /******************* START CHANGE HERE *******************/
 let CONFIG = {
-    /**
-     * Determines the maximum number of attempts to start the BLE scanner before considering it a failure
-     */
-    maxScannerStartAttempts: 5,
-
-    /**
-     * Specifies the number of seconds that must elapse before start a scanner job that has previously failed to start
-     */
-    scannerStartAttemptDelay: 3, 
-
-    /**
-     * Specify the destination event where the decoded BLE data will be emitted. It allows for easy 
-     * identification by other applications/scripts.
-     */
+    // Specify the destination event where the decoded BLE data will be emitted. It allows for easy identification by other applications/scripts
     eventName: "shelly-blu",
 
-    /**
-     * When true, the scan is active, it will provide more detailed information like the device name, 
-     * accurate signal strength (rssi), about the BLE event but consumes more power. 
-     */
-    activeScan: false,
-
-    /**
-     * When set to true, debug messages will be logged to the console.
-     */
+    // When set to true, debug messages will be logged to the console
     debug: false,
 };
 /******************* STOP CHANGE HERE *******************/
-
-//Keeps track of the number of attempts made to start the BLE scanner
-let scannerStartAttempts = 0;
 
 let ALLTERCO_MFD_ID_STR = "0ba9";
 let BTHOME_SVC_ID_STR = "fcd2";
@@ -82,11 +39,7 @@ let int16 = 3;
 let uint24 = 4;
 let int24 = 5;
 
-/**
- * Logs the provided message with an optional prefix to the console.
- * @param {string} message - The message to log.
- * @param {string} [prefix] - An optional prefix for the log message.
- */
+//Logs the provided message with an optional prefix to the console.
 function logger(message, prefix) {
 
     //exit if the debug isn't enabled
@@ -118,14 +71,7 @@ function logger(message, prefix) {
     console.log(prefix, finalText);
 }
 
-/**
- * The BTH object defines the structure of the BTHome data. 
- * Each entry in the object represents a data field and can contains the following properties:
- * - n: Name of the data field
- * - t: Type of the data field (uint8, int8, uint16, int16, uint24, int24)
- * - u: Unit of the data field (optional)
- * - f: Factor to multiply the value with (optional)
- */
+// The BTH object defines the structure of the BTHome data
 let BTH = {};
 BTH[0x00] = { n: "pid", t: uint8 };
 BTH[0x01] = { n: "battery", t: uint8, u: "%" };
@@ -145,10 +91,7 @@ function getByteSize(type) {
     return 255;
 }
 
-/**
- * Functions for decoding and unpacking the service data from Shelly BLU devices. 
- * It is used to extract specific data fields from the service data received during BLE scanning
- */
+// functions for decoding and unpacking the service data from Shelly BLU devices
 let BTHomeDecoder = {
     utoi: function (num, bitsz) {
         let mask = 1 << (bitsz - 1);
@@ -186,11 +129,7 @@ let BTHomeDecoder = {
         return res;
     },
 
-    /**
-     * Unpacks the service data buffer from a Shelly BLU device
-     * @param {String} buffer 
-     * @returns {Object|null} an object containing the decoded data fields
-     */
+    // Unpacks the service data buffer from a Shelly BLU device
     unpack: function (buffer) {
         //beacons might not provide BTH service data
         if (typeof buffer !== "string" || buffer.length === 0) return null;
@@ -222,10 +161,7 @@ let BTHomeDecoder = {
     }
 };
 
-/**
- * Еmitting the decoded BLE data to a specified event. It allows other scripts to receive and process the emitted data.
- * @param {Object} data An object containing the decoded BLE data to be emitted
- */
+// Еmitting the decoded BLE data to a specified event. It allows other scripts to receive and process the emitted data
 function emitData(data) {
     if(typeof data !== "object") {
         return;
@@ -237,14 +173,7 @@ function emitData(data) {
 //saving the id of the last packet, this is used to filter the duplicated packets
 let lastPacketId = 0x100;
 
-/**
- * Callback for the BLE scanner object. 
- * It is called when a scan result event occurs. The function processes the received 
- * advertising data from a Shelly BLU device and extracts the BTHome service data
- * 
- * @param {Number} event The event type of the scan result
- * @param {Object|null} result The scan result object that contains information about the scanned device
- */
+// Callback for the BLE scanner object
 function BLEScanCallback(event, result) {
     //exit if not a result of a scan 
     if (event !== BLE.Scanner.SCAN_RESULT) {
@@ -276,30 +205,14 @@ function BLEScanCallback(event, result) {
 
     lastPacketId = unpackedData.pid;
 
-    //store some device's data
     unpackedData.rssi = result.rssi;
     unpackedData.address = result.addr;
 
     emitData(unpackedData);
 }
 
-/**
- * Initializes the script and performs the necessary checks and configurations
- */
+// Initializes the script and performs the necessary checks and configurations
 function init() {
-    //exit if the number of attempts exceeded the limit
-    if(scannerStartAttempts > CONFIG.maxScannerStartAttempts) {
-        logger(
-            [
-                "Error: Unable to start the scanner after", 
-                JSON.stringify(CONFIG.maxScannerStartAttempts), 
-                "attempts"
-            ],
-            "Error"
-        );
-        return;
-    }
-
     //exit if can't find the config
     if(typeof CONFIG === "undefined") {
         logger("Undefined config", "Error");
@@ -310,37 +223,15 @@ function init() {
     let BLEConfig = Shelly.getComponentConfig("ble");
 
     //exit if the BLE isn't enabled
-    if(!BLEConfig.enable) {
-        logger("The Bluetooth is not enabled", "Error");
+    if( !BLEConfig.enable) {
+        logger("The Bluetooth is not enabled, please enable it from settings", "Error");
         return;
     }
 
     //check if the scanner is already running
     if( !BLE.Scanner.isRunning()) {
-        //start a new scanner
-        let bleScanner = BLE.Scanner.Start({
-            duration_ms: BLE.Scanner.INFINITE_SCAN,
-            active: CONFIG.activeScan
-        });
-
-        //exist if the scanner can not be started
-        if(bleScanner === false) {
-            scannerStartAttempts++;
-
-            logger(
-                [
-                    "Error: Can not start a new scanner. Retry in",
-                    JSON.stringify(CONFIG.scannerStartAttemptAfter),
-                    "seconds"
-                ],
-                "Error"
-            );
-
-            Timer.set(CONFIG.scannerStartAttemptDelay * 1000, false, init);
-            return;
-        }
-
-        logger("Started a new scanner", "Info");
+        logger("The BLE observer isn't running, please enable it from settings", "Error");
+        return;
     }
 
     //subscribe a callback to BLE scanner
