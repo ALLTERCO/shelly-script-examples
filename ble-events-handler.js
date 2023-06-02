@@ -23,7 +23,7 @@ let CONFIG = {
 
     // List of scenes
     scenes: [
-        /** SCENE START 1 **/
+        /** SCENE START 1 - Shelly BLU example **/
         {
             // when event name is `shelly-blu` and button is pressed more than 0 times
             conditions: {
@@ -41,7 +41,7 @@ let CONFIG = {
         },
         /** SCENE END 1 **/
 
-        /** SCENE START 2 **/
+        /** SCENE START 2 - Shelly BLU Door/Window example **/
         {
             // when event name is `shelly-blu` and window is equal to 1 (open)
             conditions: {
@@ -58,6 +58,20 @@ let CONFIG = {
             }
         },
         /** SCENE END 2 **/
+
+        /** SCENE START 3 - Shelly BLU Scanner example **/
+        {
+            // when event name is `shelly-blu`
+            conditions: {
+                event: "shelly-blu"
+            },
+
+            // publish a message via MQTT with the addess of the Shelly BLU Door/Window
+            action: function(data) {
+                console.log("New device found", JSON.stringify(data));
+            }
+        },
+        /** SCENE END 3 **/
     ],
 
     //When set to true, debug messages will be logged to the console
