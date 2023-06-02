@@ -251,13 +251,9 @@ function BLEScanCallback(event, result) {
         return;
     }
 
-    //exit if service data is null/device is encrypted
-    if(     
-        result.service_data === null || 
-        typeof result.service_data === "undefined" || 
-        typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined"
-    ) {
-        logger("Encrypted devices are not supported", "Error");
+    //exit if service_data member is missing
+    if(typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined") {
+        logger("Missing service_data member", "Error");
         return;
     }
 
@@ -269,7 +265,7 @@ function BLEScanCallback(event, result) {
         typeof unpackedData === "undefined" || 
         unpackedData["encryption"]
     ) {
-        logger("Can't unpack the device's data", "Error");
+        logger("Encrypted devices are not supported", "Error");
         return;
     }
 
