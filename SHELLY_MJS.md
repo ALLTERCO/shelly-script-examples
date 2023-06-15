@@ -1,6 +1,11 @@
 ble-aranet4.js: Aranet4 example with BLE scripting
 ===
-Example how to use a 3rd party BLE sensor and execute actions bsed on conditions. (Requires firmware version
+Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version
+0.12.0-beta1 or newer)
+
+ble-aranet2.js: Aranet2 example with BLE scripting
+===
+Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version
 0.12.0-beta1 or newer)
 
 ble-shelly-btn-gateway-for-other-devices.js: Gateway between Shelly BLU button1 and other devices

@@ -5,7 +5,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 2021 for Gen2 Shellies based on ESP32.
 
 # Changelog
-
+## 2023-06
+- BLE scanner examples - Aranet2 support
 ## 2023-05
 - Push notifications example
 ## 2023-04
