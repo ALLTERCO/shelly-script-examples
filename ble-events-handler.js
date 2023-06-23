@@ -8,6 +8,18 @@
  * These keys correspond to specific data values received with the event.
  * The values associated with these keys can be either a direct value, an object specifying a comparison, or a function that
  * must return boolean value.
+ * The `conditions` value supports various types: 
+ * - key: value pair, where the key is fetched from the received data and must equal to the target value
+ * - function that receives the current value and must return boolean
+ * - object with `compare` and `value` keys:
+ * Where `compare` supports the following methods: 
+ * - "==" -> both values are the same
+ * - "<" -> the current value is less than the target value
+ * - ">" -> the current value is bigger than the target value
+ * - "~=" -> the rounded value of both values are the same
+ * - "!=" -> both values are different types
+ * - "in" -> (supplied value must be array) the current value is IN the array
+ * - "notin" -> (supplied value must be array) the current value is NOT IN the array
  *
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to
  * perform specific actions.
