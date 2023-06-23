@@ -268,11 +268,7 @@ let SceneManager = {
       return currValue < compValue;
     },
     "!=": function (currValue, compValue) {
-      if (typeof currValue !== typeof compValue) {
-        return true;
-      }
-
-      return currValue !== compValue;
+      return !this.compareFunctions["=="](currValue, compValue);
     },
     "in": function (currValue, compValue) {
       if (
