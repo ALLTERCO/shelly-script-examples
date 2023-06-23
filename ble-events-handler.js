@@ -182,7 +182,12 @@ let SceneManager = {
     }
 
     if (typeof compFunc === "string") {
-      compFunc = this.compareFunctions[compFunc];
+      if(compFunc in this.compareFunctions) {
+        compFunc = this.compareFunctions[compFunc];
+      }
+      else {
+        logger(["Unknown comapre function", compFunc], "Error");
+      }
     }
 
     if (typeof compFunc === "function") {
