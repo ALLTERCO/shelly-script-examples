@@ -268,12 +268,23 @@ let SceneManager = {
       return currValue < compValue;
     },
     "!=": function (currValue, compValue) {
-        if (typeof currValue !== typeof compValue) {
-          return true;
-        }
-  
-        return currValue !== compValue;
-      },
+      if (typeof currValue !== typeof compValue) {
+        return true;
+      }
+
+      return currValue !== compValue;
+    },
+    "in": function (currValue, compValue) {
+      if (
+        typeof currValue !== "undefined" &&
+        typeof compValue !== "undefined" &&
+        !Array.isArray(compValue)
+      ) {
+        return false;
+      }
+
+      return currValue in compValue;
+    },
   },
 };
 
