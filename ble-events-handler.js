@@ -39,6 +39,7 @@ let CONFIG = {
       // when event name is `shelly-blu` and button is pressed more than 0 times
       conditions: {
         event: "shelly-blu",
+        mac: "XX.XX.XX.XX.XX.XX",
         button: {
           compare: ">",
           value: 0,
