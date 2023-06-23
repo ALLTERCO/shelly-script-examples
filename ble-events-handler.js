@@ -267,6 +267,13 @@ let SceneManager = {
 
       return currValue < compValue;
     },
+    "!=": function (currValue, compValue) {
+        if (typeof currValue !== typeof compValue) {
+          return true;
+        }
+  
+        return currValue !== compValue;
+      },
   },
 };
 
