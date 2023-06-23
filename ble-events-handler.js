@@ -285,6 +285,9 @@ let SceneManager = {
 
       return currValue in compValue;
     },
+    "notin": function (currValue, compValue) {
+      return !this.compareFunctions["in"](currValue, compValue);
+    },
   },
 };
 
