@@ -215,7 +215,7 @@ function BLEScanCallback(event, result) {
 function init() {
     //exit if can't find the config
     if(typeof CONFIG === "undefined") {
-        logger("Undefined config", "Error");
+        console.log("Error: Undefined config");
         return;
     }
 
@@ -224,13 +224,13 @@ function init() {
 
     //exit if the BLE isn't enabled
     if( !BLEConfig.enable) {
-        logger("The Bluetooth is not enabled, please enable it from settings", "Error");
+        console.log("Error: The Bluetooth is not enabled, please enable it from settings");
         return;
     }
 
     //check if the scanner is already running
     if( !BLE.Scanner.isRunning()) {
-        logger("The BLE observer isn't running, please enable it from settings", "Error");
+        console.log("Error: The BLE observer isn't running, please enable it from settings");
         return;
     }
 
