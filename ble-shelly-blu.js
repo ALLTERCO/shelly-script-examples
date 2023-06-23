@@ -50,7 +50,7 @@ function logger(message, prefix) {
     let finalText = "";
 
     //if the message is list loop over it
-    if(typeof message === "array") {
+    if(Array.isArray(message)) {
         for(let i = 0; i < message.length; i++) {
             finalText = finalText + " " + JSON.stringify(message[i]);
         }
