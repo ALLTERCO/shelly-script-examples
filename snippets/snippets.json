@@ -1,0 +1,229 @@
+{
+    "Inputs and Buttons": {
+      "child": {
+        "When Input is on or off": {
+          "code": "Shelly.addStatusHandler(function(e) {\n  if (e.component === \"input:0\") {\n    if (e.delta.state === true) {\n      print(\"Input is on\");\n    }\n    else if (e.delta.state === false) {\n      print(\"Input is off\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Input Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input#notifications"
+            }
+          }
+        },
+        "When Input is on or off - toggle the output": {
+          "code": "// Set your input to Switch and in Detached mode for this code to function correctly.\nShelly.addStatusHandler(function(e) {\n  if (e.component === \"input:0\") {\n    Shelly.call(\"Switch.toggle\", {\"id\": 0});\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Switch Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch#notifications"
+            }
+          }
+        },
+        "When Button is single push": {
+          "code": "Shelly.addEventHandler(function(e) {\n  if (e.component === \"input:0\") {\n    if (e.info.event === \"single_push\") {\n      print(\"Button was pushed\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Input Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input#notifications"
+            }
+          }
+        },
+        "When Button is up or down": {
+          "code": "Shelly.addEventHandler(function(e) {\n  if (e.component === \"input:0\") {\n    if (e.info.event === \"btn_down\") {\n      print(\"Button is down\");\n    }\n    else if (e.info.event === \"btn_up\") {\n      print(\"Button is up\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Input Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input#notifications"
+            }
+          }
+        },
+        "When Button is long push": {
+          "code": "Shelly.addEventHandler(function(e) {\n  if (e.component === \"input:0\") {\n    if (e.info.event === \"long_push\") {\n      print(\"Button was long pushed\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Input Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input#notifications"
+            }
+          }
+        },
+        "When Button is double push": {
+          "code": "Shelly.addEventHandler(function(e) {\n  if (e.component === \"input:0\") {\n    if (e.info.event === \"double_push\") {\n      print(\"Button was double pushed\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Input Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input#notifications"
+            }
+          }
+        }
+      },
+      "meta": {
+        "docs": {
+          "Input Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Input"
+        }
+      }
+    },
+    "Switches": {
+      "child": {
+        "When Switch is on or off": {
+          "code": "Shelly.addStatusHandler(function(e) {\n  if (e.component === \"switch:0\") {\n    if (e.delta.output === true) {\n      print(\"Switch is on, triggered source:\", e.delta.source);\n    }\n    else if (e.delta.output === false) {\n      print(\"Switch is off, triggered source:\", e.delta.source);\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Switch Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch"
+            }
+          }
+        },
+        "Turn Switch on": {
+          "code": "Shelly.call(\"Switch.set\", {'id': 0, 'on': true});\n",
+          "meta": {
+            "docs": {
+              "Switch Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch"
+            }
+          }
+        },
+        "Turn Switch off": {
+          "code": "Shelly.call(\"Switch.set\", {'id': 0, 'on': false});\n",
+          "meta": {
+            "docs": {
+              "Switch Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch"
+            }
+          }
+        },
+        "Toggle Switch": {
+          "code": "Shelly.call(\"Switch.toggle\", {'id': 0});\n",
+          "meta": {
+            "docs": {
+              "Switch Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch"
+            }
+          }
+        }
+      },
+      "meta": {
+        "docs": {
+          "Switch Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch"
+        }
+      }
+    },
+    "Roller Shutter (Cover)": {
+      "child": {
+        "When cover is opened or closed": {
+          "code": "Shelly.addEventHandler(function(e) {\n  if (e.component === \"cover:0\") {\n    if (e.info.event === \"open\") {\n      print(\"Cover is now opened\");\n    }\n    else if (e.info.event === \"closed\") {\n      print(\"Cover is now closed\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Cover is opening or closing": {
+          "code": "Shelly.addStatusHandler(function(e) {\n  if (e.component === \"cover:0\") {\n    if (e.delta.state === \"opening\") {\n      print(\"Cover is now opening\");\n    }\n    else if (e.delta.state === \"closing\") {\n      print(\"Cover is now closing\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Cover had stopped": {
+          "code": "Shelly.addStatusHandler(function(e) {\n  if (e.component === \"cover:0\") {\n    if (e.delta.state === \"stopped\") {\n      print(\"Cover stopped\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Cover moved past position 15%": {
+          "code": "Shelly.addStatusHandler(function(e) {\n  if (e.component === \"cover:0\") {\n    if (e.delta.current_pos > 15) {\n      print(\"Cover moved to > 15%\");\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Open Cover": {
+          "code": "Shelly.call(\"Cover.open\", {'id': 0});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Close Cover": {
+          "code": "Shelly.call(\"Cover.close\", {'id': 0});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Go to Position - 20%": {
+          "code": "Shelly.call(\"Cover.GoToPosition\", {'id': 0, 'pos': 20});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        },
+        "Go to Position - relative": {
+          "code": "// Move down 1% (use -1 for -1%)\nShelly.call(\"Cover.GoToPosition\", {'id': 0, 'rel': 1});\n",
+          "meta": {
+            "docs": {
+              "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+            }
+          }
+        }
+      },
+      "meta": {
+        "docs": {
+          "Cover Component": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Cover"
+        }
+      }
+    },
+    "Other": {
+      "child": {
+        "MQTT - Publish": {
+          "code": "MQTT.publish(\"hello/world\", JSON.stringify(\"hello world!\"), 0, false);\n",
+          "meta": {
+            "docs": {
+              "MQTT.publish (Scripts)": "https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttpublish"
+            }
+          }
+        },
+        "MQTT - Subscribe": {
+          "code": "MQTT.subscribe(\"hello/world\", function(data) {\n  print(JSON.stringify(data));\n});\n",
+          "meta": {
+            "docs": {
+              "MQTT.subscribe (Scripts)": "https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#mqttsubscribe"
+            }
+          }
+        },
+        "HTTP - Retrieve data from URL (GET)": {
+          "code": "Shelly.call(\n  \"HTTP.GET\", {\n    \"url\": \"https://pastebin.com/raw/8mtM0STu\",\n  },\n  function(result) {\n    print(\"Hello \", result.body);\n  }\n);\n",
+          "meta": {
+            "docs": {
+              "HTTP Service (HTTP.GET)": "https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/HTTP#httpget"
+            }
+          }
+        },
+        "HTTP - Post data to URL (POST)": {
+          "code": "Shelly.call(\n  \"HTTP.POST\", {\n    \"url\": \"https://httpbin.org/post\",\n    \"body\": \"world!\"\n  },\n  function(result) {\n    let response = JSON.parse(result.body);\n    print(\"Hello \", response.data);\n  }\n);\n",
+          "meta": {
+            "docs": {
+              "HTTP Service (HTTP.POST)": "https://shelly-api-docs.shelly.cloud/gen2/Overview/CommonServices/HTTP#httppost"
+            }
+          }
+        },
+        "Timer that toggles a switch every 5 seconds": {
+          "code": "function timerCode() {\n  Shelly.call(\"Switch.Toggle\", {\"id\": 0});\n};\n\nTimer.set(\n  /* number of miliseconds */ 5000,\n  /* repeat? */ true,\n  /* callback */ timerCode\n);\n",
+          "meta": {
+            "docs": {
+              "Switch Component (Switch.Toggle)": "https://shelly-api-docs.shelly.cloud/gen2/Components/FunctionalComponents/Switch/#switchtoggle",
+              "Timer (Scripts)": "https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#timer"
+            }
+          }
+        },
+        "Configure WiFi": {
+          "code": "Shelly.call(\"Wifi.SetConfig\", {\n  \"config\": {\n    /**\n    * \"sta\" for main WiFi configuration\n    * or \"sta1\" for the backup WiFi config\n    **/\n    \"sta1\": {\n      \"ssid\": \"Shelly\",\n      \"pass\": \"Shelly\",\n      \"enable\": true\n    }\n  }\n});\n",
+          "meta": {
+            "docs": {
+              "WiFi Component (WiFi.SetConfig)": "https://shelly-api-docs.shelly.cloud/gen2/Components/SystemComponents/WiFi/#wifisetconfig-example"
+            }
+          }
+        }
+      },
+      "meta": {
+        "docs": {"other": "https://shelly-api-docs.shelly.cloud/gen2/"}
+      }
+    }
+  }
