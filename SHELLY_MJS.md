@@ -61,7 +61,6 @@ This script listens for the event when the output is turned on, and starts count
 every minute.
 It is accumulated in a counter and if the combined consumption is over a threshold the output is turned off.
 
-
 cover-control-weather.js: Control a Shelly 2.5 (Gen1) depending on current cloud conditions
 ===
 The script, when run, will fetch via REST api from a weather service the current conditions for a location check if
@@ -75,18 +74,15 @@ You can use any Shelly Plus 1/Pro 1 ot Pro 2 to control your irrigation system.
 Don't forger to add AutoOFF for max Irrigation time and set a Schedule which start irrigation in device webUI.
 Note: Configure your Accuweather APIKEY and end points in the script once you add it.
 
-
 failure-monitor.js: Load monitoring and alerting in Shelly Gen2
 ===
 This script listens for events when power changes to 0 and if the switch is still on then it alerts that something
 might have happened to the load.
 
-
 idle-alert.js: Alert on inactivity
 ===
 Script that will monitor the inputs of a Shelly and if there was no user interaction with the input(s) It will call an
 URL with a predefined message
-
 
 mqtt-announce.js: Backward compatibility with Gen1 MQTT format (announce only)
 ===
@@ -98,7 +94,6 @@ Use MQTT in scripting to provide backwards compatibility with Gen1 MQTT topics s
 /command/switch:0/output.
 
 Publish device status, input and switch status
-
 
 mqtt-discovery.js: MQTT Auto Discovery in Home Assistant
 ===
@@ -115,7 +110,6 @@ This script is registering a virtual switch device in HA.
 Switch sensors are also registered as entities.
 
 Note: Requires configuration.yaml change in HA, please refer to the comments in the code of this file.
-
 
 mqtt-switch-status.js: Send Switch status to a custom MQTT topic
 ===
@@ -152,7 +146,6 @@ This script tries to execute HTTP GET requests within a set time, against a set 
 
 After certain number of failures the script sets the Switch off and after some time turns it back on.
 
-
 scene.js: Scene playing in Shelly Gen2
 ===
 Simple scene abstraction A scene is an array of actions or conditions that
@@ -164,13 +157,11 @@ A condition is an element of a scene that has property type:"cond".
 If the result is true, the scene continues with the next item, if it is false it
 stops.
 
-
 test-scene.js: Scene Test with multiple Shellies
 ===
 Playing a scene with four Shellies with that have a lamp as a load.
 
 Demonstration of a "Remote Shelly" wrapper object. object prototyping, and simple scene player.
-
 
 turn-on-weather.js: turn-on-weather.js
 ===
@@ -181,13 +172,12 @@ Turn off when temperature is above CONFIG.tempAboveTurnOff.
 For getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy
 the key and paste it here.
 
-
 wifi-provision.js: Provisioning of new Shelly Plus gen 2 devices
 ===
 This scripts periodically scans for access points with SSID matching the template for Shelly Plus device APs and if
 found, will connect to that AP and provision WiFi credentials.
 
-mqtt-switch-status-announce.js: Periodically send Switch status to MQTT topic:"<topic_prefix>/status/switch:0"
+mqtt-switch-status-announce.js: Periodically send Switch status to MQTT topic
 ===
 Use MQTT in scripting to periodically provide switch status updates on the mentioned topic "<topic_prefix>/status/switch:0"
 
@@ -195,22 +185,19 @@ howto/input-event.js: Example - Input events
 ===
 Example showing how to work with Input component's events.
 
-
 howto/input-read.js: Example - Reading Input status
 ===
 Example showing how to read Input component's status.
-
 
 howto/switch-event.js: Example - Switch events
 ===
 Example showing how to work with Switch component's events.
 
-
 howto/switch-notifications.js: Example - Switch notifications - reading consumption active power
 ===
 Example how to read Switch notifications and listen for when active power is more than 4W.
 
-
 howto/switch-read.js: Example - Reading Switch status
 ===
 Example of reading Switch component's status.
+
