@@ -67,6 +67,10 @@ The script, when run, will fetch via REST api from a weather service the current
 cloud coverage is above or below certain percentage and respectively open or close window shades by calling a Shelly
 2.5 (Gen1) endpoint.
 
+cover-scheduled-event-handlers.js: Control a Shelly Plus 2PM (Gen2) by handling events
+===
+The script, when run, will subscribe to events and handle "cover_open_to" and "cover_close_to" events to open or close a cover to a certain position. "cover_open_to" also supports a "not_before" configuration to prevent opening the cover before a certain time.
+
 precipitation-irrigation.js: Turn on/off watering based on precipitation in last 24 hours (based on AccuWeather data)
 ===
 If there was precipitation in the past period (24h) skip an irrigation cycle. Data is retrieved from a public wather API service for the location.
