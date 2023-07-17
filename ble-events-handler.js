@@ -183,8 +183,8 @@ let SceneManager = {
     }
 
     if (typeof compFunc === "string") {
-      if(compFunc in this.compareFunctions) {
-        compFunc = this.compareFunctions[compFunc];
+      if(compFunc in this.compFuncList) {
+        compFunc = this.compFuncList[compFunc];
       }
       else {
         logger(["Unknown comapre function", compFunc], "Error");
@@ -256,7 +256,7 @@ let SceneManager = {
   },
 
   // Comparison functions used for validating conditions
-  compareFunctions: {
+  compFuncList: {
     "==": function (currValue, compValue) {
       if (typeof currValue !== typeof compValue) {
         return false;
@@ -286,7 +286,7 @@ let SceneManager = {
       return currValue < compValue;
     },
     "!=": function (currValue, compValue) {
-      return !this.compareFunctions["=="](currValue, compValue);
+      return !this.compFuncList["=="](currValue, compValue);
     },
     "in": function (currValue, compValue) {
       if (
@@ -300,7 +300,7 @@ let SceneManager = {
       return currValue in compValue;
     },
     "notin": function (currValue, compValue) {
-      return !this.compareFunctions["in"](currValue, compValue);
+      return !this.compFuncList["in"](currValue, compValue);
     },
   },
 };
