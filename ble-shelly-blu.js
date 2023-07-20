@@ -186,7 +186,10 @@ function BLEScanCallback(event, result) {
   }
 
   //exit if service_data member is missing
-  if (typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined") {
+  if (
+    typeof result.service_data === "undefined" ||
+    typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined"
+  ) {
     logger("Missing service_data member", "Error");
     return;
   }
