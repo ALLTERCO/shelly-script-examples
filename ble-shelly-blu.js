@@ -19,6 +19,8 @@
  * - rotation - the angle of rotatation in ° if the device has gyroscope
  * - rssi - the signal strength is dB
  * - address - The mac address of the Shelly BLU device
+ * 
+ * Example event data: {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
  */
 
 /******************* START CHANGE HERE *******************/
