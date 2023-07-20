@@ -2,7 +2,9 @@
  * This script will use BLE observer to listen for advertising data from nearby Shelly BLU devices,
  * decodes the data using a BTHome data structure, and emits the decoded data for further processing.
  *
- * This script DOESN'T execute actions, only emit event. Can be used with ble-events-handler.js example.
+ * This script DOESN'T execute actions, only emit events. Can be used with `ble-events-handler.js` example.
+ * You can configure the event name, by default its `shelly-blu`, the body of the event contains all the data
+ * parsed from the BLE device
  *
  * All paramerts that the BLU devices can return:
  * Each device will provide data solely from its sensors.

@@ -1,4 +1,8 @@
 /**
+ * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.js` example.
+ * This script CAN'T be used standone for BLE events. You need the `ble-shelly-blu.js` example running in order to use this 
+ * example for automations
+ * 
  * The `CONFIG` object contains a scenes property which is an array of scene objects.
  * Each scene object consists of two properties: `conditions` and `action`. The `conditions` property
  * defines the conditions under which the scene should be triggered, and the `action`
@@ -23,9 +27,6 @@
  *
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to
  * perform specific actions.
- *
- * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.js` example.
- * This script CAN'T be used standone for BLE events.
  *
  * Event name for the `ble-shelly-blu.js` example is `shelly-blu`.
  */
