@@ -27,6 +27,8 @@
  *
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to
  * perform specific actions.
+ * 
+ * Some examples can be seen bellow.
  *
  * Event name for the `ble-shelly-blu.js` example is `shelly-blu`.
  */
@@ -47,9 +49,12 @@ let CONFIG = {
         },
       },
 
-      // Logs a message to the console
       action: function (data) {
+        // Logs a message to the console
         console.log("The button was pressed");
+
+        //toggles the first build in relay
+        Shelly.call("Switch.Toggle", { id: 0 });
       },
     },
     /** SCENE END 1 **/
@@ -62,8 +67,8 @@ let CONFIG = {
         window: 1,
       },
 
-      // publish a message via MQTT with the addess of the Shelly BLU Door/Window
       action: function (data) {
+        // publish a message via MQTT with the addess of the Shelly BLU Door/Window
         MQTT.publish(
           "mymqttbroker/shelly/window/open",
           "The window with addess " + data.address + " was opened"
@@ -79,9 +84,9 @@ let CONFIG = {
         event: "shelly-blu",
       },
 
-      // publish a message via MQTT with the addess of the Shelly BLU Door/Window
       action: function (data) {
-        console.log("New device found", JSON.stringify(data));
+        // prints the data parsed from Shelly blu device
+        console.log("Shelly BLU device found", JSON.stringify(data));
       },
     },
     /** SCENE END 3 **/
