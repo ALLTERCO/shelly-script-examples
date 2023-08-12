@@ -1,5 +1,6 @@
 let CONFIG = {
-
+  timeout: 15, //in seconds
+  eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each
 };
 
 let KVS = {
@@ -30,6 +31,24 @@ let TelegramBot = {
   init: function (botKey, messageOffset) {
     this.botKey = botKey;
     this.messageOffset = messageOffset;
+
+    this.startNewPoll();
+  },
+  
+  onEvent: function (data) {
+    if(
+      typeof data === "undefined" || 
+      typeof data.info === "undefined" ||
+      data.info.event !== CONFIG.eventName
+    ) {
+      return;
+    }
+
+
+  },
+
+  startNewPoll: function () {
+    Shelly.emitEvent(CONFIG.eventName);
   },
 
   getUpdatesUrl: function () { 
@@ -49,14 +68,15 @@ let TelegramBot = {
 //   //console.log(offset, d.body.result[0].text);
 // });
 
-function start () {
+function init () {
   if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
     console.log("Waiting for the data to be loaded.");
     return;
   }
 
+  Shelly.addEventHandler(TelegramBot.onEvent);
   TelegramBot.init();
 }
 
-KVS.load("botKey", start);
-KVS.load("messageOffset", start);
+KVS.load("botKey", init);
+KVS.load("messageOffset", init);
