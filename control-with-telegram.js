@@ -1,9 +1,5 @@
-let key = "";
-let url = "https://api.telegram.org/bot" + key + "/getUpdates";
-let offset = 0;
-
 let CONFIG = {
-  
+
 };
 
 let KVS = {
@@ -30,20 +26,37 @@ let KVS = {
   }
 };
 
-Shelly.call("HTTP.GET", {
-  url: url
-}, function(d, r) {
-  if(r !== 0) {
+let TelegramBot = {
+  init: function (botKey, messageOffset) {
+    this.botKey = botKey;
+    this.messageOffset = messageOffset;
+  },
+
+  getUpdatesUrl: function () { 
+    return "https://api.telegram.org/bot" + this.botKey + "/getUpdates"; 
+  }
+};
+
+// Shelly.call("HTTP.GET", {
+//   url: url
+// }, function(d, r) {
+//   if(r !== 0) {
+//     return;
+//   }
+  
+//   let data = JSON.parse(d.body);
+//   //offset = d.body.result[0].update_id + 1;
+//   //console.log(offset, d.body.result[0].text);
+// });
+
+function start () {
+  if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
+    console.log("Waiting for the data to be loaded.");
     return;
   }
-  
-  let data = JSON.parse(d.body);
-  //offset = d.body.result[0].update_id + 1;
-  //console.log(offset, d.body.result[0].text);
-});
 
-function printTest() {
-  console.log(KVS.test);
+  TelegramBot.init();
 }
 
-KVS.load("test", printTest);
+KVS.load("botKey", start);
+KVS.load("messageOffset", start);
