@@ -1,6 +1,7 @@
 let CONFIG = {
   timeout: 15, //in seconds
-  eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each
+  startNewPollEventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
+  saveUpdateIdEventName: "telegram-bot-update-id", // ^^^
   commands: {
     "/test": {
       action: function (args) {
@@ -37,14 +38,12 @@ let KVS = {
 let TelegramBot = {
   botKey: undefined,
   messageOffset: undefined,
-  onLastMessage: undefined, // (lastMessageId)
 
-  init: function (botKey, messageOffset, onLastMessage) {
+  init: function (botKey, messageOffset) {
     this.botKey = botKey;
     this.messageOffset = messageOffset;
-    this.onLastMessage = onLastMessage;
 
-    this.startNewPoll();
+    Shelly.emitEvent(CONFIG.startNewPollEventName);
   },
   
   onEvent: function () {
@@ -66,32 +65,29 @@ let TelegramBot = {
 
   /* callback */
   onFinishPoll: function (data, error, errorMessage, self) {
-    console.log(self);
     if(error !== 0) {
       console.log("Poll finishes with error ->", errorMessage);
       return;
     }
 
-    let lastUpdateId = -1;
     let response = JSON.parse(data.body);
     if(response.result.length === 0) {
       console.log("No new messages");
       return;
     }
 
+    let lastUpdateId = -1;
     for (let res of response.result) {
       console.log(JSON.stringify(res));
       self.handleMessage(res.message);
       lastUpdateId = res.update_id;
     }
 
-    if(typeof self.onLastMessage === "function") {
-      self.onLastMessage(lastUpdateId);
-    }
+    Shelly.emitEvent(CONFIG.saveUpdateIdEventName, { lastUpdateId: lastUpdateId });
   },
 
   handleMessage: function (message) {
-    this.sendMessage(message.chat.id, message.text);
+    //this.sendMessage(message.chat.id, message.text);
   },
 
   sendMessage: function(chatId, message) {
@@ -110,21 +106,7 @@ let TelegramBot = {
       this
     );
   },
-
-  startNewPoll: function () {
-    Shelly.emitEvent(CONFIG.eventName);
-  },
 };
-
-function onLastMessage (lastUpdateId) {
-  console.log(lastUpdateId);
-
-  if (lastUpdateId <= KVS.messageOffset) {
-    return;
-  }
-
-  KVS.write("messageOffset", lastUpdateId);
-}
 
 function init () {
   if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
@@ -134,18 +116,27 @@ function init () {
 
   console.log("Data is loaded");
   Shelly.addEventHandler(function(data) {
-    if(
+    if (
       typeof data === "undefined" || 
-      typeof data.info === "undefined" ||
-      data.info.event !== CONFIG.eventName
+      typeof data.info === "undefined"
     ) {
       return;
     }
 
-    TelegramBot.onEvent();
+    if (data.info.event === CONFIG.startNewPollEventName) {
+      TelegramBot.onEvent();
+    }
+    else if (data.info.event === CONFIG.saveUpdateIdEventName) {
+      if (data.info.data.lastUpdateId <= KVS.messageOffset) {
+        console.log(data.info.data.lastUpdateId, "<", KVS.messageOffset, ", so nothing to save..");
+        return;
+      }
+    
+      KVS.write("messageOffset", data.info.data.lastUpdateId);
+    }
   });
 
-  TelegramBot.init(KVS.botKey, KVS.messageOffset, onLastMessage);
+  TelegramBot.init(KVS.botKey, KVS.messageOffset);
 }
 
 KVS.load("botKey", init);
