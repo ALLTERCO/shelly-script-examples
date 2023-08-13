@@ -8,12 +8,12 @@ let KVS = {
     Shelly.call(
       "KVS.Get", 
       { key: key },
-      function (data, error, message, kvsObject) {
+      function (data, error, message, self) {
         if(error !== 0) {
           console.log("Cannot read the value for the provided key, reason:", message);
           return;
         }
-        kvsObject[key] = data.value;
+        self[key] = data.value;
         if(callback) {
           callback();
         }
@@ -35,7 +35,49 @@ let TelegramBot = {
     this.startNewPoll();
   },
   
-  onEvent: function (data) {
+  onEvent: function () {
+    console.log("Poll started");
+    Shelly.call(
+      "HTTP.REQUEST",
+      { 
+        method: "GET",
+        url: "https://api.telegram.org/bot" + this.botKey + "/getUpdates", 
+        timeout: CONFIG.timeout 
+      },
+      this.onFinishPoll,
+      this
+    );
+  },
+
+  onFinishPoll: function (data, error, message, self) {
+    console.log("Received", data);
+    if(error !== 0) {
+      console.log("Poll finishes with error ->", message);
+      return;
+    }
+
+    let response = JSON.parse(data.body);
+    for (let res of response.result) {
+      console.log(res);
+    }
+
+    console.log("hnn");
+  },
+
+  startNewPoll: function () {
+    Shelly.emitEvent(CONFIG.eventName);
+  },
+};
+
+function init () {
+  if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
+    console.log("Waiting for the data to be loaded.");
+    return;
+  }
+
+  console.log("Data is loaded");
+  Shelly.addEventHandler(function(data) {
+    console.log("new event", data.info.event);
     if(
       typeof data === "undefined" || 
       typeof data.info === "undefined" ||
@@ -44,38 +86,10 @@ let TelegramBot = {
       return;
     }
 
+    TelegramBot.onEvent();
+  });
 
-  },
-
-  startNewPoll: function () {
-    Shelly.emitEvent(CONFIG.eventName);
-  },
-
-  getUpdatesUrl: function () { 
-    return "https://api.telegram.org/bot" + this.botKey + "/getUpdates"; 
-  }
-};
-
-// Shelly.call("HTTP.GET", {
-//   url: url
-// }, function(d, r) {
-//   if(r !== 0) {
-//     return;
-//   }
-  
-//   let data = JSON.parse(d.body);
-//   //offset = d.body.result[0].update_id + 1;
-//   //console.log(offset, d.body.result[0].text);
-// });
-
-function init () {
-  if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
-    console.log("Waiting for the data to be loaded.");
-    return;
-  }
-
-  Shelly.addEventHandler(TelegramBot.onEvent);
-  TelegramBot.init();
+  TelegramBot.init(KVS.botKey, KVS.messageOffset);
 }
 
 KVS.load("botKey", init);
