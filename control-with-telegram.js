@@ -1,14 +1,8 @@
 let CONFIG = {
   timeout: 15, //in seconds
-  startNewPollEventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
+  eventName: "telegram-bot",
+  startNewPollEventName: "telegram-bot-new-poll", //if you have more than once instace of this script, you should set a unique event name for each,
   saveUpdateIdEventName: "telegram-bot-update-id", // ^^^
-  commands: {
-    "/test": {
-      action: function (args) {
-        console.log(args);
-      }
-    }
-  }
 };
 
 let KVS = {
@@ -70,7 +64,6 @@ let TelegramBot = {
       return;
     }
 
-    console.log("body: ", data.body);
     let response = JSON.parse(data.body);
     if(response.result.length === 0) {
       console.log("No new messages");
@@ -79,7 +72,7 @@ let TelegramBot = {
 
     let lastUpdateId = -1;
     for (let res of response.result) {
-      console.log("res", JSON.stringify(res));
+      console.log("New message", res.message.text);
       self.handleMessage(res.message);
       lastUpdateId = res.update_id;
     }
@@ -88,6 +81,33 @@ let TelegramBot = {
   },
 
   handleMessage: function (message) {
+    Shelly.emitEvent(
+      CONFIG.eventName, 
+      { 
+        messsage: message.text, 
+        // messageBack: function (text) {
+        //   if(typeof text === "undefined") {
+        //     text = "Ok.";
+        //   }
+
+        //   Shelly.call(
+        //     "HTTP.REQUEST",
+        //     { 
+        //       method: "POST",
+        //       url: "https://api.telegram.org/bot" + this.botKey + "/sendMessage", 
+        //       timeout: CONFIG.timeout,
+        //       body: {
+        //         chat_id: message.chat.id,
+        //         text: text
+        //       }
+        //     }
+        //   );
+        // } 
+      }
+    );
+  },
+
+  sendMessage: function (message) {
     Shelly.call(
       "HTTP.REQUEST",
       { 
@@ -96,11 +116,11 @@ let TelegramBot = {
         timeout: CONFIG.timeout,
         body: {
           chat_id: message.chat.id,
-          text: message.text
+          text: "Ok."
         }
       }
     );
-  },
+  }
 };
 
 function init () {
