@@ -1,19 +1,32 @@
 let CONFIG = {
   timeout: 15, //in seconds
-  eventName: "telegram-bot",
-  newPollSubfix: "new-poll", //if you have more than once instace of this script, you should set a unique event name for each,
-  updateIdSubfix: "update-id", // ^^^
+  eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
+
+  /**
+   * Called on each received message
+   * @param {String} message the raw received message
+   * @param {Function} sendMessage function to send message back
+   */
+  onMessage: function(message, sendMessage) { 
+
+  },
 
   //if commands: null the script will emit event with the message without any validation
   commands: {
     "/test": {
-      success: "Ok, thanks",
       params: [
         {
           key: "deviceId", //required
-          error: "Sorry, I need the device ID",
+          //must return a value, return undefined to reject the value
+          parser: function(value, sendMessage) { 
+            return value; 
+          }, 
+          missingMessage: "Please enter device ID"
         }
-      ]
+      ],
+      handler: function(params, sendMessage) {
+        sendMessage("Thanks for the " + params.deviceId);
+      }
     }
   },
 };
@@ -50,7 +63,7 @@ let TelegramBot = {
     this.botKey = botKey;
     this.messageOffset = messageOffset;
 
-    Shelly.emitEvent(CONFIG.eventName + "-" + CONFIG.newPollSubfix, { test: true });
+    Shelly.emitEvent(CONFIG.eventName, { test: true });
   },
   
   onEvent: function () {
@@ -90,34 +103,58 @@ let TelegramBot = {
       lastUpdateId = res.update_id;
     }
 
-    Shelly.emitEvent(CONFIG.eventName + "-" + CONFIG.updateIdSubfix, { lastUpdateId: lastUpdateId });
+    if (lastUpdateId <= KVS.messageOffset) {
+      console.log(lastUpdateId, "<", KVS.messageOffset, ", so nothing to save..");
+      return;
+    }
+  
+    KVS.write("messageOffset", lastUpdateId);
   },
 
   handleMessage: function (message) {
-    let words = message.text.split(" ");
-    let text = "Ok.";
-    let hasError = false;
+    let words = message.text.trim().split(" ");
 
-    let readyParams = {};
-
-    if(CONFIG.commands) {
-      if(words.length > 0 && words[0] in CONFIG.commands) {
-        let params = CONFIG.commands[words[0]].params;
-        text = CONFIG.commands[words[0]].success;
-
-        for (let i = 0; i < params.length; i++) {
-          if(words.length <= i + 1) {
-            text = params[i].error;
-            hasError = true;
-            break;
-          }
-          else {
-            readyParams[params[i].key] = words[i + 1];
-          }
-        }
-      }
+    function sendMessage(text) {
+      return this.sendMessage(message.chat.id, text);
     }
 
+    if(CONFIG.commands) {
+      let params = {};
+      words[0] = words[0].trim();
+
+      if(words.length > 0 && words[0] in CONFIG.commands) {
+        let cmdParams = CONFIG.commands[words[0]].params;
+
+        for (let i = 0; i < cmdParams.length; i++) {
+          if(words.length <= i + 1) {
+            sendMessage(cmdParams[i].missingMessage);
+            return;
+          }
+          else {
+            if(typeof cmdParams[i].parser !== "function") {
+              params[cmdParams[i].key] = words[i + 1];
+              continue;
+            }
+
+            let value = cmdParams[i].parser(words[i + 1], sendMessage);
+            if(typeof value === "undefined") {
+              return;
+            }
+          }
+        }
+
+        CONFIG.commands[words[0]].handler(params, sendMessage);
+      }
+      else { //no matching command
+        sendMessage("Not recognized command");
+      }
+    }
+    else { //no defined commands
+      CONFIG.onMessage(message.text, sendMessage);
+    }
+  },
+
+  sendMessage: function (chatId, text) {
     Shelly.call(
       "HTTP.REQUEST",
       { 
@@ -125,22 +162,12 @@ let TelegramBot = {
         url: "https://api.telegram.org/bot" + this.botKey + "/sendMessage", 
         timeout: CONFIG.timeout,
         body: {
-          chat_id: message.chat.id,
+          chat_id: chatId,
           text: text
         }
       }
     );
-
-    if(!hasError) {
-      Shelly.emitEvent(
-        CONFIG.eventName, 
-        { 
-          message: message.text,
-          params: readyParams
-        }
-      );
-    }
-  },
+  }
 };
 
 function init () {
@@ -153,22 +180,13 @@ function init () {
   Shelly.addEventHandler(function(data) {
     if (
       typeof data === "undefined" || 
-      typeof data.info === "undefined"
+      typeof data.info === "undefined" ||
+      data.info.event !== CONFIG.eventName
     ) {
       return;
     }
 
-    if (data.info.event === CONFIG.eventName + "-" + CONFIG.newPollSubfix) {
-      TelegramBot.onEvent();
-    }
-    else if (data.info.event === CONFIG.eventName + "-" + CONFIG.updateIdSubfix) {
-      if (data.info.data.lastUpdateId <= KVS.messageOffset) {
-        console.log(data.info.data.lastUpdateId, "<", KVS.messageOffset, ", so nothing to save..");
-        return;
-      }
-    
-      KVS.write("messageOffset", data.info.data.lastUpdateId);
-    }
+    TelegramBot.onEvent();
   });
 
   TelegramBot.init(KVS.botKey, KVS.messageOffset);
