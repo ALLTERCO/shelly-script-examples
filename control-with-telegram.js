@@ -3,6 +3,19 @@ let CONFIG = {
   eventName: "telegram-bot",
   newPollSubfix: "new-poll", //if you have more than once instace of this script, you should set a unique event name for each,
   updateIdSubfix: "update-id", // ^^^
+
+  //if commands: null the script will emit event with the message without any validation
+  commands: {
+    "/test": {
+      success: "Ok, thanks",
+      params: [
+        {
+          key: "deviceId", //required
+          error: "Sorry, I need the device ID",
+        }
+      ]
+    }
+  },
 };
 
 let KVS = {
@@ -81,6 +94,30 @@ let TelegramBot = {
   },
 
   handleMessage: function (message) {
+    let words = message.text.split(" ");
+    let text = "Ok.";
+    let hasError = false;
+
+    let readyParams = {};
+
+    if(CONFIG.commands) {
+      if(words.length > 0 && words[0] in CONFIG.commands) {
+        let params = CONFIG.commands[words[0]].params;
+        text = CONFIG.commands[words[0]].success;
+
+        for (let i = 0; i < params.length; i++) {
+          if(words.length <= i + 1) {
+            text = params[i].error;
+            hasError = true;
+            break;
+          }
+          else {
+            readyParams[params[i].key] = words[i + 1];
+          }
+        }
+      }
+    }
+
     Shelly.call(
       "HTTP.REQUEST",
       { 
@@ -89,17 +126,20 @@ let TelegramBot = {
         timeout: CONFIG.timeout,
         body: {
           chat_id: message.chat.id,
-          text: "Ok."
+          text: text
         }
       }
     );
 
-    Shelly.emitEvent(
-      CONFIG.eventName, 
-      { 
-        message: message.text
-      }
-    );
+    if(!hasError) {
+      Shelly.emitEvent(
+        CONFIG.eventName, 
+        { 
+          message: message.text,
+          params: readyParams
+        }
+      );
+    }
   },
 };
 
