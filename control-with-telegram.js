@@ -70,6 +70,7 @@ let TelegramBot = {
       return;
     }
 
+    console.log("body: ", data.body);
     let response = JSON.parse(data.body);
     if(response.result.length === 0) {
       console.log("No new messages");
@@ -78,7 +79,7 @@ let TelegramBot = {
 
     let lastUpdateId = -1;
     for (let res of response.result) {
-      console.log(JSON.stringify(res));
+      console.log("res", JSON.stringify(res));
       self.handleMessage(res.message);
       lastUpdateId = res.update_id;
     }
@@ -87,10 +88,6 @@ let TelegramBot = {
   },
 
   handleMessage: function (message) {
-    //this.sendMessage(message.chat.id, message.text);
-  },
-
-  sendMessage: function(chatId, message) {
     Shelly.call(
       "HTTP.REQUEST",
       { 
@@ -98,12 +95,10 @@ let TelegramBot = {
         url: "https://api.telegram.org/bot" + this.botKey + "/sendMessage", 
         timeout: CONFIG.timeout,
         body: {
-          chat_id: chatId,
-          text: message
+          chat_id: message.chat.id,
+          text: message.text
         }
-      },
-      this.onFinishPoll,
-      this
+      }
     );
   },
 };
