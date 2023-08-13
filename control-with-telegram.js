@@ -1,8 +1,8 @@
 let CONFIG = {
   timeout: 15, //in seconds
   eventName: "telegram-bot",
-  startNewPollEventName: "telegram-bot-new-poll", //if you have more than once instace of this script, you should set a unique event name for each,
-  saveUpdateIdEventName: "telegram-bot-update-id", // ^^^
+  newPollSubfix: "new-poll", //if you have more than once instace of this script, you should set a unique event name for each,
+  updateIdSubfix: "update-id", // ^^^
 };
 
 let KVS = {
@@ -37,7 +37,7 @@ let TelegramBot = {
     this.botKey = botKey;
     this.messageOffset = messageOffset;
 
-    Shelly.emitEvent(CONFIG.startNewPollEventName);
+    Shelly.emitEvent(CONFIG.eventName + "-" + CONFIG.newPollSubfix, { test: true });
   },
   
   onEvent: function () {
@@ -77,37 +77,10 @@ let TelegramBot = {
       lastUpdateId = res.update_id;
     }
 
-    Shelly.emitEvent(CONFIG.saveUpdateIdEventName, { lastUpdateId: lastUpdateId });
+    Shelly.emitEvent(CONFIG.eventName + "-" + CONFIG.updateIdSubfix, { lastUpdateId: lastUpdateId });
   },
 
   handleMessage: function (message) {
-    Shelly.emitEvent(
-      CONFIG.eventName, 
-      { 
-        messsage: message.text, 
-        // messageBack: function (text) {
-        //   if(typeof text === "undefined") {
-        //     text = "Ok.";
-        //   }
-
-        //   Shelly.call(
-        //     "HTTP.REQUEST",
-        //     { 
-        //       method: "POST",
-        //       url: "https://api.telegram.org/bot" + this.botKey + "/sendMessage", 
-        //       timeout: CONFIG.timeout,
-        //       body: {
-        //         chat_id: message.chat.id,
-        //         text: text
-        //       }
-        //     }
-        //   );
-        // } 
-      }
-    );
-  },
-
-  sendMessage: function (message) {
     Shelly.call(
       "HTTP.REQUEST",
       { 
@@ -120,7 +93,14 @@ let TelegramBot = {
         }
       }
     );
-  }
+
+    Shelly.emitEvent(
+      CONFIG.eventName, 
+      { 
+        message: message.text
+      }
+    );
+  },
 };
 
 function init () {
@@ -138,10 +118,10 @@ function init () {
       return;
     }
 
-    if (data.info.event === CONFIG.startNewPollEventName) {
+    if (data.info.event === CONFIG.eventName + "-" + CONFIG.newPollSubfix) {
       TelegramBot.onEvent();
     }
-    else if (data.info.event === CONFIG.saveUpdateIdEventName) {
+    else if (data.info.event === CONFIG.eventName + "-" + CONFIG.updateIdSubfix) {
       if (data.info.data.lastUpdateId <= KVS.messageOffset) {
         console.log(data.info.data.lastUpdateId, "<", KVS.messageOffset, ", so nothing to save..");
         return;
