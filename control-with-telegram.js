@@ -27,7 +27,7 @@ let CONFIG = {
             sendMessage("Not the right word");
             return undefined;
           }, 
-          missingMessage: "Missing device ID"
+          missingMessage: "Send me the device ID"
         },
         {
           key: "cmd", //required
@@ -35,7 +35,7 @@ let CONFIG = {
           parser: function(value, sendMessage) {
             return value;
           }, 
-          missingMessage: "Missing command 123"
+          missingMessage: "Send me the command"
         }
       ],
       handler: function(params, sendMessage) {
@@ -137,11 +137,14 @@ let TelegramBot = {
             chat_id: message.chat.id,
             text: textMsg
           })
+        },
+        function(d, r, m) {
+          console.log("MSG", r, m);
         }
       );
     }
 
-    console.log("COMMAND", this.lastCommand);
+    console.log("COMMAND", JSON.stringify(this.lastCommand));
 
     if(
       this.lastCommand && 
@@ -154,23 +157,23 @@ let TelegramBot = {
       if(CONFIG.commands) {
         let params = {};
 
-        if(words.length > 0 && (words[0].trim() in CONFIG.commands || this.lastCommand)) {
-          let commandKey = words[0].trim();
+        if(words.length > 0 && (words[0] in CONFIG.commands || this.lastCommand)) {
+          let commandKey = words[0];
           let paramScanStartId = 0;
-          let offsetParams = 1;
+          let wordCounter = 1;
 
           if(this.lastCommand) {
             commandKey = this.lastCommand.key;
             params = this.lastCommand.params;
             paramScanStartId = this.lastCommand.waitingParamId;
-            offsetParams = 0;
+            wordCounter = 0;
           }
 
           let command = CONFIG.commands[commandKey];
 
           if(command.waitForAllParams && typeof this.lastCommand === "undefined") {
             this.lastCommand = {
-              key: words[0].trim(),
+              key: commandKey,
               params: {},
               waitingParamId: 0,
               tries: 0
@@ -178,7 +181,7 @@ let TelegramBot = {
           }
 
           for (let i = paramScanStartId; i < command.params.length; i++) {
-            if(words.length <= i + offsetParams) {
+            if(wordCounter >= words.length) {
               sendMessage(command.params[i].missingMessage);
 
               if(this.lastCommand) {
@@ -189,18 +192,12 @@ let TelegramBot = {
               return;
             }
             else {
-              if(typeof command.params[i].parser !== "function") {
-                params[command.params[i].key] = words[i + offsetParams];
-                if(this.lastCommand) {
-                  this.lastCommand.params = params;
-                  this.lastCommand.tries = 0;
-                  console.log("RESET COUNTER");
-                }
+              let value = words[wordCounter++];
 
-                continue;
+              if(typeof command.params[i].parser === "function") {
+                value = command.params[i].parser(value, sendMessage);
               }
-
-              let value = command.params[i].parser(words[i + offsetParams], sendMessage);
+              
               if(typeof value === "undefined") {
                 if(this.lastCommand) {
                   this.lastCommand.waitingParamId = i;
