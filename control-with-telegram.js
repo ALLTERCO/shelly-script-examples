@@ -24,10 +24,18 @@ let CONFIG = {
               return value; 
             }
 
-            sendMessage("test");
+            sendMessage("Not the right word");
             return undefined;
           }, 
           missingMessage: "Missing device ID"
+        },
+        {
+          key: "cmd", //required
+          //must return a value, return undefined to reject the value
+          parser: function(value, sendMessage) {
+            return value;
+          }, 
+          missingMessage: "Missing command 123"
         }
       ],
       handler: function(params, sendMessage) {
@@ -129,19 +137,18 @@ let TelegramBot = {
             chat_id: message.chat.id,
             text: textMsg
           })
-        },
-        function(_, error, msg) {
-          console.log(error, msg);
         }
       );
     }
 
+    console.log("COMMAND", this.lastCommand);
+
     if(
       this.lastCommand && 
       typeof CONFIG.commands[this.lastCommand.key].abortAfter === "number" &&
-      this.lastCommand.tries >= CONFIG.commands[this.lastCommand.key].abortAfter
+      this.lastCommand.tries > CONFIG.commands[this.lastCommand.key].abortAfter
     ) {
-      sendMessage("Max ties exceeded, aborting...");
+      sendMessage("Max tries exceeded, aborting...");
     }
     else {
       if(CONFIG.commands) {
@@ -186,6 +193,8 @@ let TelegramBot = {
                 params[command.params[i].key] = words[i + offsetParams];
                 if(this.lastCommand) {
                   this.lastCommand.params = params;
+                  this.lastCommand.tries = 0;
+                  console.log("RESET COUNTER");
                 }
 
                 continue;
@@ -200,9 +209,12 @@ let TelegramBot = {
 
                 return;
               }
+
               params[command.params[i].key] = value;
               if(this.lastCommand) {
                 this.lastCommand.params = params;
+                this.lastCommand.tries = 0; 
+                console.log("RESET COUNTER");
               }
             }
           }
