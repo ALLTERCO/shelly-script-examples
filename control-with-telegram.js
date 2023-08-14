@@ -1,6 +1,6 @@
 let CONFIG = {
-  timeout: 15, //in seconds
-  timer: 1000, //in miliseconds
+  timeout: 5, //in seconds
+  timer: 500, //in miliseconds
   eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
 
   /**
@@ -22,12 +22,13 @@ let CONFIG = {
           parser: function(value, sendMessage) { 
             return value; 
           }, 
-          missingMessage: "Please enter device ID"
+          missingMessage: "Missing device ID"
         }
       ],
       handler: function(params, sendMessage) {
-        sendMessage("Thanks for the");
-      }
+        sendMessage("Thanks for the " + params.deviceId);
+      },
+      waitForAllParams: true
     }
   },
 };
@@ -58,9 +59,6 @@ let KVS = {
 };
 
 let TelegramBot = {
-  botKey: undefined,
-  messageOffset: undefined,
-
   init: function () {
     Shelly.emitEvent(CONFIG.eventName);
   },
@@ -131,31 +129,62 @@ let TelegramBot = {
 
     if(CONFIG.commands) {
       let params = {};
-      words[0] = words[0].trim();
 
-      if(words.length > 0 && words[0] in CONFIG.commands) {
-        let cmdParams = CONFIG.commands[words[0]].params;
+      if(words.length > 0 && (words[0].trim() in CONFIG.commands || this.lastCommand)) {
+        let commandKey = words[0].trim();
+        let paramScanStartId = 0;
+        let offsetParams = 1;
 
-        for (let i = 0; i < cmdParams.length; i++) {
-          if(words.length <= i + 1) {
-            sendMessage(cmdParams[i].missingMessage);
+        if(this.lastCommand) {
+          console.log(this.lastCommand);
+          commandKey = this.lastCommand.key;
+          params = this.lastCommand.params;
+          paramScanStartId = this.lastCommand.waitingParamId;
+          offsetParams = 0;
+        }
+
+        let command = CONFIG.commands[commandKey];
+
+        if(command.waitForAllParams && typeof this.lastCommand === "undefined") {
+          this.lastCommand = {
+            key: words[0].trim(),
+            params: {},
+            waitingParamId: 0
+          };
+        }
+
+        for (let i = paramScanStartId; i < command.params.length; i++) {
+          if(words.length <= i + offsetParams) {
+            sendMessage(command.params[i].missingMessage);
+
+            if(this.lastCommand) {
+              this.lastCommand.waitingParamId = i;
+            }
+
             return;
           }
           else {
-            if(typeof cmdParams[i].parser !== "function") {
-              params[cmdParams[i].key] = words[i + 1];
+            if(typeof command.params[i].parser !== "function") {
+              params[command.params[i].key] = words[i + offsetParams];
+              if(this.lastCommand) {
+                this.lastCommand.params = params;
+              }
+
               continue;
             }
 
-            let value = cmdParams[i].parser(words[i + 1], sendMessage);
+            let value = command.params[i].parser(words[i + offsetParams], sendMessage);
             if(typeof value === "undefined") {
               return;
             }
-            params[cmdParams[i].key] = value;
+            params[command.params[i].key] = value;
+            if(this.lastCommand) {
+              this.lastCommand.params = params;
+            }
           }
         }
 
-        CONFIG.commands[words[0]].handler(params, sendMessage);
+        command.handler(params, sendMessage);
       }
       else { //no matching command
         sendMessage("Not recognized command");
@@ -164,6 +193,8 @@ let TelegramBot = {
     else { //no defined commands
       CONFIG.onMessage(message.text, sendMessage);
     }
+
+    this.lastCommand = undefined;
   },
 };
 
