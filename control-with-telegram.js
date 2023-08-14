@@ -1,5 +1,6 @@
 let CONFIG = {
   timeout: 15, //in seconds
+  timer: 1000, //in miliseconds
   eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
 
   /**
@@ -25,7 +26,7 @@ let CONFIG = {
         }
       ],
       handler: function(params, sendMessage) {
-        sendMessage("Thanks for the " + params.deviceId);
+        sendMessage("Thanks for the");
       }
     }
   },
@@ -51,6 +52,7 @@ let KVS = {
   },
 
   write: function (key, value) {
+    this[key] = value;
     Shelly.call("KVS.Set", { key: key, value: value } );
   }
 };
@@ -59,11 +61,8 @@ let TelegramBot = {
   botKey: undefined,
   messageOffset: undefined,
 
-  init: function (botKey, messageOffset) {
-    this.botKey = botKey;
-    this.messageOffset = messageOffset;
-
-    Shelly.emitEvent(CONFIG.eventName, { test: true });
+  init: function () {
+    Shelly.emitEvent(CONFIG.eventName);
   },
   
   onEvent: function () {
@@ -72,10 +71,10 @@ let TelegramBot = {
       "HTTP.REQUEST",
       { 
         method: "POST",
-        url: "https://api.telegram.org/bot" + this.botKey + "/getUpdates", 
+        url: "https://api.telegram.org/bot" + KVS.botKey + "/getUpdates", 
         timeout: CONFIG.timeout,
         body: {
-          offset: this.messageOffset + 1
+          offset: KVS.messageOffset + 1
         }
       },
       this.onFinishPoll,
@@ -93,7 +92,6 @@ let TelegramBot = {
     let response = JSON.parse(data.body);
     if(response.result.length === 0) {
       console.log("No new messages");
-      return;
     }
 
     let lastUpdateId = -1;
@@ -103,19 +101,32 @@ let TelegramBot = {
       lastUpdateId = res.update_id;
     }
 
-    if (lastUpdateId <= KVS.messageOffset) {
-      console.log(lastUpdateId, "<", KVS.messageOffset, ", so nothing to save..");
-      return;
+    if (lastUpdateId > KVS.messageOffset) {
+      KVS.write("messageOffset", lastUpdateId);
     }
-  
-    KVS.write("messageOffset", lastUpdateId);
+
+    Timer.set(CONFIG.timer, false, function() {
+      Shelly.emitEvent(CONFIG.eventName);
+    });
   },
 
   handleMessage: function (message) {
     let words = message.text.trim().split(" ");
 
-    function sendMessage(text) {
-      return this.sendMessage(message.chat.id, text);
+    function sendMessage(textMsg) {
+      console.log(textMsg, message.chat.id);
+      Shelly.call(
+        "HTTP.REQUEST",
+        { 
+          method: "POST",
+          url: "https://api.telegram.org/bot" + KVS.botKey + "/sendMessage", 
+          timeout: CONFIG.timeout,
+          body: {
+            chat_id: message.chat.id,
+            text: textMsg
+          }
+        }
+      );
     }
 
     if(CONFIG.commands) {
@@ -140,6 +151,7 @@ let TelegramBot = {
             if(typeof value === "undefined") {
               return;
             }
+            params[cmdParams[i].key] = value;
           }
         }
 
@@ -153,21 +165,6 @@ let TelegramBot = {
       CONFIG.onMessage(message.text, sendMessage);
     }
   },
-
-  sendMessage: function (chatId, text) {
-    Shelly.call(
-      "HTTP.REQUEST",
-      { 
-        method: "POST",
-        url: "https://api.telegram.org/bot" + this.botKey + "/sendMessage", 
-        timeout: CONFIG.timeout,
-        body: {
-          chat_id: chatId,
-          text: text
-        }
-      }
-    );
-  }
 };
 
 function init () {
