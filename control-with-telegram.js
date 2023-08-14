@@ -19,8 +19,13 @@ let CONFIG = {
         {
           key: "deviceId", //required
           //must return a value, return undefined to reject the value
-          parser: function(value, sendMessage) { 
-            return value; 
+          parser: function(value, sendMessage) {
+            if(value === "test") { 
+              return value; 
+            }
+
+            sendMessage("test");
+            return undefined;
           }, 
           missingMessage: "Missing device ID"
         }
@@ -28,7 +33,8 @@ let CONFIG = {
       handler: function(params, sendMessage) {
         sendMessage("Thanks for the " + params.deviceId);
       },
-      waitForAllParams: true
+      waitForAllParams: true, //if true, the script will wait for all params to be entered (can be in different messagegs)
+      abortAfter: 3, //abort after 3 unsuccessfull tries
     }
   },
 };
@@ -118,80 +124,98 @@ let TelegramBot = {
         { 
           method: "POST",
           url: "https://api.telegram.org/bot" + KVS.botKey + "/sendMessage", 
-          timeout: CONFIG.timeout,
-          body: {
+          timeout: 5,
+          body: JSON.stringify({
             chat_id: message.chat.id,
             text: textMsg
-          }
+          })
+        },
+        function(_, error, msg) {
+          console.log(error, msg);
         }
       );
     }
 
-    if(CONFIG.commands) {
-      let params = {};
+    if(
+      this.lastCommand && 
+      typeof CONFIG.commands[this.lastCommand.key].abortAfter === "number" &&
+      this.lastCommand.tries >= CONFIG.commands[this.lastCommand.key].abortAfter
+    ) {
+      sendMessage("Max ties exceeded, aborting...");
+    }
+    else {
+      if(CONFIG.commands) {
+        let params = {};
 
-      if(words.length > 0 && (words[0].trim() in CONFIG.commands || this.lastCommand)) {
-        let commandKey = words[0].trim();
-        let paramScanStartId = 0;
-        let offsetParams = 1;
+        if(words.length > 0 && (words[0].trim() in CONFIG.commands || this.lastCommand)) {
+          let commandKey = words[0].trim();
+          let paramScanStartId = 0;
+          let offsetParams = 1;
 
-        if(this.lastCommand) {
-          console.log(this.lastCommand);
-          commandKey = this.lastCommand.key;
-          params = this.lastCommand.params;
-          paramScanStartId = this.lastCommand.waitingParamId;
-          offsetParams = 0;
-        }
-
-        let command = CONFIG.commands[commandKey];
-
-        if(command.waitForAllParams && typeof this.lastCommand === "undefined") {
-          this.lastCommand = {
-            key: words[0].trim(),
-            params: {},
-            waitingParamId: 0
-          };
-        }
-
-        for (let i = paramScanStartId; i < command.params.length; i++) {
-          if(words.length <= i + offsetParams) {
-            sendMessage(command.params[i].missingMessage);
-
-            if(this.lastCommand) {
-              this.lastCommand.waitingParamId = i;
-            }
-
-            return;
+          if(this.lastCommand) {
+            commandKey = this.lastCommand.key;
+            params = this.lastCommand.params;
+            paramScanStartId = this.lastCommand.waitingParamId;
+            offsetParams = 0;
           }
-          else {
-            if(typeof command.params[i].parser !== "function") {
-              params[command.params[i].key] = words[i + offsetParams];
+
+          let command = CONFIG.commands[commandKey];
+
+          if(command.waitForAllParams && typeof this.lastCommand === "undefined") {
+            this.lastCommand = {
+              key: words[0].trim(),
+              params: {},
+              waitingParamId: 0,
+              tries: 0
+            };
+          }
+
+          for (let i = paramScanStartId; i < command.params.length; i++) {
+            if(words.length <= i + offsetParams) {
+              sendMessage(command.params[i].missingMessage);
+
+              if(this.lastCommand) {
+                this.lastCommand.waitingParamId = i;
+                this.lastCommand.tries += 1;
+              }
+
+              return;
+            }
+            else {
+              if(typeof command.params[i].parser !== "function") {
+                params[command.params[i].key] = words[i + offsetParams];
+                if(this.lastCommand) {
+                  this.lastCommand.params = params;
+                }
+
+                continue;
+              }
+
+              let value = command.params[i].parser(words[i + offsetParams], sendMessage);
+              if(typeof value === "undefined") {
+                if(this.lastCommand) {
+                  this.lastCommand.waitingParamId = i;
+                  this.lastCommand.tries += 1;
+                }
+
+                return;
+              }
+              params[command.params[i].key] = value;
               if(this.lastCommand) {
                 this.lastCommand.params = params;
               }
-
-              continue;
-            }
-
-            let value = command.params[i].parser(words[i + offsetParams], sendMessage);
-            if(typeof value === "undefined") {
-              return;
-            }
-            params[command.params[i].key] = value;
-            if(this.lastCommand) {
-              this.lastCommand.params = params;
             }
           }
-        }
 
-        command.handler(params, sendMessage);
+          command.handler(params, sendMessage);
+        }
+        else { //no matching command
+          sendMessage("Not recognized command");
+        }
       }
-      else { //no matching command
-        sendMessage("Not recognized command");
+      else { //no defined commands
+        CONFIG.onMessage(message.text, sendMessage);
       }
-    }
-    else { //no defined commands
-      CONFIG.onMessage(message.text, sendMessage);
     }
 
     this.lastCommand = undefined;
