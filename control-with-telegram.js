@@ -33,13 +33,15 @@ let CONFIG = {
           key: "cmd", //required
           //must return a value, return undefined to reject the value
           parser: function(value, sendMessage) {
+            sendMessage("test");
+
             return value;
           }, 
           missingMessage: "Send me the command"
         }
       ],
       handler: function(params, sendMessage) {
-        sendMessage("Thanks for the " + params.deviceId);
+        sendMessage("Thanks for the " + JSON.stringify(params));
       },
       waitForAllParams: true, //if true, the script will wait for all params to be entered (can be in different messagegs)
       abortAfter: 3, //abort after 3 unsuccessfull tries
@@ -123,6 +125,7 @@ let TelegramBot = {
   },
 
   handleMessage: function (message) {
+    console.log("MSG OBJ", JSON.stringify(message));
     let words = message.text.trim().split(" ");
 
     function sendMessage(textMsg) {
@@ -130,16 +133,12 @@ let TelegramBot = {
       Shelly.call(
         "HTTP.REQUEST",
         { 
-          method: "POST",
-          url: "https://api.telegram.org/bot" + KVS.botKey + "/sendMessage", 
-          timeout: 5,
-          body: JSON.stringify({
-            chat_id: message.chat.id,
-            text: textMsg
-          })
+          method: "GET",
+          url: "https://api.telegram.org/bot" + KVS.botKey + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
+          timeout: 7,
         },
         function(d, r, m) {
-          console.log("MSG", r, m);
+          console.log("SEND MSG", JSON.stringify(d), r, m);
         }
       );
     }
