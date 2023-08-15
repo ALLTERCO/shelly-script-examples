@@ -1,23 +1,47 @@
+  /**
+   * This script provides a framework for creating a basic Telegram bot using the 
+   * scriping functionalities of the Gen2 devices. It allows you to define custom commands, 
+   * validate parameters, and perform actions based on user messages. 
+   * The bot interacts with the Telegram API to receive and send messages. 
+   */
+  
   let CONFIG = {
-    timeout: 5, //in seconds
-    timer: 500, //in miliseconds
-    eventName: "telegram-bot", //if you have more than once instace of this script, you should set a unique event name for each,
+    // timeout value for HTTP requests in seconds.
+    timeout: 5,
+
+    // timer interval in milliseconds for polling updates from Telegram API.
+    timer: 500, 
+
+    // unique event name used for communication between different parts of this script.
+    eventName: "telegram-bot", 
 
     /**
-     * Called on each received message
+     * Called on each received message.
      * @param {String} message the raw received message
-     * @param {Function} sendMessage function to send message back
+     * @param {Function} sendMessage function to send a message back
      */
     onMessage: function(message, sendMessage) { 
 
     },
 
-    //if commands: null the script will emit event with the message without any validation
+    // object defining custom commands that the bot can understand and respond to.
     commands: {
+
+      // command identifier, e.g. /toggle on|off
       "/toggle": {
+
+        // list of params, parsed in the same order as in the list
         params: [
           {
+            // value key, later can be used to get the parsed value
             key: "state",
+
+            /**
+             * Validates and processes the parameter's value
+             * @param {Any} value the passed value
+             * @param {Function} sendMessage function to send a message back
+             * @returns {Any} return the value, or undefined in case of validation failure.
+             */
             parser: function(value, sendMessage) {
               if(value === "on" || value === "off") {
                 return value === "on";
@@ -28,17 +52,28 @@
             }
           }
         ],
+        
+        /**
+         * To be executed when the command is successfully parsed and all parameters are validated.
+         * @param {Object} params all passed parameters, each value is maped to its key
+         * @param {*} sendMessage function to send a message back
+         */
         handler: function(params, sendMessage) {
           Shelly.call("Switch.Set", { id: 0, on: params.state });
 
           sendMessage("Ok, the ouput was switched");
-        }
+        },
+
+        // if true, the script waits for all parameters to be entered (can be in separate messages).
+        waitForAllParams: false, 
+
+        // specifies the maximum number of unsuccessful tries before the command is aborted.
+        abortAfter: 3, 
       },
       "/test": {
         params: [
           {
-            key: "deviceId", //required
-            //must return a value, return undefined to reject the value
+            key: "deviceId", 
             parser: function(value, sendMessage) {
               if(value === "test") { 
                 return value; 
@@ -50,8 +85,7 @@
             missingMessage: "Send me the device ID"
           },
           {
-            key: "cmd", //required
-            //must return a value, return undefined to reject the value
+            key: "cmd", 
             parser: function(value, sendMessage) {
               sendMessage("test");
 
@@ -63,13 +97,19 @@
         handler: function(params, sendMessage) {
           sendMessage("Thanks for the " + JSON.stringify(params));
         },
-        waitForAllParams: true, //if true, the script will wait for all params to be entered (can be in different messagegs)
-        abortAfter: 3, //abort after 3 unsuccessfull tries
+        waitForAllParams: true, 
+        abortAfter: 3, 
       }
     },
   };
 
   let KVS = {
+
+    /**
+     * Loads a value from the KVS with the provided key and stores it in the object
+     * @param {String} key a unique key for the value that needs to be loaded
+     * @param {*} callback a function to be called after the value is loaded
+     */
     load: function (key, callback) {
       Shelly.call(
         "KVS.Get", 
@@ -88,6 +128,11 @@
       );
     },
 
+    /**
+     * Writes a value to the KVS using the specified key.
+     * @param {String} key a unique key for the value 
+     * @param {String|Number|Boolean} value the value
+     */
     write: function (key, value) {
       this[key] = value;
       Shelly.call("KVS.Set", { key: key, value: value } );
@@ -95,10 +140,17 @@
   };
 
   let TelegramBot = {
+
+    /**
+     * Initializes the bot by emitting the specified event to start polling for updates.
+     */
     init: function () {
       Shelly.emitEvent(CONFIG.eventName);
     },
     
+    /**
+     * Called when the event specified in the CONFIG is emitted
+     */
     onEvent: function () {
       console.log("Poll started");
       Shelly.call(
@@ -117,7 +169,14 @@
       );
     },
 
-    /* callback */
+    /**
+     * Callback function after finishing polling updates from the Telegram API. See https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#shellycall
+     * @param {Object|null|undefined} data the received data from the request  
+     * @param {Number} error the id of the error 
+     * @param {*} errorMessage the error message if has
+     * @param {*} self the TelegramBot object
+     * @returns 
+     */
     onFinishPoll: function (data, error, errorMessage, self) {
       if(error !== 0) {
         console.log("Poll finishes with error ->", errorMessage);
@@ -145,6 +204,10 @@
       });
     },
 
+    /**
+     * Processes received messages
+     * @param {Object} message received message object from the API
+     */
     handleMessage: function (message) {
       console.log("MSG OBJ", JSON.stringify(message));
       let words = message.text.trim().split(" ");
@@ -251,6 +314,9 @@
     },
   };
 
+  /**
+   * initializes the bot by loading necessary data from the KVS (bot key and message offset) and setting up event listeners.
+   */
   function init () {
     if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
       console.log("Waiting for the data to be loaded.");
