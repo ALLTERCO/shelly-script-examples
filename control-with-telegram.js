@@ -108,23 +108,24 @@
     /**
      * Loads a value from the KVS with the provided key and stores it in the object
      * @param {String} key a unique key for the value that needs to be loaded
-     * @param {*} callback a function to be called after the value is loaded
+     * @param {Function} callback a function to be called after the value is loaded
      */
     load: function (key, callback) {
+      function handleResult(data, error, message) {
+        if(error !== 0) {
+          console.log("Cannot read the value for the provided key, reason:", message);
+          return;
+        }
+        this[key] = data.value;
+        if(callback) {
+          callback();
+        }
+      }
+
       Shelly.call(
         "KVS.Get", 
         { key: key },
-        function (data, error, message, self) {
-          if(error !== 0) {
-            console.log("Cannot read the value for the provided key, reason:", message);
-            return;
-          }
-          self[key] = data.value;
-          if(callback) {
-            callback();
-          }
-        },
-        this
+        handleResult.bind(this)
       );
     },
 
@@ -164,7 +165,7 @@
             limit: 1
           }
         },
-        this.onFinishPoll,
+        this.onFinishPoll.bind(this),
         this
       );
     },
@@ -174,10 +175,9 @@
      * @param {Object|null|undefined} data the received data from the request  
      * @param {Number} error the id of the error 
      * @param {*} errorMessage the error message if has
-     * @param {*} self the TelegramBot object
      * @returns 
      */
-    onFinishPoll: function (data, error, errorMessage, self) {
+    onFinishPoll: function (data, error, errorMessage) {
       if(error !== 0) {
         console.log("Poll finishes with error ->", errorMessage);
         return;
@@ -191,7 +191,7 @@
       let lastUpdateId = -1;
       for (let res of response.result) {
         console.log("New message", res.message.text);
-        self.handleMessage(res.message);
+        this.handleMessage(res.message);
         lastUpdateId = res.update_id;
       }
 
