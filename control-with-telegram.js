@@ -42,7 +42,7 @@
              * @param {Function} sendMessage function to send a message back
              * @returns {Any} return the value, or undefined in case of validation failure.
              */
-            parser: function(value, sendMessage) {
+            transform: function(value, sendMessage) {
               if(value === "on" || value === "off") {
                 return value === "on";
               }
@@ -74,7 +74,7 @@
         params: [
           {
             key: "deviceId", 
-            parser: function(value, sendMessage) {
+            transform: function(value, sendMessage) {
               if(value === "test") { 
                 return value; 
               }
@@ -86,7 +86,7 @@
           },
           {
             key: "cmd", 
-            parser: function(value, sendMessage) {
+            transform: function(value, sendMessage) {
               sendMessage("test");
 
               return value;
@@ -277,8 +277,8 @@
               else {
                 let value = words[wordCounter++];
 
-                if(typeof command.params[i].parser === "function") {
-                  value = command.params[i].parser(value, sendMessage);
+                if(typeof command.params[i].transform === "function") {
+                  value = command.params[i].transform(value, sendMessage);
                 }
                 
                 if(typeof value === "undefined") {
