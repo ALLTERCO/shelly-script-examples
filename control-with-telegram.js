@@ -111,21 +111,19 @@
      * @param {Function} callback a function to be called after the value is loaded
      */
     load: function (key, callback) {
-      function handleResult(data, error, message) {
-        if(error !== 0) {
-          console.log("Cannot read the value for the provided key, reason:", message);
-          return;
-        }
-        this[key] = data.value;
-        if(callback) {
-          callback();
-        }
-      }
-
       Shelly.call(
         "KVS.Get", 
         { key: key },
-        handleResult.bind(this)
+        (function handleResult(data, error, message) {
+          if(error !== 0) {
+            console.log("Cannot read the value for the provided key, reason:", message);
+            return;
+          }
+          this[key] = data.value;
+          if(callback) {
+            callback();
+          }
+        }.bind(this))
       );
     },
 
