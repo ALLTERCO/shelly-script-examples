@@ -13,7 +13,7 @@
 
 let CONFIG = {
   // the bot api key taken from the BotFather
-  botKey: "...",
+  botKey: "64XXXXXX33:AAH24shXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 
   // timeout value for HTTP requests in seconds.
   timeout: 5,
