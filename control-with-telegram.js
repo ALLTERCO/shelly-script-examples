@@ -3,6 +3,9 @@
    * scriping functionalities of the Gen2 devices. It allows you to define custom commands, 
    * validate parameters, and perform actions based on user messages. 
    * The bot interacts with the Telegram API to receive and send messages. 
+   * 
+   * Please check TELEGRAM-BOT.md for instructions how to setup the telegram bot and for 
+   * further instructions of how to configure the commands
    */
   
   let CONFIG = {
@@ -12,8 +15,8 @@
     // timer interval in milliseconds for polling updates from Telegram API.
     timer: 500, 
 
-    // unique event name used for communication between different parts of this script.
-    eventName: "telegram-bot", 
+    // unique name used for communication between different parts of this script and KVS.
+    identName: "telegram-bot", 
 
     // if set to true, the script will print debug messages in the console
     debug: false,
@@ -138,7 +141,7 @@
      * Initializes the bot by emitting the specified event to start polling for updates.
      */
     init: function () {
-      Shelly.emitEvent(CONFIG.eventName);
+      Shelly.emitEvent(CONFIG.identName);
     },
     
     /**
@@ -197,7 +200,7 @@
       }
 
       Timer.set(CONFIG.timer, false, function() {
-        Shelly.emitEvent(CONFIG.eventName);
+        Shelly.emitEvent(CONFIG.identName);
       });
     },
 
@@ -333,7 +336,7 @@
       if (
         typeof data === "undefined" || 
         typeof data.info === "undefined" ||
-        data.info.event !== CONFIG.eventName
+        data.info.event !== CONFIG.identName
       ) {
         return;
       }
