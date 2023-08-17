@@ -4,11 +4,17 @@
    * validate parameters, and perform actions based on user messages. 
    * The bot interacts with the Telegram API to receive and send messages. 
    * 
+   * The script will take advantage of the KVS to store data. The key will be generated in
+   * following patern {the script ident name}-{the script id}. Example: telegram-bot-1
+   * 
    * Please check TELEGRAM-BOT.md for instructions how to setup the telegram bot and for 
    * further instructions of how to configure the commands
    */
   
   let CONFIG = {
+    // the bot api key taken from the BotFather
+    botKey: "...",
+
     // timeout value for HTTP requests in seconds.
     timeout: 5,
 
@@ -155,7 +161,7 @@
         "HTTP.REQUEST",
         { 
           method: "POST",
-          url: "https://api.telegram.org/bot" + KVS.botKey + "/getUpdates", 
+          url: "https://api.telegram.org/bot" + CONFIG.botKey + "/getUpdates", 
           timeout: CONFIG.timeout,
           body: {
             offset: KVS.messageOffset + 1,
@@ -222,7 +228,7 @@
           "HTTP.REQUEST",
           { 
             method: "GET",
-            url: "https://api.telegram.org/bot" + KVS.botKey + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
+            url: "https://api.telegram.org/bot" + CONFIG.botKey + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
             timeout: 1,
           },
           function(d, r, m) {
@@ -326,7 +332,7 @@
    * initializes the bot by loading necessary data from the KVS (bot key and message offset) and setting up event listeners.
    */
   function init () {
-    if(typeof KVS.botKey !== "string" || typeof KVS.messageOffset !== "number") {
+    if(typeof KVS.messageOffset !== "number") {
       console.log("Waiting for the data to be loaded.");
       return;
     }
@@ -347,5 +353,4 @@
     TelegramBot.init(KVS.botKey, KVS.messageOffset);
   }
 
-  KVS.load("botKey", init);
   KVS.load("messageOffset", init);
