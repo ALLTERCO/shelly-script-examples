@@ -42,6 +42,7 @@ let CONFIG = {
 |---|---|---|
 |key|String|Used to identify the value|
 |transform|Function|Validate and return the value. [See more](#transform). **Optional**|
+|missingMessage|String|Message to be returned if value is missing. **Optional**|
 
 ### Supported funtions
 #### handler:

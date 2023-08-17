@@ -265,7 +265,7 @@ let TelegramBot = {
 
           for (let i = paramScanStartId; i < command.params.length; i++) {
             if(wordCounter >= words.length) {
-              sendMessage(command.params[i].missingMessage);
+              sendMessage(command.params[i].missingMessage || "Missing \'" + command.params[i].key + "\' param");
 
               if(this.lastCommand) {
                 this.lastCommand.waitingParamId = i;
