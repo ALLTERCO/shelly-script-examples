@@ -41,7 +41,7 @@ let CONFIG = {
 
           /**
            * Validates and processes the parameter's value
-           * @param {Any} value the passed value
+           * @param {String} value the passed value
            * @param {Function} sendMessage function to send a message back
            * @returns {Any} return the value, or undefined|null in case of validation failure.
            */
@@ -59,7 +59,7 @@ let CONFIG = {
       /**
        * To be executed when the command is successfully parsed and all parameters are validated.
        * @param {Object} params all passed parameters, each value is maped to its key
-       * @param {*} sendMessage function to send a message back
+       * @param {Function} sendMessage function to send a message back
        */
       handler: function(params, sendMessage) {
         Shelly.call("Switch.Set", { id: 0, on: params.state });
