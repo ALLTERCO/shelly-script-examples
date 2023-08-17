@@ -15,6 +15,9 @@
     // unique event name used for communication between different parts of this script.
     eventName: "telegram-bot", 
 
+    // if set to true, the script will print debug messages in the console
+    debug: false,
+
     // object defining custom commands that the bot can understand and respond to.
     commands: {
 
@@ -142,7 +145,9 @@
      * Called when the event specified in the CONFIG is emitted
      */
     onEvent: function () {
-      console.log("Poll started");
+      if(CONFIG.debug) {
+        console.log("Poll started");
+      }
       Shelly.call(
         "HTTP.REQUEST",
         { 
@@ -169,17 +174,20 @@
     onFinishPoll: function (data, error, errorMessage) {
       if(error !== 0) {
         console.log("Poll finishes with error ->", errorMessage);
+        console.log("Aborting...");
         return;
       }
 
       let response = JSON.parse(data.body);
-      if(response.result.length === 0) {
+      if(response.result.length === 0 && CONFIG.debug) {
         console.log("No new messages");
       }
 
       let lastUpdateId = -1;
       for (let res of response.result) {
-        console.log("New message", res.message.text);
+        if(CONFIG.debug) {
+          console.log("New message", res.message.text);
+        }
         this.handleMessage(res.message);
         lastUpdateId = res.update_id;
       }
@@ -198,11 +206,15 @@
      * @param {Object} message received message object from the API
      */
     handleMessage: function (message) {
-      console.log("MSG OBJ", JSON.stringify(message));
+      if(CONFIG.debug) {
+        console.log("MSG OBJ", JSON.stringify(message));
+      }
       let words = message.text.trim().split(" ");
 
       function sendMessage(textMsg) {
-        console.log(textMsg, message.chat.id);
+        if(CONFIG.debug) {
+          console.log("SENDING", textMsg, message.chat.id);
+        }
         Shelly.call(
           "HTTP.REQUEST",
           { 
@@ -211,12 +223,16 @@
             timeout: 1,
           },
           function(d, r, m) {
-            console.log("SEND MSG", JSON.stringify(d), r, m);
+            if(CONFIG.debug) {
+              console.log("MSG SENT", JSON.stringify(d), r, m);
+            }
           }
         );
       }
 
-      console.log("COMMAND", JSON.stringify(this.lastCommand));
+      if(CONFIG.debug) {
+        console.log("COMMAND", JSON.stringify(this.lastCommand));
+      }
 
       if(
         this.lastCommand && 
@@ -283,7 +299,10 @@
                 if(this.lastCommand) {
                   this.lastCommand.params = params;
                   this.lastCommand.tries = 0; 
-                  console.log("RESET COUNTER");
+
+                  if(CONFIG.debug) {
+                    console.log("RESET COUNTER");
+                  }
                 }
               }
             }
@@ -309,7 +328,7 @@
       return;
     }
 
-    console.log("Data is loaded");
+    console.log("Data was loaded.");
     Shelly.addEventHandler(function(data) {
       if (
         typeof data === "undefined" || 
