@@ -15,15 +15,6 @@
     // unique event name used for communication between different parts of this script.
     eventName: "telegram-bot", 
 
-    /**
-     * Called on each received message.
-     * @param {String} message the raw received message
-     * @param {Function} sendMessage function to send a message back
-     */
-    onMessage: function(message, sendMessage) { 
-
-    },
-
     // object defining custom commands that the bot can understand and respond to.
     commands: {
 
@@ -40,7 +31,7 @@
              * Validates and processes the parameter's value
              * @param {Any} value the passed value
              * @param {Function} sendMessage function to send a message back
-             * @returns {Any} return the value, or undefined in case of validation failure.
+             * @returns {Any} return the value, or undefined|null in case of validation failure.
              */
             transform: function(value, sendMessage) {
               if(value === "on" || value === "off") {
@@ -279,7 +270,7 @@
                   value = command.params[i].transform(value, sendMessage);
                 }
                 
-                if(typeof value === "undefined") {
+                if(typeof value === "undefined" || value === null) {
                   if(this.lastCommand) {
                     this.lastCommand.waitingParamId = i;
                     this.lastCommand.tries += 1;
@@ -302,9 +293,6 @@
           else { //no matching command
             sendMessage("Not recognized command");
           }
-        }
-        else { //no defined commands
-          CONFIG.onMessage(message.text, sendMessage);
         }
       }
 
