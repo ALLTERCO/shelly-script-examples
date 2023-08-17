@@ -170,6 +170,7 @@ let TelegramBot = {
 
     if(!response.ok) {
       console.log("Something is wrong with the config. Error:", response.description);
+      return;
     }
 
     if(response.result.length === 0 && CONFIG.debug) {
