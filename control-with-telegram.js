@@ -116,10 +116,12 @@ let TelegramBot = {
       "KVS.Get", 
       { key: CONFIG.identName },
       (function (data, error) {
-        let value = data.value;
+        let value = 0;
         if(error !== 0) {
           console.log("Cannot read the value for the provided key, reason, using default value.");
-          value = 0;
+        }
+        else {
+          value = data.value;
         }
         this.messageOffset = value;
         Shelly.emitEvent(CONFIG.identName);
@@ -165,6 +167,11 @@ let TelegramBot = {
     }
 
     let response = JSON.parse(data.body);
+
+    if(!response.ok) {
+      console.log("Something is wrong with the config. Error:", response.description);
+    }
+
     if(response.result.length === 0 && CONFIG.debug) {
       console.log("No new messages");
     }
