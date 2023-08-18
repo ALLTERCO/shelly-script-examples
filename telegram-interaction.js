@@ -97,11 +97,22 @@ let CONFIG = {
 
             sendMessage("Invalid timeout value");
           }, 
-          missingMessage: "Send me the timeout"
+          missingMessage: "Send me the timeout value"
         }
       ],
       handler: function(params, sendMessage) {
-        sendMessage("Thanks for the " + JSON.stringify(params));
+        Shelly.call(
+          "HTTP.GET", 
+          { url: params.deviceIp, timeout: params.timeout },
+          function(d, r, msg) {
+            if(r === 0) {
+              sendMessage("The device is reachable");
+            }
+            else {
+              sendMessage("The device, can't be reached. " + msg);
+            }
+          }
+          );
       },
     }
   },
