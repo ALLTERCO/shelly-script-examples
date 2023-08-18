@@ -73,35 +73,36 @@ let CONFIG = {
       // specifies the maximum number of unsuccessful tries before the command is aborted.
       abortAfter: 3, 
     },
-    "/test": {
+    "/ping": {
       params: [
         {
-          key: "deviceId", 
+          key: "deviceIp", 
           transform: function(value, sendMessage) {
-            if(value === "test") { 
-              return value; 
+            if(value.split(".").length === 4) {
+              return value;
             }
 
-            sendMessage("Not the right word");
-            return undefined;
+            sendMessage("Invalid IP");
           }, 
-          missingMessage: "Send me the device ID"
+          missingMessage: "Send me an local IP"
         },
         {
-          key: "cmd", 
+          key: "timeout", 
           transform: function(value, sendMessage) {
-            sendMessage("test");
+            value = Number(value);
 
-            return value;
+            if(!isNaN(value)) {
+              return value;
+            }
+
+            sendMessage("Invalid timeout value");
           }, 
-          missingMessage: "Send me the command"
+          missingMessage: "Send me the timeout"
         }
       ],
       handler: function(params, sendMessage) {
         sendMessage("Thanks for the " + JSON.stringify(params));
       },
-      waitForAllParams: true, 
-      abortAfter: 3, 
     }
   },
 };
@@ -202,7 +203,7 @@ let TelegramBot = {
    */
   handleMessage: function (message) {
     if(CONFIG.debug) {
-      console.log("MSG OBJ", JSON.stringify(message));
+      console.log("MSG", JSON.stringify(message.text));
     }
     let words = message.text.trim().split(" ");
 
@@ -210,10 +211,10 @@ let TelegramBot = {
       if(CONFIG.debug) {
         console.log("SENDING", textMsg, message.chat.id);
       }
+
       Shelly.call(
-        "HTTP.REQUEST",
+        "HTTP.GET",
         { 
-          method: "GET",
           url: "https://api.telegram.org/bot" + CONFIG.botKey + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
           timeout: 1,
         },
