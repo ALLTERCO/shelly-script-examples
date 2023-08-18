@@ -1,3 +1,4 @@
+//VERSION: 1
 /**
  * This script provides a framework for creating a basic Telegram bot using the 
  * scriping functionalities of the Gen2 devices. It allows you to define custom commands, 
