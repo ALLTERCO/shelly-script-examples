@@ -1,5 +1,11 @@
 [
   {
+    "fname": "telegram-interaction.js",
+    "title": "Telegram interaction with Shelly script",
+    "description": "This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation.",
+    "doc": "TELEGRAM-BOT.md"
+  },
+  {
     "fname": "ble-aranet4.js",
     "title": "Aranet4 example with BLE scripting",
     "description": "Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version\n0.12.0-beta1 or newer)"
