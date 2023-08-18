@@ -1,6 +1,6 @@
 # Telegram Bot
 
-### This file includes instructions of how to setup a telegram bot and how to configure commands for [control-with-telegram.js](/control-with-telegram.js) example.
+### This file includes instructions of how to setup a telegram bot and how to configure commands for [telegram-interaction.js](/telegram-interaction.js) example.
 
 ### How to setup the bot
 Setting up a Telegram bot involves a few steps, including creating a bot by messaging the Telegram BotFather account.
