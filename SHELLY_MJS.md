@@ -1,3 +1,13 @@
+ble-shelly-blu.js: Shelly BLU devices event handler for scripts
+===
+Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with "ble-events-handler.js" script that handles the events 
+(Requires firmware version: 1.0.0-beta or newer)
+
+ble-events-handler.js: Handles event from the device (at the moment tested only with BLU events from "ble-shelly-blu.js" example
+===
+Do automations based on events and easy conditioning. This script must be used with another script that emits events for example "ble-shelly-blu.js" script. 
+(Requires firmware version: 1.0.0-beta or newer)
+
 ble-aranet4.js: Aranet4 example with BLE scripting
 ===
 Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version
