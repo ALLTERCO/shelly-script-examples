@@ -52,6 +52,7 @@ function buildMQTTStateCmdTopics(topic) {
  * @param {string} message
  */
 function DecodeDomoticzFaultyJSON(topic, message) {
+ try {
   let trimmedMessage = message.trim();
   if (trimmedMessage) {
     if (trimmedMessage.indexOf("GoToPosition") !== -1){
@@ -64,6 +65,9 @@ function DecodeDomoticzFaultyJSON(topic, message) {
      }
     }
   }
+ } catch (error) {
+   console.log("Error parsing JSON:", error);
+ }
 }
 
 /**
