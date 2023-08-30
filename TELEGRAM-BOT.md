@@ -60,9 +60,19 @@ Returns:
 Example: 
 ```javascript
 function(params, sendMessage) {
-  Shelly.call("Switch.Set", { id: 0, on: params.state });
-
-  sendMessage("Ok, the ouput was switched");
+  Shelly.call(
+    "Switch.Set", 
+    { id: 0, on: params.state },
+    function(_, error_code, error_message) {
+      // the request is successfull
+      if(error_code === 0) {
+        sendMessage("Ok, the ouput was switched");
+      }
+      else {
+        sendMessage(error_message);
+      }
+    }
+  );
 }
 ```
 
