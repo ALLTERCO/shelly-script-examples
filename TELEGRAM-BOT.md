@@ -28,29 +28,29 @@ let CONFIG = {
 * paramemeters are validated and parsed in the same order as typed in the list
 * supported fields:
 
-|Property|Type|Description|
-|---|---|---|
-|params|Array|List of objects, each represents a single parameter. [See more](#params-configuration) **Optional**|
-|handler|Function|Called when all params are validated to handle the action. [See more](#handler)|
-|waitForAllParams|Boolean|When `true` (default is `false`), the script will wait for all parameters to be entered (can be in separate messages). **Optional**|
-|abortAfter|Number|Maximum number of unsuccessful tries before the command is aborted (Default is infinity). **Optional**|
+|Property|Type|Description|Required|
+|---|---|---|---|
+|params|Array|List of objects, each represents a single parameter. [See more](#params-configuration)|No|
+|handler|Function|Called when all params are validated to handle the action. [See more](#handler)|Yes|
+|waitForAllParams|Boolean|When `true` (default is `false`), the script will wait for all parameters to be entered (can be in separate messages).|No|
+|abortAfter|Number|Maximum number of unsuccessful tries before the command is aborted (Default is infinity).|No|
 
 ### Params configurations
 * supported fields:
 
-|Property|Type|Description|
-|---|---|---|
-|key|String|Used to identify the value|
-|transform|Function|Validate and return the value. [See more](#transform). **Optional**|
-|missingMessage|String|Message to be returned if value is missing. **Optional**|
+|Property|Type|Description|Required|
+|---|---|---|---|
+|key|String|Used to identify the value|Yes|
+|transform|Function|Validate and return the value. [See more](#transform).|No|
+|missingMessage|String|Message to be returned if value is missing.|No|
 
 ### Supported functions
 #### handler:
 To be executed when the command is successfully parsed and all parameters are validated.
 
 Supplied params:
-|Property|Type|Description|
-|---|---|---|
+|Property|Type|Description|Required|
+|---|---|---|---|
 |params|Object|Contains all passed parameters, each value is maped to its key.|
 |sendMessage|Function|Function to send a message back to the chat. [See more](#sendmessage)|
 
