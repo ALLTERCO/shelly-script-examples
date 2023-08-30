@@ -63,9 +63,19 @@ let CONFIG = {
        * @param {Function} sendMessage function to send a message back
        */
       handler: function(params, sendMessage) {
-        Shelly.call("Switch.Set", { id: 0, on: params.state });
-
-        sendMessage("Ok, the ouput was switched");
+        Shelly.call(
+          "Switch.Set", 
+          { id: 0, on: params.state },
+          function(_, error_code, error_message) {
+            // the request is successfull
+            if(error_code === 0) {
+              sendMessage("Ok, the ouput was switched");
+            }
+            else {
+              sendMessage(error_message);
+            }
+          }
+        );
       },
 
       // if true, the script waits for all parameters to be entered (can be in separate messages).
@@ -105,12 +115,12 @@ let CONFIG = {
         Shelly.call(
           "HTTP.GET", 
           { url: params.deviceIp, timeout: params.timeout },
-          function(d, r, msg) {
-            if(r === 0) {
+          function(_, error_code, error_message) {
+            if(error_code === 0) {
               sendMessage("The device is reachable");
             }
             else {
-              sendMessage("The device, can't be reached. " + msg);
+              sendMessage("The device, can't be reached. " + error_message);
             }
           }
           );
