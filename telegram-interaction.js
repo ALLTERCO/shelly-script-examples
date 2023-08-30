@@ -112,6 +112,7 @@ let CONFIG = {
         }
       ],
       handler: function(params, sendMessage) {
+        sendMessage("Pinging... " + params.deviceIp);
         Shelly.call(
           "HTTP.GET", 
           { url: params.deviceIp, timeout: params.timeout },
