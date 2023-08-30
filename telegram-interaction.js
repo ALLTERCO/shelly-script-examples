@@ -28,6 +28,9 @@ let CONFIG = {
   // if set to true, the script will print debug messages in the console
   debug: false,
 
+  // timeout for pull retry on fail in seconds
+  retryTimeout: 3,
+
   // object defining custom commands that the bot can understand and respond to.
   commands: {
 
@@ -115,7 +118,7 @@ let CONFIG = {
         sendMessage("Pinging... " + params.deviceIp);
         Shelly.call(
           "HTTP.GET", 
-          { url: params.deviceIp, timeout: params.timeout },
+          { url: "http://" + params.deviceIp, timeout: params.timeout },
           function(_, error_code, error_message) {
             if(error_code === 0) {
               sendMessage("The device is reachable");
@@ -188,7 +191,13 @@ let TelegramBot = {
   onFinishPoll: function (data, error, errorMessage) {
     if(error !== 0) {
       console.log("Poll finishes with error ->", errorMessage);
-      console.log("Aborting...");
+      console.log("Aborting... Retrying after " + CONFIG.retryTimeout + " seconds");
+      
+      Timer.set(CONFIG.retryTimeout * 1000, false, function() {
+        console.log("Trying now...")
+        Shelly.emitEvent(CONFIG.identName);
+      });
+
       return;
     }
 
