@@ -125,6 +125,8 @@ let CONFIG = {
           }
           );
       },
+
+      waitForAllParams: true
     }
   },
 };
