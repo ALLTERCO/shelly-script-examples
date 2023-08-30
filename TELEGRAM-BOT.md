@@ -33,7 +33,7 @@ let CONFIG = {
 |params|Array|List of objects, each represents a single parameter. [See more](#params-configuration) **Optional**|
 |handler|Function|Called when all params are validated to handle the action. [See more](#handler)|
 |waitForAllParams|Boolean|When `true` (default is `false`), the script will wait for all parameters to be entered (can be in separate messages). **Optional**|
-|abortAfter|Number|Mmaximum number of unsuccessful tries before the command is aborted (Default is infinity). **Optional**|
+|abortAfter|Number|Maximum number of unsuccessful tries before the command is aborted (Default is infinity). **Optional**|
 
 ### Params configurations
 * supported fields:
@@ -44,14 +44,14 @@ let CONFIG = {
 |transform|Function|Validate and return the value. [See more](#transform). **Optional**|
 |missingMessage|String|Message to be returned if value is missing. **Optional**|
 
-### Supported funtions
+### Supported functions
 #### handler:
 To be executed when the command is successfully parsed and all parameters are validated.
 
 Supplied params:
 |Property|Type|Description|
 |---|---|---|
-|params|Object|Containes all passed parameters, each value is maped to its key.|
+|params|Object|Contains all passed parameters, each value is maped to its key.|
 |sendMessage|Function|Function to send a message back to the chat. [See more](#sendmessage)|
 
 Returns:
