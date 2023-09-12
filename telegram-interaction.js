@@ -17,7 +17,7 @@ let CONFIG = {
   botKey: "64XXXXXX33:AAH24shXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 
   // timeout value for HTTP requests in seconds.
-  timeout: 5,
+  pullTimeout: 5,
 
   // timer interval in milliseconds for polling updates from Telegram API.
   timer: 500, 
@@ -170,7 +170,7 @@ let TelegramBot = {
       { 
         method: "POST",
         url: "https://api.telegram.org/bot" + CONFIG.botKey + "/getUpdates", 
-        timeout: CONFIG.timeout,
+        timeout: CONFIG.pullTimeout,
         body: {
           offset: this.messageOffset + 1,
           limit: 1
