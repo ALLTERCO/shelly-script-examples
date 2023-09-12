@@ -156,6 +156,8 @@ let TelegramBot = {
         Shelly.emitEvent(CONFIG.identName);
       }.bind(this))
     );
+
+    this.baseUrl = "https://api.telegram.org/bot" + CONFIG.botKey;
   },
   
   /**
@@ -169,7 +171,7 @@ let TelegramBot = {
       "HTTP.REQUEST",
       { 
         method: "POST",
-        url: "https://api.telegram.org/bot" + CONFIG.botKey + "/getUpdates", 
+        url: this.baseUrl + "/getUpdates", 
         timeout: CONFIG.pullTimeout,
         body: {
           offset: this.messageOffset + 1,
@@ -249,7 +251,7 @@ let TelegramBot = {
       Shelly.call(
         "HTTP.GET",
         { 
-          url: "https://api.telegram.org/bot" + CONFIG.botKey + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
+          url: this.baseUrl + "/sendMessage?chat_id=" + message.chat.id + "&text=" + textMsg, 
           timeout: 1,
         },
         function(d, r, m) {
