@@ -50,7 +50,7 @@ let CONFIG = {
            * @returns {Any} return the value, or undefined|null in case of validation failure.
            */
           transform: function(value, sendMessage) {
-            if(value === "on" || value === "off") {
+            if(["on", "off"].indexOf(value) >= 0) {
               return value === "on";
             }
 
