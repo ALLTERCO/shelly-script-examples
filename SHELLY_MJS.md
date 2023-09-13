@@ -1,3 +1,8 @@
+telegram-interaction.js: Telegram interaction with Shelly script
+===
+This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. 
+(Requires firmware version: 1.0.0-beta or newer)
+
 ble-shelly-blu.js: Shelly BLU devices event handler for scripts
 ===
 Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with "ble-events-handler.js" script that handles the events 
