@@ -35,7 +35,7 @@ let CONFIG = {
     let topic = eventData.address + "/illuminance";
 
     // Publush the data.
-    MQTT.publish(topic, illuminance);
+    MQTT.publish(topic, String(illuminance));
   },
   
   /**
@@ -190,7 +190,7 @@ function onReceivedPacket (data) {
     typeof data.motion !== "undefined"
   ) {
     CONFIG.motionHandler(data.motion === 1, data);
-    logger("Motion change called", "Info");
+    logger("Motion handler called", "Info");
   }
 
   if (
@@ -198,12 +198,12 @@ function onReceivedPacket (data) {
     typeof data.illuminance !== "undefined"
   ) {
     CONFIG.illuminanceHandler(data.illuminance, data);
-    logger("Illuminance change called", "Info");
+    logger("Illuminance handler called", "Info");
   }
 
   if (typeof CONFIG.onStatusUpdate === "function") {
     CONFIG.onStatusUpdate(data);
-    logger("On event called", "Info");
+    logger("New status update", "Info");
   }
 }
 
