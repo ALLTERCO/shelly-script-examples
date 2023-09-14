@@ -10,16 +10,16 @@ let CONFIG = {
   // When `allowedMacAddresses` is set to null, evets from every bluetooth device are accepted. 
   // allowedMacAddresses: null, 
   allowedMacAddresses: [
-    "12:23:34:45:56:67", // events only from these mac addresses are allowed.
-    "11:22:33:44:55:66", 
+    "aa:bc:12:34:56:78", // events only from these mac addresses are allowed.
+    "11:22:33:45:5a:bc", 
   ],
 
   /**
    * Called when motion is reported from the filtered Shelly BLU Motion devices.
    * @param {Boolean} motion true, when there is a motion, false otherwise. 
-   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"12:23:34:56:78:89"} 
+   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"aa:bc:12:34:56:78"} 
    */
-  motionChange: function (motion, eventData) {
+  motionHandler: function (motion, eventData) {
     // Toggle the first replay ON/OFF based on the motion value.
     Shelly.call("Switch.Set", { id: 0, on: motion });
     console.log("Motion", motion);
@@ -28,9 +28,9 @@ let CONFIG = {
   /**
    * Called when illuminance is reported from the filtered Shelly BLU Motion devices.
    * @param {Number} illuminance Current illuminance value.
-   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"12:23:34:56:78:89"}
+   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"aa:bc:12:34:56:78"}
    */
-  illuminanceChange: function (illuminance, eventData) {
+  illuminanceHandler: function (illuminance, eventData) {
     // Compile the topic based on the mac address of the reporter.
     let topic = eventData.address + "/illuminance";
 
@@ -40,9 +40,9 @@ let CONFIG = {
   
   /**
    * Called when packet from filtered Shelly BLU Motion devices is received.
-   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"12:23:34:56:78:89"}
+   * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"aa:bc:12:34:56:78"}
    */
-  onEvent: function (eventData) {
+  onStatusUpdate: function (eventData) {
     // Do nothing at the moment.
   }
 };
@@ -178,34 +178,31 @@ let BTHomeDecoder = {
 };
 
 function onReceivedPacket (data) {
-  if(
-    typeof CONFIG.allowedMacAddresses !== "undefined" &&
-    CONFIG.allowedMacAddresses !== null
-  ) {
-    if(CONFIG.allowedMacAddresses.indexOf(data.address) <= 0) {
+  if(CONFIG._processedMacAddresses !== null) { 
+    if(CONFIG._processedMacAddresses.indexOf(data.address) < 0) {
       logger(["Received event from", data.address, "outside of the allowed addresses"], "Info");
       return;
     }
   }
 
   if (
-    typeof CONFIG.motionChange === "function" &&
+    typeof CONFIG.motionHandler === "function" &&
     typeof data.motion !== "undefined"
   ) {
-    CONFIG.motionChange(data.motion === 1, data);
+    CONFIG.motionHandler(data.motion === 1, data);
     logger("Motion change called", "Info");
   }
 
   if (
-    typeof CONFIG.illuminanceChange === "function" &&
+    typeof CONFIG.illuminanceHandler === "function" &&
     typeof data.illuminance !== "undefined"
   ) {
-    CONFIG.motionChange(data.illuminance, data);
+    CONFIG.illuminanceHandler(data.illuminance, data);
     logger("Illuminance change called", "Info");
   }
 
-  if (typeof CONFIG.onEvent === "function") {
-    CONFIG.onEvent(data);
+  if (typeof CONFIG.onStatusUpdate === "function") {
+    CONFIG.onStatusUpdate(data);
     logger("On event called", "Info");
   }
 }
@@ -287,6 +284,22 @@ function init() {
 
     if(!bleScanner) {
       console.log("Error: Can not start new scanner");
+    }
+  }
+
+  if (
+    typeof CONFIG.allowedMacAddresses !== "undefined"
+  ) {
+    if(CONFIG.allowedMacAddresses !== null) {
+      // Process configured mac addresses all to lower case and remove duplicates. 
+      CONFIG._processedMacAddresses = 
+        CONFIG
+          .allowedMacAddresses
+          .map(function (mac) { return mac.toLowerCase(); })
+          .filter(function (value, index, array) { return array.indexOf(value) === index; })
+    }
+    else {
+      CONFIG._processedMacAddresses = null;
     }
   }
 
