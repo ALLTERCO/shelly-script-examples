@@ -70,8 +70,6 @@ function fetchVoltage() {
     return;
   }
 
-  console.log("Current voltage is", voltage);
-
   //get the temperature based on the voltage
   const temp = CONFIG.calcTemp(voltage);
 
@@ -80,8 +78,6 @@ function fetchVoltage() {
     console.log("Something went wrong when calculating the temperature");
     return;
   }
-
-  console.log("Current temperature is", temp);
 
   if (typeof CONFIG.onTempReading === "function") {
     CONFIG.onTempReading(temp);
