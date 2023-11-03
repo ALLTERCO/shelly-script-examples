@@ -1,5 +1,8 @@
 // SH Coefficient Calculator
 // https://rusefi.com/Steinhart-Hart.html
+//
+// Thermistor wiki page
+// https://en.wikipedia.org/wiki/Thermistor
 
 /**************** START CHANGE HERE ****************/
 let CONFIG = {
