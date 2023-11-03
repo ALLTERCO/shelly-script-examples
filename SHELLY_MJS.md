@@ -1,3 +1,8 @@
+ble-shelly-motion.js: BLE in Scripting - Shelly BLU Motion script actions
+===
+Example how to use a Shelly BLU Motion, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
 telegram-interaction.js: Telegram interaction with Shelly script
 ===
 This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. 
