@@ -1,3 +1,7 @@
+ntc-conversion.js: Converts NTC thermal resistor output to temperature and execute actions
+===
+Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading
+
 ble-shelly-motion.js: BLE in Scripting - Shelly BLU Motion script actions
 ===
 Example how to use a Shelly BLU Motion, read advertising data, decode and turn on switch. (Requires firmware version
