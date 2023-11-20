@@ -1,3 +1,17 @@
+ntc-conversion.js: Converts NTC thermal resistor output to temperature and execute actions
+===
+Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading
+
+ble-shelly-motion.js: BLE in Scripting - Shelly BLU Motion script actions
+===
+Example how to use a Shelly BLU Motion, read advertising data, decode and turn on switch. (Requires firmware version
+0.12.0-beta1 or newer)
+
+telegram-interaction.js: Telegram interaction with Shelly script
+===
+This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. 
+(Requires firmware version: 1.0.0-beta or newer)
+
 ble-shelly-blu.js: Shelly BLU devices event handler for scripts
 ===
 Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with "ble-events-handler.js" script that handles the events 
