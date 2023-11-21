@@ -190,10 +190,10 @@ function autodiscovery(address, topname, topic, jsonstr) {
            let pload = {};
            subt = "";
            pload["device"] = {};
-           pload["device"]["name"] = address;
+           pload["device"]["name"] = address + " " + topname;
            pload["device"]["identifiers"] = [];
            pload["device"]["identifiers"].push(address);
-           pload["name"] = address + " " + topname;
+           pload["name"] = pload["device"]["name"];
            pload["stat_t"] = topic;
            pload["uniq_id"] = address+"-"+params[i];
            pload["stat_cla"] = "measurement";
