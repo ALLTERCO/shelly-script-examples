@@ -86,6 +86,11 @@
     "description": "This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for\nthose requests. Reconfiguration of a Switch component as an example is included"
   },
   {
+    "fname": "prometheus.js",
+    "title": "Prometheus HTTP Endpoint for a single switch",
+    "description": "This script exposes a /status endpoint that returns Prometheus metrics that can be scraped."
+  },
+  {
     "fname": "consume-limited-power.js",
     "title": "Shelly Plus 1PM - Stop the output after consuming certain amount of power",
     "description": "This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus\nevery minute.\nIt is accumulated in a counter and if the combined consumption is over a threshold the output is turned off."
