@@ -79,6 +79,10 @@ http-handlers.js: Shelly HTTP script handling GET requests, query strings
 This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for
 those requests. Reconfiguration of a Switch component as an example is included
 
+prometheus.js: Prometheus HTTP Endpoint for a single switch
+===
+This script exposes a /status endpoint that returns Prometheus metrics that can be scraped.
+
 consume-limited-power.js: Shelly Plus 1PM - Stop the output after consuming certain amount of power
 ===
 This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus
