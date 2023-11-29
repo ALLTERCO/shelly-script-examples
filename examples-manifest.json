@@ -229,5 +229,10 @@
     "fname": "howto/switch-read.js",
     "title": "Example - Reading Switch status",
     "description": "Example of reading Switch component's status."
+  },
+  {
+    "fname": "ip-assignment-watchdog.js",
+    "title": "Reboot on DHCP IP assignment issues",
+    "description": "Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period."
   }
 ]
