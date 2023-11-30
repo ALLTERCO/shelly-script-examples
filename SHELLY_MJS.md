@@ -233,3 +233,7 @@ howto/switch-read.js: Example - Reading Switch status
 ===
 Example of reading Switch component's status.
 
+ip-assignment-watchdog.js: Reboot on DHCP IP assignment issues
+===
+Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period.
+
