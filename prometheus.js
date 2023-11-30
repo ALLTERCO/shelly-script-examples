@@ -12,6 +12,9 @@
  *
  * Replace <ip> with the ip address of the device and adjust the script id if needed.
  *
+ * If you use Grafana to display metrics scraped, you can give a try to the example dashboard in prometheus-grafana-example-dashboard.json
+ * available via the url https://raw.githubusercontent.com/ALLTERCO/shelly-script-examples/main/prometheus-grafana-example-dashboard.json
+ *
  * Note: This script assumes you have one switch, but you can configure that in the Configuration section
  */
 // ---------------------------------------------------------------------------------------------------------------------
