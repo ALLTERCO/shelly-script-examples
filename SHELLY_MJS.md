@@ -40,6 +40,12 @@ activation-switch.js: Activation switch
 ===
 Replicate activation_switch profile from Gen1 devices.
 
+ble-pasv-mqtt-gw.js: BLE Thermometer passive data collector for MQTT Autodiscovery
+===
+BLE passive mode scanner for non-battery operated Gen2 devices.
+Decoding protocols Mijia/ATC/pvvx/BTHome2, forwards data to the MQTT broker with Autodiscovery objects. (Requires firmware version
+0.12.0-beta1 or newer)
+
 ble-shelly-btn.js: BLE in Scripting - Shelly BLU Button script actions
 ===
 Example how to use a Shelly BLU Button, read advertising data, decode and turn on switch. (Requires firmware version
@@ -188,6 +194,16 @@ An action can have a delay property, which means after executing the action func
 A condition is an element of a scene that has property type:"cond".
 If the result is true, the scene continues with the next item, if it is false it
 stops.
+
+shelly2p-domo-coverfix.js: Shelly Plus 2PM cover fix for Domoticz MQTTAD v1
+===
+Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
+ Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
+
+shelly2p-domo-coverfix-v2.js: Shelly Plus 2PM cover fix for Domoticz MQTTAD v2
+===
+Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
+ Only Shelly firmware >= 1.x supported. Developed for ShellyTeacher4Domo.
 
 test-scene.js: Scene Test with multiple Shellies
 ===
