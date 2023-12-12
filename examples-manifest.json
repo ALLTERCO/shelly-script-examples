@@ -46,6 +46,11 @@
     "description": "Replicate activation_switch profile from Gen1 devices."
   },
   {
+    "fname": "ble-pasv-mqtt-gw.js",
+    "title": "BLE Thermometer passive data collector for MQTT Autodiscovery",
+    "description": "BLE passive mode scanner for non-battery operated Gen2 devices.\nDecoding protocols Mijia/ATC/pvvx/BTHome2, forwards data to the MQTT broker with Autodiscovery objects. (Requires firmware version\n0.12.0-beta1 or newer)"
+  },
+  {
     "fname": "ble-shelly-btn.js",
     "title": "BLE in Scripting - Shelly BLU Button script actions",
     "description": "Example how to use a Shelly BLU Button, read advertising data, decode and turn on switch. (Requires firmware version\n0.12.0-beta1 or newer)"
@@ -184,6 +189,16 @@
     "fname": "scene.js",
     "title": "Scene playing in Shelly Gen2",
     "description": "Simple scene abstraction A scene is an array of actions or conditions that\nare played squentially.\n\nAn action can have a delay property, which means after executing the action function wait until proceeding to the next one.\n\nA condition is an element of a scene that has property type:\"cond\".\nIf the result is true, the scene continues with the next item, if it is false it\nstops."
+  },
+  {
+    "fname": "shelly2p-domo-coverfix.js",
+    "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v1",
+    "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
+  },
+  {
+    "fname": "shelly2p-domo-coverfix-v2.js",
+    "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v2",
+    "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Only Shelly firmware >= 1.x supported. Developed for ShellyTeacher4Domo."
   },
   {
     "fname": "test-scene.js",
