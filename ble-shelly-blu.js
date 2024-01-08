@@ -6,87 +6,62 @@
  * You can configure the event name, by default its `shelly-blu`, the body of the event contains all the data
  * parsed from the BLE device
  *
- * All paramerts that the BLU devices can return:
- * Each device will provide data solely from its sensors.
- * - pid - packet ID
- * - battery - the battery level of the device in %
- * - temperature - the temperature value in °C if the device has temperature sensor
- * - humidity - the himidity value in % if the device has humidity sensor
- * - illuminance - the illuminance value in lux if the device has light sensor
- * - motion - 0/1 (motion/clear) if the device has motion sensor
- * - window - 0/1 (close/open) if the device has reed switch
- * - button - the number of presses if the device has button
- * - rotation - the angle of rotatation in ° if the device has gyroscope
- * - rssi - the signal strength is dB
- * - address - The mac address of the Shelly BLU device
+ * Represents data provided by each device.
+ * Every value illustrating a sensor reading (e.g., button) may be a singular sensor value or 
+ * an array of values if the object has multiple instances. 
+ * 
+ * @typedef {Object} DeviceData
+ * @property {number} pid - Packet ID.
+ * @property {number} battery - The battery level of the device in percentage (%).
+ * @property {number} rssi - The signal strength in decibels (dB).
+ * @property {string} address - The MAC address of the Shelly BLU device.
+ * @property {string} model - The model of the Shelly BLU device.
+ * @property {number | number[]} [temperature] - The temperature value in degrees Celsius if the device has a temperature sensor.
+ * @property {number | number[]} [humidity] - The humidity value in percentage (%) if the device has a humidity sensor.
+ * @property {number | number[]} [illuminance] - The illuminance value in lux if the device has a light sensor.
+ * @property {number | number[]} [motion] - Motion status: 0 for clear, 1 for motion (if the device has a motion sensor).
+ * @property {number | number[]} [window] - Window status: 0 for closed, 1 for open (if the device has a reed switch).
+ * @property {number | number[]} [button] - The number of presses if the device has a button.
+ * @property {number | number[]} [rotation] - The angle of rotation in degrees if the device has a gyroscope.
  * 
  * Example event data: {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
  */
 
 /******************* START CHANGE HERE *******************/
-let CONFIG = {
+const CONFIG = {
   // Specify the destination event where the decoded BLE data will be emitted. It allows for easy identification by other applications/scripts
   eventName: "shelly-blu",
 
-  // When set to true, debug messages will be logged to the console
-  debug: false,
-
-  //When set to true and the script ownes the scanner, the scan will be active. 
+  //When set to true and the script owns the scanner, the scan will be active. 
   //Active scan means the scanner will ping back the Bluetooth device to receive all its data, but it will drain the battery faster
   active: false,
+
+  // When set to true, debug messages will be logged to the console
+  debug: false,
 };
 /******************* STOP CHANGE HERE *******************/
 
-let ALLTERCO_MFD_ID_STR = "0ba9";
-let BTHOME_SVC_ID_STR = "fcd2";
+const BTHOME_SVC_ID_STR = "fcd2";
 
-let uint8 = 0;
-let int8 = 1;
-let uint16 = 2;
-let int16 = 3;
-let uint24 = 4;
-let int24 = 5;
-
-//Logs the provided message with an optional prefix to the console.
-function logger(message, prefix) {
-  //exit if the debug isn't enabled
-  if (!CONFIG.debug) {
-    return;
-  }
-
-  let finalText = "";
-
-  //if the message is list loop over it
-  if (Array.isArray(message)) {
-    for (let i = 0; i < message.length; i++) {
-      finalText = finalText + " " + JSON.stringify(message[i]);
-    }
-  } else {
-    finalText = JSON.stringify(message);
-  }
-
-  //the prefix must be string
-  if (typeof prefix !== "string") {
-    prefix = "";
-  } else {
-    prefix = prefix + ":";
-  }
-
-  //log the result
-  console.log(prefix, finalText);
-}
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
 
 // The BTH object defines the structure of the BTHome data
-let BTH = {};
-BTH[0x00] = { n: "pid", t: uint8 };
-BTH[0x01] = { n: "battery", t: uint8, u: "%" };
-BTH[0x02] = { n: "temperature", t: int16, f: 0.01, u: "tC" };
-BTH[0x03] = { n: "humidity", t: uint16, f: 0.01, u: "%" };
-BTH[0x05] = { n: "illuminance", t: uint24, f: 0.01 };
-BTH[0x21] = { n: "motion", t: uint8 };
-BTH[0x2d] = { n: "window", t: uint8 };
-BTH[0x3a] = { n: "button", t: uint8 };
-BTH[0x3f] = { n: "rotation", t: int16, f: 0.1 };
+const BTH = {
+  0x00: { n: "pid", t: uint8 },
+  0x01: { n: "battery", t: uint8, u: "%" },
+  0x02: { n: "temperature", t: int16, f: 0.01, u: "tC" },
+  0x03: { n: "humidity", t: uint16, f: 0.01, u: "%" },
+  0x05: { n: "illuminance", t: uint24, f: 0.01 },
+  0x21: { n: "motion", t: uint8 },
+  0x2d: { n: "window", t: uint8 },
+  0x3a: { n: "button", t: uint8 },
+  0x3f: { n: "rotation", t: int16, f: 0.1 },
+};
 
 function getByteSize(type) {
   if (type === uint8 || type === int8) return 1;
@@ -97,9 +72,9 @@ function getByteSize(type) {
 }
 
 // functions for decoding and unpacking the service data from Shelly BLU devices
-let BTHomeDecoder = {
+const BTHomeDecoder = {
   utoi: function (num, bitsz) {
-    let mask = 1 << (bitsz - 1);
+    const mask = 1 << (bitsz - 1);
     return num & mask ? num - (1 << bitsz) : num;
   },
   getUInt8: function (buffer) {
@@ -152,21 +127,39 @@ let BTHomeDecoder = {
     while (buffer.length > 0) {
       _bth = BTH[buffer.at(0)];
       if (typeof _bth === "undefined") {
-        logger("unknown type", "BTH");
+        console.log("BTH: Unknown type");
         break;
       }
       buffer = buffer.slice(1);
       _value = this.getBufValue(_bth.t, buffer);
       if (_value === null) break;
       if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
-      result[_bth.n] = _value;
+
+      if (typeof result[_bth.n] === "undefined") {
+        result[_bth.n] = _value;
+      }
+      else {
+        if (Array.isArray(result[_bth.n])) {
+          result[_bth.n].push(_value);
+        } 
+        else {
+          result[_bth.n] = [
+            result[_bth.n],
+            _value
+          ];
+        }
+      }
+
       buffer = buffer.slice(getByteSize(_bth.t));
     }
     return result;
   },
 };
 
-// Еmitting the decoded BLE data to a specified event. It allows other scripts to receive and process the emitted data
+/**
+ * Еmitting the decoded BLE data to a specified event. It allows other scripts to receive and process the emitted data
+ * @param {DeviceData} data 
+ */
 function emitData(data) {
   if (typeof data !== "object") {
     return;
@@ -190,7 +183,6 @@ function BLEScanCallback(event, result) {
     typeof result.service_data === "undefined" ||
     typeof result.service_data[BTHOME_SVC_ID_STR] === "undefined"
   ) {
-    logger("Missing service_data member", "Error");
     return;
   }
 
@@ -204,7 +196,7 @@ function BLEScanCallback(event, result) {
     typeof unpackedData === "undefined" ||
     unpackedData["encryption"]
   ) {
-    logger("Encrypted devices are not supported", "Error");
+    console.log("Error: Encrypted devices are not supported");
     return;
   }
 
@@ -217,6 +209,7 @@ function BLEScanCallback(event, result) {
 
   unpackedData.rssi = result.rssi;
   unpackedData.address = result.addr;
+  unpackedData.model = result.local_name;
 
   emitData(unpackedData);
 }
@@ -230,7 +223,7 @@ function init() {
   }
 
   //get the config of ble component
-  let BLEConfig = Shelly.getComponentConfig("ble");
+  const BLEConfig = Shelly.getComponentConfig("ble");
 
   //exit if the BLE isn't enabled
   if (!BLEConfig.enable) {
@@ -246,7 +239,7 @@ function init() {
   }
   else {
     //start the scanner
-    let bleScanner = BLE.Scanner.Start({
+    const bleScanner = BLE.Scanner.Start({
         duration_ms: BLE.Scanner.INFINITE_SCAN,
         active: CONFIG.active
     });
@@ -258,6 +251,11 @@ function init() {
 
   //subscribe a callback to BLE scanner
   BLE.Scanner.Subscribe(BLEScanCallback);
+
+  // disable console.log when logs are disabled
+  if (!CONFIG.debug) {
+    console.log = function() {};
+  }
 }
 
 init();
