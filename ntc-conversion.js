@@ -23,7 +23,7 @@ let CONFIG = {
 
     const R2 = R1 * (voltage / (constVoltage - voltage));
     const logR2 = Math.log(R2);
-    const T = 1.0 / (A + (B + C * logR2 * logR2) * logR2);
+    let T = 1.0 / (A + (B + C * logR2 * logR2) * logR2);
     T = T - 273.15; // Celcius
     //T = (T - 273.15) * 9/5 + 32; // Fahrenheit
 
