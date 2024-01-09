@@ -16,15 +16,16 @@
  * @property {number} rssi - The signal strength in decibels (dB).
  * @property {string} address - The MAC address of the Shelly BLU device.
  * @property {string} model - The model of the Shelly BLU device.
- * @property {number | number[]} [temperature] - The temperature value in degrees Celsius if the device has a temperature sensor.
- * @property {number | number[]} [humidity] - The humidity value in percentage (%) if the device has a humidity sensor.
- * @property {number | number[]} [illuminance] - The illuminance value in lux if the device has a light sensor.
- * @property {number | number[]} [motion] - Motion status: 0 for clear, 1 for motion (if the device has a motion sensor).
- * @property {number | number[]} [window] - Window status: 0 for closed, 1 for open (if the device has a reed switch).
- * @property {number | number[]} [button] - The number of presses if the device has a button.
- * @property {number | number[]} [rotation] - The angle of rotation in degrees if the device has a gyroscope.
+ * @property {number | number[]} [temperature] - The temperature value in degrees Celsius if the device has a temperature sensor. (Can be an array if has multiple instances)
+ * @property {number | number[]} [humidity] - The humidity value in percentage (%) if the device has a humidity sensor. (Can be an array if has multiple instances)
+ * @property {number | number[]} [illuminance] - The illuminance value in lux if the device has a light sensor. (Can be an array if has multiple instances)
+ * @property {number | number[]} [motion] - Motion status: 0 for clear, 1 for motion (if the device has a motion sensor). (Can be an array if has multiple instances)
+ * @property {number | number[]} [window] - Window status: 0 for closed, 1 for open (if the device has a reed switch). (Can be an array if has multiple instances)
+ * @property {number | number[]} [button] - The number of presses if the device has a button. (Can be an array if has multiple instances)
+ * @property {number | number[]} [rotation] - The angle of rotation in degrees if the device has a gyroscope. (Can be an array if has multiple instances)
  * 
- * Example event data: {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
+ * @example
+ * {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
  */
 
 /******************* START CHANGE HERE *******************/
@@ -32,8 +33,9 @@ const CONFIG = {
   // Specify the destination event where the decoded BLE data will be emitted. It allows for easy identification by other applications/scripts
   eventName: "shelly-blu",
 
-  //When set to true and the script owns the scanner, the scan will be active. 
-  //Active scan means the scanner will ping back the Bluetooth device to receive all its data, but it will drain the battery faster
+  // If the script owns the scanner and this value is set to true, the scan will be active.
+  // If the script does not own the scanner, it may remain passive even when set to true. 
+  // Active scan means the scanner will ping back the Bluetooth device to receive all its data, but it will drain the battery faster
   active: false,
 
   // When set to true, debug messages will be logged to the console
