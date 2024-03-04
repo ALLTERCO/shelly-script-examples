@@ -11,6 +11,8 @@
 let CONFIG = {
   scan_duration: BLE.Scanner.INFINITE_SCAN,
   mqtt_topic: "blegateway/",
+  // if mqtt_src is defined, there will be a src field with this value in every mqtt message to identify the shelly which created this message. ie. "shelly-123456"
+  mqtt_src: null,
   discovery_topic: "homeassistant/",
 };
 
@@ -78,6 +80,18 @@ let packedStruct = {
   getInt16BE: function() {
     return this.utoi(this.getUInt16BE(this.buffer));
   },
+  getUInt24LE: function() {
+    return 0xffffff & (this.buffer.at(2) << 16 | this.buffer.at(1) << 8 | this.buffer.at(0));
+  },
+  getInt24LE: function() {
+    return this.utoi(this.getUInt24LE());
+  },
+  getUInt24BE: function() {
+    return 0xffffff & (this.buffer.at(0) << 16 | this.buffer.at(1) << 8 | this.buffer.at(2));
+  },
+  getInt24BE: function() {
+    return this.utoi(this.getUInt24BE(this.buffer));
+  },
   unpack: function(fmt, keyArr) {
     let b = '<>!';
     let le = fmt[0] === '<';
@@ -93,8 +107,10 @@ let packedStruct = {
       bufFn = null;
       if(fmt[pos] === 'b' || fmt[pos] === 'B') jmp = 1;
       if(fmt[pos] === 'h' || fmt[pos] === 'H') jmp = 2;
+      if(fmt[pos] === 'i' || fmt[pos] === 'I') jmp = 3;
       if(fmt[pos] === '4') jmp = 4; //just skip for now
       if(fmt[pos] === '6') jmp = 6; //just skip for now
+
       if(fmt[pos] === 'b') {
         res[keyArr[pos]] = this.getInt8();
       }
@@ -106,6 +122,12 @@ let packedStruct = {
       }
       else if(fmt[pos] === 'H') {
         res[keyArr[pos]] = le ? this.getUInt16LE() : this.getUInt16BE();
+      }
+      else if(fmt[pos] === 'i') {
+        res[keyArr[pos]] = le ? this.getInt24LE() : this.getInt24BE();
+      }
+      else if(fmt[pos] === 'I') {
+        res[keyArr[pos]] = le ? this.getUInt24LE() : this.getUInt24BE();
       }
       this.buffer = this.buffer.slice(jmp);
       pos++;
@@ -236,6 +258,9 @@ function mqttreport(address, rssi, jsonstr) {
   let topname = gettopicname(jsonstr);
   let topic = CONFIG.mqtt_topic + addrstr + "/" + topname;
   jsonstr['rssi'] = rssi;
+  if (CONFIG.mqtt_src) {
+    jsonstr['src'] = CONFIG.mqtt_src;
+  }
   if (discovered.indexOf(addrstr+topname) == -1) {
    let adstr = autodiscovery(addrstr,topname,topic,jsonstr);
    if (adstr.length > 0) {
@@ -289,27 +314,48 @@ function scanCB(ev, res) {
       if ( (res.advData.at(16) != 0x10) && (res.advData.at(17) == 0x10) ) {
          ofs = 1;
       }
-       if ( (res.advData.at(6) == 0x76) && (res.advData.at(7) == 0x05) ) {
-         packedStruct.setBuffer(res.advData.slice(17));
-         hdr = packedStruct.unpack('<hH', ['temperature','humidity']);
-         hdr.temperature = hdr.temperature / 10.0;
-         hdr.humidity = hdr.humidity / 10.0;
-       } else if ( (res.advData.at(15+ofs) == 0xD) && (res.advData.at(17+ofs) > 3) ) {
-         packedStruct.setBuffer(res.advData.slice(18+ofs));
-         hdr = packedStruct.unpack('<HH', ['temperature','humidity']);
-         hdr.temperature = hdr.temperature / 10.0;
-         hdr.humidity = hdr.humidity / 10.0;
-       } else if ( (res.advData.at(15+ofs) == 0xA) && (res.advData.at(17+ofs) > 0) ) {
-         hdr = { battery: res.advData.at(18+ofs)};
-       } else if ( (res.advData.at(15+ofs) == 6) && (res.advData.at(17+ofs) > 0) ) {
-         packedStruct.setBuffer(res.advData.slice(18+ofs));
-         hdr = packedStruct.unpack('<H', ['humidity']);
-         hdr.humidity = hdr.humidity / 10.0;
-       } else if ( (res.advData.at(15+ofs) == 4) && (res.advData.at(17+ofs) > 0) ) {
-         packedStruct.setBuffer(res.advData.slice(18+ofs));
-         hdr = packedStruct.unpack('<H', ['temperature']);
-         hdr.temperature = hdr.temperature / 10.0;
-       }
+      if ( (res.advData.at(6) == 0x76) && (res.advData.at(7) == 0x05) ) {
+        packedStruct.setBuffer(res.advData.slice(17));
+        hdr = packedStruct.unpack('<hH', ['temperature','humidity']);
+        hdr.temperature = hdr.temperature / 10.0;
+        hdr.humidity = hdr.humidity / 10.0;
+
+      } else {
+        let dataType = res.advData.at(15 + ofs);
+        let dataSize = res.advData.at(17 + ofs);
+
+        if ( (dataType == 4) && (dataSize > 0) ) {
+          packedStruct.setBuffer(res.advData.slice(18+ofs));
+          hdr = packedStruct.unpack('<h', ['temperature']);
+          hdr.temperature = hdr.temperature / 10.0;
+
+        } else if ( (dataType == 6) && (dataSize > 0) ) {
+          packedStruct.setBuffer(res.advData.slice(18+ofs));
+          hdr = packedStruct.unpack('<H', ['humidity']);
+          hdr.humidity = hdr.humidity / 10.0;
+
+        } else if ( (dataType == 7) && (dataSize >= 3) ) {
+          packedStruct.setBuffer(res.advData.slice(18+ofs));
+          hdr = packedStruct.unpack('<I', ['illuminance']);
+          
+        } else if ( (dataType == 8) && (dataSize == 1) ) {
+          packedStruct.setBuffer(res.advData.slice(18+ofs));
+          hdr = packedStruct.unpack('<B', ['moisture']);
+        
+        } else if ( (dataType == 9) && (dataSize > 0) ) {
+          packedStruct.setBuffer(res.advData.slice(18+ofs));
+          hdr = packedStruct.unpack('<H', ['soil']);
+
+        } else if ( (dataType == 0xA) && (dataSize > 0) ) {
+          hdr = { battery: res.advData.at(18+ofs)};
+
+        } else if ( (dataType == 0xD) && (dataSize > 3) ) {
+            packedStruct.setBuffer(res.advData.slice(18+ofs));
+            hdr = packedStruct.unpack('<hH', ['temperature','humidity']);
+            hdr.temperature = hdr.temperature / 10.0;
+            hdr.humidity = hdr.humidity / 10.0;
+        }
+      }
     } // end xiaomi
     else if ((res.advData.at(2) == 0xd2) && (res.advData.at(3) == 0xfc)) { //bthomev2
          if ( (res.advData.at(4) & 0x1) != 1 ) { // no encryption
