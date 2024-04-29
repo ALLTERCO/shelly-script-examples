@@ -1,3 +1,7 @@
+load-shedding.js: Load shedding with Shelly Pro4PM and Pro3EM
+===
+Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices
+
 ntc-conversion.js: Converts NTC thermal resistor output to temperature and execute actions
 ===
 Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading
