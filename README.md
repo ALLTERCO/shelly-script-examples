@@ -5,6 +5,9 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 2021 for Gen2 Shellies based on ESP32.
 
 # Changelog
+
+## 2024-04
+- Load shedding with Shelly Pro4PM and Pro3EM
 ## 2023-11
 - NTC Conversion example
 ## 2023-09
