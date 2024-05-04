@@ -28,7 +28,7 @@ let CONFIG = {
     },
     {
       gen: 2,
-      apn: ["ShellyPlus"],
+      apn: ["ShellyPlus", "Shelly"],
     },
   ],
   provisionAP: {
@@ -125,8 +125,8 @@ let Scanner = {
   },
 
   isInCache: function (ssid) {
-    for (let papk in self.targetCache) {
-      let tSSID = self.targetCache[papk];
+    for (let papk in this.targetCache) {
+      let tSSID = this.targetCache[papk];
       if (tSSID.indexOf(ssid) !== -1) {
         return true;
       }
