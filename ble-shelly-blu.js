@@ -61,8 +61,10 @@ const BTH = {
   0x05: { n: "illuminance", t: uint24, f: 0.01 },
   0x21: { n: "motion", t: uint8 },
   0x2d: { n: "window", t: uint8 },
+  0x2e: { n: "humidity", t: uint8, u: "%" },
   0x3a: { n: "button", t: uint8 },
   0x3f: { n: "rotation", t: int16, f: 0.1 },
+  0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
 };
 
 function getByteSize(type) {
