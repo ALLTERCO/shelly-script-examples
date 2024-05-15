@@ -40,12 +40,17 @@
 // CHANGE HERE
 function onButtonPress(BTHparsed) {
   print("Button pressed, emitting event");
+
+  // Emits event
   Shelly.emitEvent("BLU_BUTTON", {
     addr: BTHparsed.addr,
     rssi: BTHparsed.rssi,
     Button: BTHparsed.Button,
     Battery: BTHparsed.Battery,
   });
+
+  // Toggles the relay on the device
+  Shelly.call("Switch.Toggle", { id: 0 });
 }
 
 // remove name prefix to not filter by device name
