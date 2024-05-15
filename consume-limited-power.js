@@ -25,12 +25,14 @@
 let startMonitor = false;
 let eAccumulator = 0;
 let maxEnergy = 120; //threshold, in milliwatthours
+
 Shelly.addEventHandler(function (event, user_data) {
-  if (typeof event.info.output !== "undefined") {
-    if (event.info.output) {
+  if (typeof event.info.state !== "undefined") {
+    if (event.info.state) {
       startMonitor = true;
       eAccumulator = 0;
-    } else {
+    } 
+    else {
       startMonitor = false;
     }
   }
@@ -41,6 +43,7 @@ Shelly.addStatusHandler(function (event, user_data) {
   if (typeof event.delta.aenergy !== "undefined") {
     if (startMonitor) {
       eAccumulator = eAccumulator + event.delta.aenergy.by_minute[0];
+      
       if (eAccumulator > maxEnergy) {
         print("Will turn off because of power consumed");
         Shelly.call(
