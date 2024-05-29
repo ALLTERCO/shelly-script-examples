@@ -1,3 +1,7 @@
+control-ha-light-entity-with-boolean.js: Control Light entity from HA via virtual boolean component
+===
+This script will control a light entity in Home Assistant via a virtual boolean component in Shelly. The script will listen for changes in the boolean component and will turn on or off the light entity in Home Assistant accordingly.
+
 load-shedding.js: Load shedding with Shelly Pro4PM and Pro3EM
 ===
 Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices
