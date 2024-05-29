@@ -1,3 +1,7 @@
+hue-lights-control.js: Controlling hue lights with Shelly BLU Button or virtual buttons
+===
+This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)
+
 control-ha-light-entity-with-boolean.js: Control Light entity from HA via virtual boolean component
 ===
 This script will control a light entity in Home Assistant via a virtual boolean component in Shelly. The script will listen for changes in the boolean component and will turn on or off the light entity in Home Assistant accordingly.
