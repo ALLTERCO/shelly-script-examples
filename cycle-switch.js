@@ -42,7 +42,7 @@ const CONFIG = {
 let currentCycle = 0;
 
 function runCycle () {
-    if (currentCycle === CONFIG.CYCLES.length) {
+    if (currentCycle >= CONFIG.CYCLES.length) {
       currentCycle = 0;
     }
 
@@ -54,7 +54,7 @@ function runCycle () {
         Shelly.call(
             "Switch.Set", 
             {
-                id: JSON.stringify(input),
+                id: input,
                 on: currentOperation[input]
             }
             
