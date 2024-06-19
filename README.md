@@ -6,6 +6,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2024-06
+- Delay relay on after predefined time in seconds
 ## 2024-04
 - Load shedding with Shelly Pro4PM and Pro3EM
 ## 2023-11

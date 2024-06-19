@@ -1,5 +1,10 @@
 [
   {
+    "fname": "delay-relay-on.js",
+    "title": "Delay switching on the relay after device is plugged in",
+    "description": "This script allows you to set time in seconds to delay the switch to turn on after the device is plugged in"
+  },
+  {
     "fname": "hue-lights-control.js",
     "title": "Controlling hue lights with Shelly BLU Button or virtual buttons",
     "description": "This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)"
