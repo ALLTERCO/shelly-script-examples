@@ -7,6 +7,7 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 # Changelog
 ## 2024-06
 - Advanced Load shedding with schedules and notifications
+- Add a second meter to advanced load shedding with a companion script
 - Monitor Power Outages or Crashed Services
 - Updated N-Way Dimmer with JSON fix and documentation
 ## 2024-04
