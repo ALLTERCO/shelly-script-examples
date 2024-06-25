@@ -207,7 +207,7 @@
   },
   {
     "fname": "power-outages.js",
-    "title": "Monitor Outages",
+    "title": "Monitor Power Outages or Crashed Services",
     "description": "Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics."
   },
   {
