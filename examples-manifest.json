@@ -15,6 +15,16 @@
     "description": "Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices"
   },
   {
+    "fname": "advanced-load-shedding.js",
+    "title": "Advanced Load shedding with schedules and notifications",
+    "description": "Adds schedule, device, and notification templates and functionality to the original load shedding script."
+  },
+  {
+    "fname": "monitor-production.js",
+    "title": "Add Additional Meter to the Advanced Load Shedding script",
+    "description": "Use this script paired with advanced-load-shedding.js to add a second source - example, grid, PV, generator, etc."
+  },
+  {
     "fname": "ntc-conversion.js",
     "title": "Converts NTC thermal resistor output to temperature and execute actions",
     "description": "Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading"
@@ -168,7 +178,7 @@
   {
     "fname": "n-way-dimmer.js",
     "title": "n-way-dimmer.js",
-    "description": "Setup an N-Way dimmer using the Shelly Plus Wall Dimmer. One dimmer is connected to the light while the other dimmer switches can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group."
+    "description": "Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group."
   },
   {
     "fname": "objects.js",
@@ -199,6 +209,11 @@
     "fname": "router-watchdog.js",
     "title": "Router Watchdog",
     "description": "This script tries to execute HTTP GET requests within a set time, against a set of endpoints.\n\nAfter certain number of failures the script sets the Switch off and after some time turns it back on."
+  },
+  {
+    "fname": "power-outages.js",
+    "title": "Monitor Power Outages or Crashed Services",
+    "description": "Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics."
   },
   {
     "fname": "scene.js",

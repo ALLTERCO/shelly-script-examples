@@ -1,23 +1,26 @@
-// Allow the Shelly Wall Dimmer work in a N-Way Dimmer group
-// A change at any dimmer will be sent to all the others in the group
-// The one with the load connected to the light will make or get the update
-// and adjust the light accordingly
+// Allows between 2 and 5 Shelly Plus, Pro, and Gen3 dimming products to work in a N-Way Dimmer group. A change at any dimmer is sent to all devices in the group. 
 
-// BUG - the adjustment of the brightness setting on the dimmer does not trigger an even
-//       as a result the script is not currently synchronizing the dimmer value until
-//       the swith is turned off. The brightness value of that is synced is the value
-//       of the dimmer where the button was pressed.
+//This script allows multiple configurations - here is a list of some potential examples:
 
-// TODO - Dynamically create list based on what is on the network
-//        OR move to bluetooth and avoid the need for a network
+//Combine 2 Plus Wall Dimmer switches on a 3 way circuit or 3 Plus Wall Dimmers on a 4 way circuit. 
+//One switch controls the load while output for other switches is capped off making them input-only.
 
-// Update the Group to reflect all the switches in the group
+//Combine Plus Wall Dimmer and three Plus 0-10v Dimmers (wired at fixtures) to eliminate the requirement 
+//to pull low voltage wire to a switch. Plus Wall Dimmer controls dimming for the 0-10v dimmers
+
+//Combine 5 lighting circuits into one group, with on/off/dim/bright for the entire group set from 
+//any Shelly in the group
+
+//Note - you should set static IP address and matching DHCP reservations for all Shelly devices in the group
+
+// Update the "Group" setting to include IP address for all the switches in the group
+
 let CONFIG = {
-  Group: ["192.168.99.163","192.168.99.113","192.168.99.116"],  // Change these to reflect your dimmer group
+  Group: ["192.168.68.74","192.168.68.113"],  // Change these to reflect your dimmer group
   wifi_ip: "", // You do not need to fill in this line, the script will fill it in
 };
 
-//  You should not need to modifiy anything past here
+//  You should not need to modify anything past here
 
 // get local IP
 Shelly.call("WiFi.GetStatus", null, function (status) {
@@ -63,10 +66,9 @@ let RemoteShelly = {
 // Get the local KVS value , if differnt from switch change the value of the switch
 function UpdateLightState() {
   print("Running UpdateLightState: ")
-  
   // get current state
   let currentstatus = GetLocalDimmerCurrentStatus();
-  
+
   // Get the Key Value store values for the state (on/off)
   Shelly.call(
     "KVS.Get",
@@ -74,7 +76,6 @@ function UpdateLightState() {
     function (result, error_code, message, currentstatus) {
       let kvsval = JSON.parse(result.value);
       print("Update Switch State from KVS - switchOn  : ", currentstatus.on, "   -   KVSOn     : ", kvsval.on, "   -   switchBrightness  : ", currentstatus.brightness, "   -   KVSBrightness     : ", kvsval.brightness);
-
       if (currentstatus.on !== kvsval.on || currentstatus.brightness !== kvsval.brightness) {
         setLocalDimmerStatus(kvsval);
       }
@@ -93,12 +94,11 @@ function setLocalDimmerStatus(value){
     null
    );
 }
-
 // Get the local KVS value, if it is different from the switch change the value of the KVS
+
 function UpdateKVSState() {
   // get current state
   let currentstatus = GetLocalDimmerCurrentStatus();
-  
   // Get the Key Value store values for the state (on/off)
   Shelly.call(
     "KVS.Get",
@@ -107,8 +107,7 @@ function UpdateKVSState() {
       print(result.value);
       let kvsval = JSON.parse(result.value);
       //print("UpdateKVSState callback results");
-      print("Update KVS state from Switch - switchOn : ", currentstatus.on, "   -   KVSOn : ", kvsval.on, "   -   switchBrightness : ", currentstatus.brightness, "   -   KVSBrightness : ", kvsval.brightness);
-      
+      print("Update KVS state from Switch - switchOn : ", currentstatus.on, "   -   KVSOn : ", kvsval.on, "   -   switchBrightness : ", currentstatus.brightness, "   -   KVSBrightness : ", kvsval.brightness);  
       // If we have updates, push them to the other dimmers
       if (currentstatus.on !== kvsval.on || currentstatus.brightness !== kvsval.brightness) {
         // update local KVS
@@ -119,7 +118,6 @@ function UpdateKVSState() {
     }, currentstatus
   );
 }
-
 
 // Get the current value of the local physical dimmer switch
 function GetLocalDimmerCurrentStatus() {
@@ -136,10 +134,9 @@ function GetLocalDimmerCurrentStatus() {
 // Sync the local KVS value (hopefully in sync with the switch)
 function updateLocalKVS(cs) {
   //let timestamp = Date.now();
-  let kvp = '{key:"nwayOn", value: "{on: ' + JSON.stringify(cs.on) + ', brightness: ' + JSON.stringify(cs.brightness) + '}"}';
+  let kvp = '{"key":"nwayOn", "value": "{\'on\': ' + JSON.stringify(cs.on) + ', \'brightness\': ' + JSON.stringify(cs.brightness) + '}"}';
   print("key value pair: ",kvp);
   let jkvp = JSON.parse(kvp);
-  
   Shelly.call(
     "KVS.Set",
     jkvp
@@ -155,10 +152,10 @@ function syncKVSToDimmer(cs) {
   print(sdimmer);
 
   //let kvp = '{key:"nwayOn", value: "{on: ' + JSON.stringify(cs.on) + ', brightness: ' + JSON.stringify(cs.brightness) + '}"}';
-  let kvp = '{key:"nwayOn", value: "{on: ' + JSON.stringify(cs.on) + ', brightness: ' + JSON.stringify(cs.brightness) + '}"}';
+  let kvp = '{"key":"nwayOn", "value": "{\'on\': ' + JSON.stringify(cs.on) + ', \'brightness\': ' + JSON.stringify(cs.brightness) + '}"}';
   print("key value pair: ",kvp);
   let jkvp = JSON.parse(kvp);
-  
+
   dimmer.call(
     "KVS.Set",
     jkvp,
@@ -194,17 +191,16 @@ function getLocalName() {
   print("Status: ", sstatus);
   print("Name: ", status.name);
 }
-getLocalName()
 
+getLocalName()
 print("Starting ...")
 
 // At Startup, initialize KVS to same as dimmer
 let tds = GetLocalDimmerCurrentStatus();
 updateLocalKVS(tds);
-
 // Define event handlers
-
 // the local key value store was updated, update the local switch settings
+
 Shelly.addStatusHandler(
   function (event, userData) {
     print("Status Handler intercept :",JSON.stringify(event));
@@ -217,6 +213,7 @@ Shelly.addStatusHandler(
 );
 
 //  Someone pressed the local light switch
+
 Shelly.addEventHandler(
   function (event, userData) {
     print("Event Handler intercept :",JSON.stringify(event));
@@ -229,11 +226,10 @@ Shelly.addEventHandler(
 );
 
 /*
- // Poling attemp, did not work, will need some event handler to deal with dimmer changes
+ // Poling attempt, did not work, will need some event handler to deal with dimmer changes
  function main_loop () {
    UpdateKVSState();
    //UpdateLightState();
  }
- 
  Timer.set(1000,true,main_loop)
  */

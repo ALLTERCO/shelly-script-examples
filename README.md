@@ -5,7 +5,11 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 2021 for Gen2 Shellies based on ESP32.
 
 # Changelog
-
+## 2024-06
+- Advanced Load shedding with schedules and notifications
+- Add a second meter to advanced load shedding with a companion script
+- Monitor Power Outages or Crashed Services
+- Updated N-Way Dimmer with JSON fix and documentation
 ## 2024-04
 - Load shedding with Shelly Pro4PM and Pro3EM
 ## 2023-11
