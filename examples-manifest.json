@@ -20,6 +20,11 @@
     "description": "Adds schedule, device, and notification templates and functionality to the original load shedding script."
   },
   {
+    "fname": "monitor-production.js",
+    "title": "Add Additional Meter to the Advanced Load Shedding script",
+    "description": "Use this script paired with advanced-load-shedding.js to add a second source - example, grid, PV, generator, etc."
+  },
+  {
     "fname": "ntc-conversion.js",
     "title": "Converts NTC thermal resistor output to temperature and execute actions",
     "description": "Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading"
