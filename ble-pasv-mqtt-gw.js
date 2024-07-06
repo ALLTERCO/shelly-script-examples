@@ -6,6 +6,7 @@
  *
  * Sensor values sent to 'mqtt_topic' and device config objects sent to 'discovery_topic'.
  * Copyleft Alexander Nagy @ bitekmindenhol.blog.hu
+ * Extended by Michal Bartak
  */
 
 let CONFIG = {
@@ -205,52 +206,99 @@ function gettopicname(resarray) {
 }
 
 function autodiscovery(address, topname, topic, jsonstr) {
-         let adstr = [ ];
-         let params = Object.keys(jsonstr);
-         let subt = "";
-         for (let i = 0; i<params.length; i++) {
-           let pload = {};
-           subt = "";
-           pload["device"] = {};
-           pload["device"]["name"] = address + " " + topname;
-           pload["device"]["identifiers"] = [];
-           pload["device"]["identifiers"].push(address);
-           pload["name"] = pload["device"]["name"];
-           pload["stat_t"] = topic;
-           pload["uniq_id"] = address+"-"+params[i];
-           pload["stat_cla"] = "measurement";
-           if (params[i] == "temperature") {
-                pload["dev_cla"] = params[i];
-                pload["unit_of_meas"] = "C";
-                subt = params[i];
-           } else if (params[i] == "humidity") {
-                pload["dev_cla"] = params[i];
-                pload["unit_of_meas"] = "%";
-                subt = params[i];
-           } else if (params[i] == "battery") {
-                pload["dev_cla"] = params[i];
-                pload["unit_of_meas"] = "%";
-                subt = params[i];
-           } else if (params[i] == "illuminance") {
-                pload["dev_cla"] = params[i];
-                pload["unit_of_meas"] = "lx";
-                subt = params[i];
-           } else if (params[i] == "pressure") {
-                pload["dev_cla"] = "atmospheric_pressure";
-                pload["unit_of_meas"] = "hPa";
-                subt = pload["dev_cla"];
-           } else if (params[i] == "rssi") {
-                pload["dev_cla"] = "signal_strength";
-                pload["entity_category"] = "diagnostic";
-                pload["unit_of_meas"] = "dBm";
-                subt = "RSSI";
-           }
-           if (subt != "") {
-             pload["value_template"] = "{{ value_json." + params[i] + " }}";
-             adstr.push( [ CONFIG.discovery_topic + "sensor/" + address + "/"+subt+"/config", JSON.stringify(pload) ] );
-           }
-         }
-         return adstr;
+
+    let adstr = [];
+
+    adstr = autodiscovery_sensors(adstr, address, topname, topic, jsonstr);
+    adstr = autodiscovery_binary_sensors(adstr, address, topname, topic, jsonstr);
+
+    return adstr;
+}
+
+function autodiscovery_sensors(adstr, address, topname, topic, jsonstr) {
+
+    let params = Object.keys(jsonstr);
+    let subt = "";
+    let domain = "sensor"
+    for (let i = 0; i < params.length; i++) {
+        let pload = {};
+        subt = "";
+        pload["device"] = {};
+        pload["device"]["name"] = address + " " + topname;
+        pload["device"]["identifiers"] = [];
+        pload["device"]["identifiers"].push(address);
+        pload["name"] = params[i];
+        pload["stat_t"] = topic;
+        pload["uniq_id"] = address + "-" + params[i];
+        pload["state_class"] = "measurement";
+        if (params[i] == "temperature") {
+            pload["dev_cla"] = params[i];
+            pload["unit_of_meas"] = "C";
+            subt = params[i];
+        } else if (params[i] == "humidity") {
+            pload["dev_cla"] = params[i];
+            pload["unit_of_meas"] = "%";
+            subt = params[i];
+        } else if (params[i] == "battery") {
+            pload["dev_cla"] = params[i];
+            pload["unit_of_meas"] = "%";
+            subt = params[i];
+        } else if (params[i] == "illuminance") {
+            pload["dev_cla"] = params[i];
+            pload["unit_of_meas"] = "lx";
+            subt = params[i];
+        } else if (params[i] == "pressure") {
+            pload["dev_cla"] = "atmospheric_pressure";
+            pload["unit_of_meas"] = "hPa";
+            subt = pload["dev_cla"];
+        } else if (params[i] == "rssi") {
+            pload["dev_cla"] = "signal_strength";
+            pload["entity_category"] = "diagnostic";
+            pload["unit_of_meas"] = "dBm";
+            subt = "RSSI";
+        } else if (params[i] == "rotation") {
+            pload["unit_of_meas"] = "°";
+            subt = params[i];
+        }
+
+        if (subt != "") {
+            pload["value_template"] = "{{ value_json." + params[i] + " }}";
+            adstr.push([CONFIG.discovery_topic + domain + "/" + address + "/" + subt + "/config", JSON.stringify(pload)]);
+        }
+    }
+    return adstr;
+}
+
+function autodiscovery_binary_sensors(adstr, address, topname, topic, jsonstr) {
+
+    let params = Object.keys(jsonstr);
+    let subt = "";
+    let domain = "binary_sensor";
+    for (let i = 0; i < params.length; i++) {
+        let pload = {};
+        subt = "";
+        pload["device"] = {};
+        pload["device"]["name"] = address;
+        pload["device"]["identifiers"] = [];
+        pload["device"]["identifiers"].push(address);
+        pload["name"] = params[i];
+        pload["stat_t"] = topic;
+        pload["uniq_id"] = address + "-" + params[i];
+        pload["state_class"] = "measurement";
+
+        if (params[i] == "window") {
+            pload["dev_cla"] = params[i];
+            subt = pload["dev_cla"];
+            pload["pl_on"] = 1;
+            pload["pl_off"] = 0;
+        }
+
+        if (subt != "") {
+            pload["value_template"] = "{{ value_json." + params[i] + " }}";
+            adstr.push([CONFIG.discovery_topic + domain + "/" + address + "/" + subt + "/config", JSON.stringify(pload)]);
+        }
+    }
+    return adstr;
 }
 
 function mqttreport(address, rssi, jsonstr) {
@@ -266,7 +314,7 @@ function mqttreport(address, rssi, jsonstr) {
    if (adstr.length > 0) {
     for (let i = 0; i<adstr.length; i++) {
       if (adstr[i].length > 1) {
-       MQTT.publish(adstr[i][0],adstr[i][1],1,true); //        console.log("AD",i,adstr[i][0],adstr[i][1]);
+       MQTT.publish(adstr[i][0],adstr[i][1],1,true);   //  console.log("AD",i,adstr[i][0],adstr[i][1]);
       }
     }
    }
@@ -337,11 +385,11 @@ function scanCB(ev, res) {
         } else if ( (dataType == 7) && (dataSize >= 3) ) {
           packedStruct.setBuffer(res.advData.slice(18+ofs));
           hdr = packedStruct.unpack('<I', ['illuminance']);
-          
+
         } else if ( (dataType == 8) && (dataSize == 1) ) {
           packedStruct.setBuffer(res.advData.slice(18+ofs));
           hdr = packedStruct.unpack('<B', ['moisture']);
-        
+
         } else if ( (dataType == 9) && (dataSize > 0) ) {
           packedStruct.setBuffer(res.advData.slice(18+ofs));
           hdr = packedStruct.unpack('<H', ['soil']);
