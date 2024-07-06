@@ -224,7 +224,7 @@ function autodiscovery_sensors(adstr, address, topname, topic, jsonstr) {
         let pload = {};
         subt = "";
         pload["device"] = {};
-        pload["device"]["name"] = address + " " + topname;
+        pload["device"]["name"] = address;
         pload["device"]["identifiers"] = [];
         pload["device"]["identifiers"].push(address);
         pload["name"] = params[i];
@@ -288,9 +288,14 @@ function autodiscovery_binary_sensors(adstr, address, topname, topic, jsonstr) {
 
         if (params[i] == "window") {
             pload["dev_cla"] = params[i];
-            subt = pload["dev_cla"];
-            pload["pl_on"] = 1;
-            pload["pl_off"] = 0;
+            subt             = params[i];
+            pload["pl_on"]   = 1;
+            pload["pl_off"]  = 0;
+        } else if (params[i] == "motion") {
+            pload["dev_cla"] = params[i];
+            subt             = params[i];
+            pload["pl_on"]   = 1;
+            pload["pl_off"]  = 0;
         }
 
         if (subt != "") {
