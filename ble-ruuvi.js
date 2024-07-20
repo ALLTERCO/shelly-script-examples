@@ -107,9 +107,13 @@ let RuuviParser = {
   },
 };
 
+function replaceAll(str, search, replacement) {
+  return str.split(search).join(replacement);
+}
+
 function publishToMqtt(measurement) {
   MQTT.publish(
-    CONFIG.mqtt_topic + "/" + measurement.addr,
+    CONFIG.mqtt_topic + "/" + replaceAll(measurement.addr, ":", ""),
     JSON.stringify(measurement)
   );
 }
