@@ -10,6 +10,14 @@ load-shedding.js: Load shedding with Shelly Pro4PM and Pro3EM
 ===
 Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices
 
+advanced-load-shedding.js: Advanced Load shedding with schedules and notifications
+===
+Adds schedule, device, and notification templates and functionality to the original load shedding script.
+
+monitor-production.js: Add Additional Meter to the Advanced Load Shedding script
+===
+Use this script paired with advanced-load-shedding.js to add a second source - example, grid, PV, generator, etc.
+
 ntc-conversion.js: Converts NTC thermal resistor output to temperature and execute actions
 ===
 Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading
@@ -167,7 +175,7 @@ Use MQTT in scripting to provide switch status updates on a custom topic
 
 n-way-dimmer.js: n-way-dimmer.js
 ===
-Setup an N-Way dimmer using the Shelly Plus Wall Dimmer. One dimmer is connected to the light while the other dimmer switches can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
+Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
 
 objects.js: mJS example of how to create custom Objects that interact with components (Switch in this case)
 ===
@@ -195,6 +203,10 @@ router-watchdog.js: Router Watchdog
 This script tries to execute HTTP GET requests within a set time, against a set of endpoints.
 
 After certain number of failures the script sets the Switch off and after some time turns it back on.
+
+power-outages.js: Monitor Power Outages or Crashed Services
+===
+Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics.
 
 scene.js: Scene playing in Shelly Gen2
 ===
