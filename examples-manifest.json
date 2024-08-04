@@ -232,7 +232,7 @@
   },
   {
     "fname": "switch-auto-off.js",
-    "title": "Automatic switch-off the plug based on power threshold",
+    "title": "Auto switch off the plug based on power threshold",
     "description": "Switch off the plug if the power falls below a threshold value for a certain period of time."
   },
   {
