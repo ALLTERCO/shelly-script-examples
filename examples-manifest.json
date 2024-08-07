@@ -231,6 +231,11 @@
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Only Shelly firmware >= 1.x supported. Developed for ShellyTeacher4Domo."
   },
   {
+    "fname": "switch-better-power-led-colors.js",
+    "title": "Better power LED colors",
+    "description": "Updates the color of the ring LED depending on the current power consumption."
+  },
+  {
     "fname": "test-scene.js",
     "title": "Scene Test with multiple Shellies",
     "description": "Playing a scene with four Shellies with that have a lamp as a load.\n\nDemonstration of a \"Remote Shelly\" wrapper object. object prototyping, and simple scene player."
