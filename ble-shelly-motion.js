@@ -3,7 +3,7 @@ let CONFIG = {
   // When set to true, debug messages will be logged to the console
   debug: false,
 
-  // When set to true and the script ownes the scanner, the scan will be active. 
+  // When set to true the scan will be active, otherwise it will be passive. 
   // Active scan means the scanner will ping back the Bluetooth device to receive all its data, but it will drain the battery faster
   active: false,
 
