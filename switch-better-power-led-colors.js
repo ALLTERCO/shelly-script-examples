@@ -33,10 +33,13 @@ let CONFIG = {
       {power: 10, rgb: [100, 0, 0], brightness: 100},
       {power: 150, rgb: [0, 100, 0], brightness: 100},
       {power: 200, rgb: [0, 0, 100], brightness: 100},
-    ]
+    ],
+    // Don't update when below this threshold.
+    updateThresholdPercent: 5,
 };
 
-let currentPower = 0;
+let currentPower = null;
+let currentPowerCommitted = null;
 let updateQueued = false;
 let cooldownTimer = null;
 
@@ -95,7 +98,17 @@ function checkUpdate() {
     print("Cooldown timer active.");
     return;
   }
+  if (currentPowerCommitted !== null) {
+    let powerDiff = Math.abs(currentPower - currentPowerCommitted);
+    let powerDiffThreshold = currentPowerCommitted * CONFIG.updateThresholdPercent / 100;
+    if (powerDiff < powerDiffThreshold) {
+      print("Power diff " + powerDiff.toFixed(1) + " below threshold " + powerDiffThreshold.toFixed(1) + ".");
+      return;
+    }
+  }
 
+
+  currentPowerCommitted = currentPower;
   updateQueued = false;
   cooldownTimer = Timer.set(CONFIG.ledUpdateInterval, false, onLedUpdateTick);
   updateLed();
