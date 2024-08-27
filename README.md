@@ -5,6 +5,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 2021 for Gen2 Shellies based on ESP32.
 
 # Changelog
+## 2024-08
+- New user script (switch-auto-off.js): Switch off the plug if the power falls below a threshold value
 ## 2024-06
 - Advanced Load shedding with schedules and notifications
 - Add a second meter to advanced load shedding with a companion script
