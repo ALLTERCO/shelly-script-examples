@@ -279,5 +279,10 @@
     "fname": "ip-assignment-watchdog.js",
     "title": "Reboot on DHCP IP assignment issues",
     "description": "Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period."
-  }
+  },
+  {
+    "fname": "script-temperature-adjust.js",
+    "title": "Use any external temperature sensor with Wall Display",
+    "description": "This script allow to use any kind of temperature/humidity sensor (ex. DHT22) with Shelly Wall Display."
+  } 
 ]
