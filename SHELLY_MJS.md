@@ -277,3 +277,7 @@ ip-assignment-watchdog.js: Reboot on DHCP IP assignment issues
 ===
 Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period.
 
+universal-blu-to-mqtt.js: Example - Universal BLU to MQTT Script
+===
+This script is about shares any BLU product's complete payload to MQTT..
+
