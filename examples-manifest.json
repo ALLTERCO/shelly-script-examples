@@ -279,5 +279,10 @@
     "fname": "ip-assignment-watchdog.js",
     "title": "Reboot on DHCP IP assignment issues",
     "description": "Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period."
+  },
+  {
+    "fname": "universal-blu-to-mqtt.js",
+    "title": "Example - Universal BLU to MQTT Script",
+    "description": "This script is about shares any BLU product's complete payload to MQTT.."
   }
 ]
