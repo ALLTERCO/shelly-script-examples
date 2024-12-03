@@ -23,21 +23,18 @@
 // Extension for ShellyTeacher4Domo
 // https://github.com/enesbcs/shellyteacher4domo
 
-let CONFIG = {
-  shelly_id: null,
+const deviceInfo = Shelly.getDeviceInfo();
+
+const CONFIG = {
+  shelly_id: deviceInfo.id,
 };
-Shelly.call("Shelly.GetDeviceInfo", {}, function (result) {
- if (result && result.id) {
-  CONFIG.shelly_id = result.id;
-  MQTT.subscribe(
-    buildMQTTStateCmdTopics("rpc"),
-    DecodeDomoticzFaultyJSON
-  );
-  console.log("Subscribed to RPC");
- } else {
-  console.log("Failed to get Shelly device info:", result);
- }
-});
+
+MQTT.subscribe(
+  buildMQTTStateCmdTopics("rpc"),
+  DecodeDomoticzFaultyJSON
+);
+
+console.log("Subscribed to RPC");
 
 /**
  * @param {string} topic
@@ -52,22 +49,22 @@ function buildMQTTStateCmdTopics(topic) {
  * @param {string} message
  */
 function DecodeDomoticzFaultyJSON(topic, message) {
- try {
-  let trimmedMessage = message.trim();
-  if (trimmedMessage) {
-    if (trimmedMessage.indexOf("GoToPosition") !== -1){
-     let req = JSON.parse(trimmedMessage);
-     for (let r in req) {
-       if (r.indexOf("GoToPosition") !== -1) { // Check if "GoToPosition" is present in the key
-          SetCoverPosition(req[r]);
-          break;
-       }
-     }
+  try {
+    let trimmedMessage = message.trim();
+    if (trimmedMessage) {
+      if (trimmedMessage.indexOf("GoToPosition") !== -1) {
+        let req = JSON.parse(trimmedMessage);
+        for (let r in req) {
+          if (r.indexOf("GoToPosition") !== -1) { // Check if "GoToPosition" is present in the key
+            SetCoverPosition(req[r]);
+            break;
+          }
+        }
+      }
     }
+  } catch (error) {
+    console.log("Error parsing JSON:", error);
   }
- } catch (error) {
-   console.log("Error parsing JSON:", error);
- }
 }
 
 /**

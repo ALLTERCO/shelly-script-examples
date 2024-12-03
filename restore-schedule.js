@@ -3,12 +3,15 @@
 // and will ensure that the scheduled task that was to be run
 // just before device booted is executed
 
-let CONFIG = {
+
+const sysStatus = Shelly.getComponentStatus('sys');
+
+const CONFIG = {
   scheduleSpecMatch: '* * SUN,MON,TUE,WED,THU,FRI,SAT',
 };
 
-let hour = null;
-let minutes = null;
+const hour = JSON.parse(sysStatus.time.slice(0, 2));
+const minutes = JSON.parse(sysStatus.time.slice(3, 5));
 
 function restoreSchedule() {
   if (hour === null || minutes === null) return;
@@ -55,8 +58,6 @@ function restoreSchedule() {
   });
 }
 
-Shelly.call('Sys.GetStatus', {}, function (status) {
-  hour = JSON.parse(status.time.slice(0, 2));
-  minutes = JSON.parse(status.time.slice(3, 5));
-  restoreSchedule();
-});
+
+restoreSchedule();
+
