@@ -20,20 +20,12 @@
 // Demonstration of a "Remote Shelly" wrapper object. object prototyping, and
 // simple schene player
 
-let CONFIG = {
-  mac: 0,
-};
 
-Shelly.call(
-  "sys.getstatus",
-  {},
-  function (result, error_code, error_message, user_data) {
-    if (error_code === 0) {
-      CONFIG.mac = result.mac;
-    }
-  },
-  null
-);
+const sysStatus = Shelly.getComponentStatus('sys');
+
+let CONFIG = {
+  mac: sysStatus.mac,
+};
 
 let RemoteShelly = {
   _cb: function (result, error_code, error_message, callback) {
