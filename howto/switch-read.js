@@ -14,18 +14,11 @@
 //     "id": 0
 // }
 
-Shelly.call(
-  "switch.getstatus",
-  {
-    //for more than one switch devices use the respective id
-    id: 0,
-  },
-  function (result, error_code, error_message) {
-    print(JSON.stringify(result));
-    //if we need to check the state of the switch
-    //peek into result.output
-    if (result.output === true) {
-      print("Switch is on");
-    }
-  }
-);
+const result = Shelly.getComponentStatus("Switch:0");
+
+print(JSON.stringify(result));
+//if we need to check the state of the switch
+//peek into result.output
+if (result.output === true) {
+  print("Switch is on");
+}

@@ -32,17 +32,19 @@
  * @typedef {"config"|"stat"|"cmd"} HATopicType
  */
 
-let CONFIG = {
-  shelly_id: null,
-  shelly_mac: null,
-  shelly_fw_id: null,
-  device_name: "VIRTUAL_SWITCH_SENSORS",
+const deviceInfo = Shelly.getDeviceInfo();
+
+const CONFIG = {
+  shelly_id: deviceInfo.id,
+  shelly_mac: deviceInfo.mac,
+  shelly_fw_id: deviceInfo.fw_id,
+  device_name: deviceInfo.name || "VIRTUAL_SWITCH_SENSORS",
   ha_mqtt_ad: "garage_homeassistant",
   ha_dev_type: {
-    name: "",
-    ids: [""],
+    name: deviceInfo.id,
+    ids: [deviceInfo.id],
     mdl: "Shelly-virtual-sensors",
-    sw: "",
+    sw: deviceInfo.fw_id,
     mf: "Allterco",
   },
   payloads: {
@@ -51,17 +53,6 @@ let CONFIG = {
   },
   update_period: 2500,
 };
-
-Shelly.call("Shelly.GetDeviceInfo", {}, function (result) {
-  CONFIG.shelly_id = result.id;
-  CONFIG.shelly_mac = result.mac;
-  CONFIG.shelly_fw_id = result.fw_id;
-  CONFIG.device_name = result.name || CONFIG.device_name;
-  CONFIG.ha_dev_type.name = CONFIG.shelly_id;
-  CONFIG.ha_dev_type.ids[0] = CONFIG.shelly_id;
-  CONFIG.ha_dev_type.sw = CONFIG.shelly_fw_id;
-  initMQTT();
-});
 
 /**
  * Construct config topic
@@ -130,23 +121,22 @@ Shelly.addEventHandler(function (ev_data) {
 });
 
 function publishState() {
-  Shelly.call("Switch.GetStatus", { id: 0 }, function (result) {
-    let _sensor = {
-      temp: 0,
-      current: 0,
-      voltage: 0,
-    };
-    _sensor.temp = result.temperature.tC;
-    _sensor.current = result.current;
-    _sensor.voltage = result.voltage;
-    _sensor.state = result.output;
-    MQTT.publish(
-      buildMQTTStateCmdTopics("sensor", "state"),
-      JSON.stringify(_sensor)
-    );
-    let _state_str = _sensor.state ? "on" : "off";
-    MQTT.publish(buildMQTTStateCmdTopics("switch", "state"), _state_str);
-  });
+  const result = Shelly.getComponentStatus("Switch:0")
+  const _sensor = {
+    temp: 0,
+    current: 0,
+    voltage: 0,
+  };
+  _sensor.temp = result.temperature.tC;
+  _sensor.current = result.current;
+  _sensor.voltage = result.voltage;
+  _sensor.state = result.output;
+  MQTT.publish(
+    buildMQTTStateCmdTopics("sensor", "state"),
+    JSON.stringify(_sensor)
+  );
+  const _state_str = _sensor.state ? "on" : "off";
+  MQTT.publish(buildMQTTStateCmdTopics("switch", "state"), _state_str);
 }
 
 /**

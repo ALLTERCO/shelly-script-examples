@@ -32,27 +32,24 @@
 //
 // Cheers from https://bitekmindenhol.blog.hu/
 
+const deviceInfo = Shelly.getDeviceInfo();
+
 let CONFIG = {
-  shelly_id: null,
-  shelly_mac: null,
-  shelly_fw_id: null,
-  shelly_model: null,
+  shelly_id: deviceInfo.id,
+  shelly_mac: deviceInfo.mac,
+  shelly_fw_id: deviceInfo.fw_id,
+  shelly_model: deviceInfo.model,
   ha_mqtt_ad: "homeassistant",
-  device_name: "VIRTUAL_SWITCH",
+  device_name: deviceInfo.name || deviceInfo.id || "VIRTUAL_SWITCH",
   payloads: {
     on: "on",
     off: "off",
   },
   update_period: 30000,
 };
-Shelly.call("Shelly.GetDeviceInfo", {}, function (result) {
-  CONFIG.shelly_id = result.id;
-  CONFIG.shelly_mac = result.mac;
-  CONFIG.shelly_fw_id = result.fw_id;
-  CONFIG.device_name = result.name || result.id;
-  CONFIG.shelly_model = result.model;
-  initMQTT();
-});
+
+
+initMQTT();
 
 function buildMQTTConfigTopic(hatype, devname) {
   return (
@@ -108,10 +105,9 @@ Shelly.addStatusHandler(function (notification) {
 });
 
 function publishState() {
-  Shelly.call("Switch.GetStatus", { id: 0 }, function (result) {
-    let _temp = JSON.stringify(result.temperature.tC);
-    MQTT.publish(buildMQTTStateCmdTopics("temperature"), _temp);
-  });
+  const result = Shelly.getComponentStatus("Switch:0");
+  const _temp = JSON.stringify(result.temperature.tC);
+  MQTT.publish(buildMQTTStateCmdTopics("temperature"), _temp);
 }
 
 /**

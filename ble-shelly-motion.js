@@ -11,7 +11,7 @@ let CONFIG = {
   // allowedMacAddresses: null, 
   allowedMacAddresses: [
     "aa:bc:12:34:56:78", // events only from these mac addresses are allowed.
-    "11:22:33:45:5a:bc", 
+    "11:22:33:45:5a:bc",
   ],
 
   /**
@@ -37,7 +37,7 @@ let CONFIG = {
     // Publush the data.
     MQTT.publish(topic, String(illuminance));
   },
-  
+
   /**
    * Called when packet from filtered Shelly BLU Motion devices is received.
    * @param {Object} eventData Object, containing all parameters received from the Shelly BLU Motion device. Example: {"encryption":false,"BTHome_version":2,"pid":16,"battery":100,"illuminance":109,"motion":1,"button":1,"rssi":-53,"address":"aa:bc:12:34:56:78"}
@@ -48,56 +48,30 @@ let CONFIG = {
 };
 /******************* STOP CHANGE HERE *******************/
 
-let ALLTERCO_MFD_ID_STR = "0ba9";
-let BTHOME_SVC_ID_STR = "fcd2";
+const ALLTERCO_MFD_ID_STR = "0ba9";
+const BTHOME_SVC_ID_STR = "fcd2";
 
-let uint8 = 0;
-let int8 = 1;
-let uint16 = 2;
-let int16 = 3;
-let uint24 = 4;
-let int24 = 5;
-
-//Logs the provided message with an optional prefix to the console.
-function logger(message, prefix) {
-  //exit if the debug isn't enabled
-  if (!CONFIG.debug) {
-    return;
-  }
-
-  let finalText = "";
-
-  //if the message is list loop over it
-  if (Array.isArray(message)) {
-    for (let i = 0; i < message.length; i++) {
-      finalText = finalText + " " + JSON.stringify(message[i]);
-    }
-  } else {
-    finalText = JSON.stringify(message);
-  }
-
-  //the prefix must be string
-  if (typeof prefix !== "string") {
-    prefix = "";
-  } else {
-    prefix = prefix + ":";
-  }
-
-  //log the result
-  console.log(prefix, finalText);
-}
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
 
 // The BTH object defines the structure of the BTHome data
-let BTH = {};
-BTH[0x00] = { n: "pid", t: uint8 };
-BTH[0x01] = { n: "battery", t: uint8, u: "%" };
-BTH[0x02] = { n: "temperature", t: int16, f: 0.01, u: "tC" };
-BTH[0x03] = { n: "humidity", t: uint16, f: 0.01, u: "%" };
-BTH[0x05] = { n: "illuminance", t: uint24, f: 0.01 };
-BTH[0x21] = { n: "motion", t: uint8 };
-BTH[0x2d] = { n: "window", t: uint8 };
-BTH[0x3a] = { n: "button", t: uint8 };
-BTH[0x3f] = { n: "rotation", t: int16, f: 0.1 };
+const BTH = {
+  0x00: { n: "pid", t: uint8 },
+  0x01: { n: "battery", t: uint8, u: "%" },
+  0x02: { n: "temperature", t: int16, f: 0.01, u: "tC" },
+  0x03: { n: "humidity", t: uint16, f: 0.01, u: "%" },
+  0x05: { n: "illuminance", t: uint24, f: 0.01 },
+  0x21: { n: "motion", t: uint8 },
+  0x2d: { n: "window", t: uint8 },
+  0x2e: { n: "humidity", t: uint8, u: "%" },
+  0x3a: { n: "button", t: uint8 },
+  0x3f: { n: "rotation", t: int16, f: 0.1 },
+  0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
+};
 
 function getByteSize(type) {
   if (type === uint8 || type === int8) return 1;
@@ -108,9 +82,9 @@ function getByteSize(type) {
 }
 
 // functions for decoding and unpacking the service data from Shelly BLU devices
-let BTHomeDecoder = {
+const BTHomeDecoder = {
   utoi: function (num, bitsz) {
-    let mask = 1 << (bitsz - 1);
+    const mask = 1 << (bitsz - 1);
     return num & mask ? num - (1 << bitsz) : num;
   },
   getUInt8: function (buffer) {
@@ -163,23 +137,38 @@ let BTHomeDecoder = {
     while (buffer.length > 0) {
       _bth = BTH[buffer.at(0)];
       if (typeof _bth === "undefined") {
-        logger("unknown type", "BTH");
+        console.log("BTH: Unknown type");
         break;
       }
       buffer = buffer.slice(1);
       _value = this.getBufValue(_bth.t, buffer);
       if (_value === null) break;
       if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
-      result[_bth.n] = _value;
+
+      if (typeof result[_bth.n] === "undefined") {
+        result[_bth.n] = _value;
+      }
+      else {
+        if (Array.isArray(result[_bth.n])) {
+          result[_bth.n].push(_value);
+        }
+        else {
+          result[_bth.n] = [
+            result[_bth.n],
+            _value
+          ];
+        }
+      }
+
       buffer = buffer.slice(getByteSize(_bth.t));
     }
     return result;
   },
 };
 
-function onReceivedPacket (data) {
-  if(CONFIG._processedMacAddresses !== null) { 
-    if(CONFIG._processedMacAddresses.indexOf(data.address) < 0) {
+function onReceivedPacket(data) {
+  if (CONFIG._processedMacAddresses !== null) {
+    if (CONFIG._processedMacAddresses.indexOf(data.address) < 0) {
       logger(["Received event from", data.address, "outside of the allowed addresses"], "Info");
       return;
     }
@@ -278,11 +267,11 @@ function init() {
   else {
     //start the scanner
     let bleScanner = BLE.Scanner.Start({
-        duration_ms: BLE.Scanner.INFINITE_SCAN,
-        active: CONFIG.active
+      duration_ms: BLE.Scanner.INFINITE_SCAN,
+      active: CONFIG.active
     });
 
-    if(!bleScanner) {
+    if (!bleScanner) {
       console.log("Error: Can not start new scanner");
     }
   }
@@ -290,9 +279,9 @@ function init() {
   if (
     typeof CONFIG.allowedMacAddresses !== "undefined"
   ) {
-    if(CONFIG.allowedMacAddresses !== null) {
+    if (CONFIG.allowedMacAddresses !== null) {
       // Process configured mac addresses all to lower case and remove duplicates. 
-      CONFIG._processedMacAddresses = 
+      CONFIG._processedMacAddresses =
         CONFIG
           .allowedMacAddresses
           .map(function (mac) { return mac.toLowerCase(); })
