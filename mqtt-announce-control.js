@@ -19,13 +19,16 @@
 // /command/switch:0/output
 // Publish device status, input and switch status
 
-let CONFIG = {
-  device_id: "",
-  device_mac: "",
-  device_model: "",
-  fw_ver: "",
-  topic_prefix: "",
-  wifi_ip: "",
+const deviceInfo = Shelly.getDeviceInfo();
+const wifiStatus = Shelly.getComponentStatus("Wifi"); // Get wifi status
+const mqttConfig = Shelly.getComponentConfig("MQTT"); // Get mqtt config
+const CONFIG = {
+  device_id: deviceInfo.id,
+  device_mac: deviceInfo.mac,
+  device_model: deviceInfo.model,
+  fw_ver: deviceInfo.fw_id,
+  topic_prefix: mqttConfig.topic_prefix,
+  wifi_ip: wifiStatus.sta_ip,
 };
 
 function isConfigReady() {
@@ -35,20 +38,6 @@ function isConfigReady() {
   return true;
 }
 
-Shelly.call("Shelly.GetDeviceInfo", null, function (info) {
-  CONFIG.device_id = info.id;
-  CONFIG.device_mac = info.mac;
-  CONFIG.device_model = info.model;
-  CONFIG.fw_ver = info.fw_id;
-});
-
-//Read ip from status
-Shelly.call("WiFi.GetStatus", null, function (status) {
-  if (status.status === "got ip") {
-    CONFIG.wifi_ip = status.sta_ip;
-  }
-});
-
 //Monitor ip changes
 Shelly.addStatusHandler(function (status) {
   if (status.component === "wifi" && status.delta.status === "got ip") {
@@ -56,20 +45,14 @@ Shelly.addStatusHandler(function (status) {
   }
 });
 
-//Read mqtt topic prefix
-Shelly.call("MQTT.GetConfig", null, function (config) {
-  CONFIG.topic_prefix = config.topic_prefix;
-});
-
 //Subscribe and announce changes
 function announce() {
   MQTT.publish(CONFIG.topic_prefix + "/status", JSON.stringify(CONFIG));
-  Shelly.call("Input.GetStatus", { id: 0 }, function (status) {
-    MQTT.publish(CONFIG.topic_prefix + "/input:0", JSON.stringify(status));
-  });
-  Shelly.call("Switch.GetStatus", { id: 0 }, function (status) {
-    MQTT.publish(CONFIG.topic_prefix + "/switch:0", JSON.stringify(status));
-  });
+  const inputStatus = Shelly.getComponentStatus("Input:0");
+  const switchStatus = Shelly.getComponentStatus("Switch:0");
+
+  MQTT.publish(CONFIG.topic_prefix + "/input:0", JSON.stringify(inputStatus));
+  MQTT.publish(CONFIG.topic_prefix + "/switch:0", JSON.stringify(switchStatus));
 }
 
 function announceHandler(topic, message) {

@@ -17,16 +17,7 @@
 // Shelly Script example: Use MQTT in scripting to provide backwards compatibility
 // with Gen1 MQTT topics shellies/announce and shellies/command
 
-let deviceInfo = null;
-
-Shelly.call(
-  "Shelly.GetDeviceInfo",
-  {},
-  function (result, error_code, error_message) {
-    if (error_code) return;
-    deviceInfo = result;
-  }
-);
+const deviceInfo = Shelly.getDeviceInfo();
 
 MQTT.subscribe(
   "shellies/command",

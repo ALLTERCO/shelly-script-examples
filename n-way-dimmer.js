@@ -29,12 +29,10 @@ const KVS_KEY = "nwayOn"; // unify KVS key
 
 // get local IP
 function setWifiIP() {
-  Shelly.call("WiFi.GetStatus", null, function (status) {
-    console.log("Saving Wifi IP: ", status.sta_ip)
-    if (status.status === "got ip") {
-      CONFIG.wifiIP = status.sta_ip;
-    }
-  });
+  const wifiStatus = Shelly.getComponentStatus("Wifi");
+  if (wifiStatus.status === "got ip") {
+    CONFIG.wifiIP = wifiStatus.sta_ip;
+  }
 }
 
 //  You should not need to modify anything past here
