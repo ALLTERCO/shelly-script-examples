@@ -145,7 +145,7 @@ const BTHomeDecoder = {
       else {
         if (Array.isArray(result[_bth.n])) {
           result[_bth.n].push(_value);
-        } 
+        }
         else {
           result[_bth.n] = [
             result[_bth.n],
@@ -244,11 +244,11 @@ function init() {
   else {
     //start the scanner
     const bleScanner = BLE.Scanner.Start({
-        duration_ms: BLE.Scanner.INFINITE_SCAN,
-        active: CONFIG.active
+      duration_ms: BLE.Scanner.INFINITE_SCAN,
+      active: CONFIG.active
     });
 
-    if(!bleScanner) {
+    if (!bleScanner) {
       console.log("Error: Can not start new scanner");
     }
   }
@@ -258,7 +258,7 @@ function init() {
 
   // disable console.log when logs are disabled
   if (!CONFIG.debug) {
-    console.log = function() {};
+    console.log = function () { };
   }
 }
 

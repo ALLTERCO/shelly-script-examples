@@ -6,6 +6,7 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 ## 2024-12
+- Update some legacy code to the latest version.
 - Add multi button support for `ble-pasv-mqtt-gw.js`
 ## 2024-11
 - Add a universal BLU to MQTT script

@@ -33,10 +33,12 @@
  * @typedef {"config"|"stat"|"cmd"} HATopicType
  */
 
-let CONFIG = {
-  shelly_id: null,
-  shelly_mac: null,
-  shelly_fw_id: null,
+
+const deviceInfo = Shelly.getDeviceInfo();
+const CONFIG = {
+  shelly_id: deviceInfo.id,
+  shelly_mac: deviceInfo.mac,
+  shelly_fw_id: deviceInfo.fw_id,
   ha_mqtt_ad: "garage_homeassistant",
   device_name: "VIRTUAL_SWITCH",
   payloads: {
@@ -45,12 +47,7 @@ let CONFIG = {
   },
 };
 
-Shelly.call("Shelly.GetDeviceInfo", {}, function (result) {
-  CONFIG.shelly_id = result.id;
-  CONFIG.shelly_mac = result.mac;
-  CONFIG.shelly_fw_id = result.fw_id;
-  initMQTT();
-});
+initMQTT();
 
 /**
  * @param   {HADeviceType}   hatype HA device type
