@@ -1,5 +1,5 @@
 /**
- * This script will use BLE observer to listen for advertising data from nearby Shelly BLU devices,
+ * This script will use BLE scanner to listen for advertising data from nearby Shelly BLU devices,
  * decodes the data using a BTHome data structure, and emits the decoded data for further processing.
  *
  * This script DOESN'T execute actions, only emit events. Can be used with `ble-events-handler.js` example.
@@ -33,8 +33,8 @@ const CONFIG = {
   // Specify the destination event where the decoded BLE data will be emitted. It allows for easy identification by other applications/scripts
   eventName: "shelly-blu",
 
-  // If the script owns the scanner and this value is set to true, the scan will be active.
-  // If the script does not own the scanner, it may remain passive even when set to true. 
+  // If this value is set to true, the scan will be active.
+  // If this value is set to false, the scan will be passive.
   // Active scan means the scanner will ping back the Bluetooth device to receive all its data, but it will drain the battery faster
   active: false,
 
