@@ -238,7 +238,7 @@ function bleScanCallback(event, result) {
     lastPacketId = receivedData["pid"];
 
     //getting and execuing the action
-    let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["Button"]];
+    let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["button"]];
 
     let actionUrls = CONFIG.actions[actionType];
 
