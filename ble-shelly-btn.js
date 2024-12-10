@@ -78,6 +78,9 @@ let CONFIG = {
 const ALLTERCO_MFD_ID_STR = "0ba9";
 const BTHOME_SVC_ID_STR = "fcd2";
 
+const SCAN_DURATION = BLE.Scanner.INFINITE_SCAN;
+const ACTIVE_SCAN = true;
+
 const uint8 = 0;
 const int8 = 1;
 const uint16 = 2;
