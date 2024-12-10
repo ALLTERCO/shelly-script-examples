@@ -41,8 +41,10 @@ const BTH = {
   0x05: { n: "illuminance", t: uint24, f: 0.01 },
   0x21: { n: "motion", t: uint8 },
   0x2d: { n: "window", t: uint8 },
+  0x2e: { n: "humidity", t: uint8, u: "%" },
   0x3a: { n: "button", t: uint8 },
   0x3f: { n: "rotation", t: int16, f: 0.1 },
+  0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
 };
 
 function getByteSize(type) {
@@ -56,7 +58,7 @@ function getByteSize(type) {
 // functions for decoding and unpacking the service data from Shelly BLU devices
 const BTHomeDecoder = {
   utoi: function (num, bitsz) {
-    let mask = 1 << (bitsz - 1);
+    const mask = 1 << (bitsz - 1);
     return num & mask ? num - (1 << bitsz) : num;
   },
   getUInt8: function (buffer) {
@@ -109,14 +111,29 @@ const BTHomeDecoder = {
     while (buffer.length > 0) {
       _bth = BTH[buffer.at(0)];
       if (typeof _bth === "undefined") {
-        // logger("unknown type", "BTH");
+        console.log("BTH: Unknown type");
         break;
       }
       buffer = buffer.slice(1);
       _value = this.getBufValue(_bth.t, buffer);
       if (_value === null) break;
       if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
-      result[_bth.n] = _value;
+
+      if (typeof result[_bth.n] === "undefined") {
+        result[_bth.n] = _value;
+      }
+      else {
+        if (Array.isArray(result[_bth.n])) {
+          result[_bth.n].push(_value);
+        }
+        else {
+          result[_bth.n] = [
+            result[_bth.n],
+            _value
+          ];
+        }
+      }
+
       buffer = buffer.slice(getByteSize(_bth.t));
     }
     return result;
@@ -136,9 +153,9 @@ const SCAN_OPTION = {
 // Push BLE devices to MQTT
 function pushToMQ(addr, message) {
   if (!MQTT.isConnected()) return false; // Check the MQTT status
-  
+
   MQTT.publish(addr, message);
-  
+
   return true
 }
 
@@ -148,10 +165,10 @@ function scanCB(ev, res) {
   const addr = res.addr; // Get devive's MAC address
   if (typeof res.service_data === 'undefined' || typeof res.service_data[BTHOME_SVC_ID_STR] === 'undefined') return;
   if (typeof addr === 'undefined') return; // If the device addredd is empty, return
- 
+
   try {
     const decodeData = BTHomeDecoder.unpack(res.service_data[BTHOME_SVC_ID_STR]); // Decode service data
-    
+
     // Combine data
     const postMessage = {
       addr: addr,
@@ -159,16 +176,16 @@ function scanCB(ev, res) {
       local_name: res.local_name || "",
       service_data: decodeData,
     };
-    
+
     // console.log(res.local_name, JSON.stringify(postMessage));
-    
+
     // post data to MQTT
     pushToMQ(addr, JSON.stringify(postMessage));
-    
-  } catch(err) {
+
+  } catch (err) {
     console.log(err)
   }
-  
+
 }
 
 // Start Scan BLE Devices
