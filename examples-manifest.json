@@ -284,5 +284,10 @@
     "fname": "script-temperature-adjust.js",
     "title": "Use any external temperature sensor with Wall Display",
     "description": "This script allow to use any kind of temperature/humidity sensor (ex. DHT22) with Shelly Wall Display."
-  } 
+  },
+  {
+    "fname": "universal-blu-to-mqtt.js",
+    "title": "Example - Universal BLU to MQTT Script",
+    "description": "This script is about shares any BLU product's complete payload to MQTT.."
+  }
 ]

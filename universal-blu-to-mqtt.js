@@ -1,78 +1,30 @@
 /**
- * This script uses the BLE scan functionality in scripting
- * Selects Shelly BLU DoorWindow from the aired advertisements, decodes
- * the service data payload and toggles a relay on the device on
- * button push
+ * Universal BLU to MQTT Script
+
+Short description
+
+  - This script is about shares any BLU product's complete payload to MQTT.
+
+  - The script should not require an individual BLU device's MAC address, rather it will "listen" for any BLU device.
+
+  - It would use the MAC address to create the topic, with a key-value for each data point in the payload.
+
+Running Process
+
+Here is the summary of how it works:
+
+  - Scanning: The script will open a BLU passive scan to receive any BLU device data. Using the BLE.Scanner.Start and BLE.Scanner.Subscribe modules.
+
+  - Data Extraction: For each device found, it checks for service data associated with the BTHome standard (Service ID: fcd2).
+
+  - Decoding: The BTHomeDecoder decodes the service data into human-readable format, including details such as temperature, battery, etc.
+
+  - MQTT Push: The MQTT uses each device MAC address as a topic, then publishes device service_data or any other data you want to the MQTT.
+
  */
 
-// Shelly BLU devices:
-// SBBT - Shelly BLU Button
-// SBDW - Shelly BLU DoorWindow
 
-// sample Shelly DW service_data payload
-// 0x40 0x00 0x4E 0x01 0x64 0x05 0x00 0x00 0x00 0x2D 0x01 0x3F 0x00 0x00
-
-// First byte: BTHome device info, 0x40 - no encryption, BTHome v.2
-// bit 0: “Encryption flag”
-// bit 1-4: “Reserved for future use”
-// bit 5-7: “BTHome Version”
-
-// AD 0: PID, 0x00
-// Value: 0x4E
-
-// AD 1: Battery, 0x01
-// Value, 100%
-
-// AD 2: Illuminance, 0x05
-// Value: 0
-
-// AD 3: Window, 0x2D
-// Value: true, open
-
-// AD 4: Rotation, 0x3F
-// Value: 0
-
-// Device name can be obtained if an active scan is performed
-// You can rely only on the addresss filtering and forego device name matching
-
-// CHANGE HERE
-function triggerAutomation() {
-  print("Window is opened, will toggle the output");
-  Shelly.call("Switch.Set", { id: 0, on: true });
-}
-
-function printClosed() {
-  print("Window is opened, will toggle the output");
-  Shelly.call("Switch.Set", { id: 0, on: false });
-}
-
-// remove name prefix to not filter by device name
-// remove address to not filter by address
-
-let CONFIG = {
-  //shelly_blu_name_prefix: 'SBDW',
-  //"BIND" to only this address
-  shelly_blu_address: "bc:02:6e:c3:c9:0f",
-  actions: [
-    {
-      cond: {
-        Window: 0,
-      },
-      action: triggerAutomation,
-    },
-    {
-      cond: {
-        Window: 1,
-      },
-      action: printClosed,
-    },
-  ],
-};
-// END OF CHANGE
-
-const ALLTERCO_MFD_ID_STR = "0ba9";
-const BTHOME_SVC_ID_STR = "fcd2";
-
+// *********************** Decoding Method ***********************
 const uint8 = 0;
 const int8 = 1;
 const uint16 = 2;
@@ -188,62 +140,62 @@ const BTHomeDecoder = {
   },
 };
 
-let ShellyBLUParser = {
-  getData: function (res) {
-    let result = BTHomeDecoder.unpack(res.service_data[BTHOME_SVC_ID_STR]);
-    result.addr = res.addr;
-    result.rssi = res.rssi;
-    return result;
-  },
-};
+// ***********************  Main Methods ***********************
 
-let last_packet_id = 0x100;
+const BTHOME_SVC_ID_STR = "fcd2";
+
+// Bluetooth scan options
+const SCAN_OPTION = {
+  duration_ms: BLE.Scanner.INFINITE_SCAN, // Scan duration
+  active: false,
+}
+
+// Push BLE devices to MQTT
+function pushToMQ(addr, message) {
+  if (!MQTT.isConnected()) return false; // Check the MQTT status
+
+  MQTT.publish(addr, message);
+
+  return true
+}
+
+// BLE scan callback
 function scanCB(ev, res) {
   if (ev !== BLE.Scanner.SCAN_RESULT) return;
-  // skip if there is no service_data member
-  if (
-    typeof res.service_data === "undefined" ||
-    typeof res.service_data[BTHOME_SVC_ID_STR] === "undefined"
-  )
-    return;
-  // skip if we are looking for name match but don't have active scan as we don't have name
-  if (
-    typeof CONFIG.shelly_blu_name_prefix !== "undefined" &&
-    (typeof res.local_name === "undefined" ||
-      res.local_name.indexOf(CONFIG.shelly_blu_name_prefix) !== 0)
-  )
-    return;
-  // skip if we don't have address match
-  if (
-    typeof CONFIG.shelly_blu_address !== "undefined" &&
-    CONFIG.shelly_blu_address !== res.addr
-  )
-    return;
-  let BTHparsed = ShellyBLUParser.getData(res);
-  // skip if parsing failed
-  if (BTHparsed === null) {
-    console.log("Failed to parse BTH data");
-    return;
+  const addr = res.addr; // Get devive's MAC address
+  if (typeof res.service_data === 'undefined' || typeof res.service_data[BTHOME_SVC_ID_STR] === 'undefined') return;
+  if (typeof addr === 'undefined') return; // If the device addredd is empty, return
+
+  try {
+    const decodeData = BTHomeDecoder.unpack(res.service_data[BTHOME_SVC_ID_STR]); // Decode service data
+
+    // Combine data
+    const postMessage = {
+      addr: addr,
+      rssi: res.rssi,
+      local_name: res.local_name || "",
+      service_data: decodeData,
+    };
+
+    // console.log(res.local_name, JSON.stringify(postMessage));
+
+    // post data to MQTT
+    pushToMQ(addr, JSON.stringify(postMessage));
+
+  } catch (err) {
+    console.log(err)
   }
-  // skip, we are deduping results
-  if (last_packet_id === BTHparsed.pid) return;
-  last_packet_id = BTHparsed.pid;
-  console.log("Shelly BTH packet: ", JSON.stringify(BTHparsed));
-  // execute actions from CONFIG
-  let aIdx = null;
-  for (aIdx in CONFIG.actions) {
-    // skip if no condition defined
-    if (typeof CONFIG.actions[aIdx]["cond"] === "undefined") continue;
-    let cond = CONFIG.actions[aIdx]["cond"];
-    let cIdx = null;
-    let run = true;
-    for (cIdx in cond) {
-      if (typeof BTHparsed[cIdx] === "undefined") run = false;
-      if (BTHparsed[cIdx] !== cond[cIdx]) run = false;
-    }
-    // if all conditions evaluated to true then execute
-    if (run) CONFIG.actions[aIdx]["action"](BTHparsed);
+
+}
+
+// Start Scan BLE Devices
+function startBLEScan() {
+  if (!BLE.Scanner.isRunning()) {
+    BLE.Scanner.Start(SCAN_OPTION, scanCB);
+  } else {
+    // If scanner is running, create a subscribe method
+    BLE.Scanner.Subscribe(scanCB);
   }
 }
 
-BLE.Scanner.Start({ duration_ms: SCAN_DURATION, active: ACTIVE_SCAN }, scanCB);
+startBLEScan()
