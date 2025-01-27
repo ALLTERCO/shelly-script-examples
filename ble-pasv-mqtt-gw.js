@@ -9,12 +9,12 @@
  */
 
 let CONFIG = {
-  scan_duration: BLE.Scanner.INFINITE_SCAN,
   mqtt_topic: "blegateway/",
   // if mqtt_src is defined, there will be a src field with this value in every mqtt message to identify the shelly which created this message. ie. "shelly-123456"
   mqtt_src: null,
   discovery_topic: "homeassistant/",
 };
+const SCAN_PARAM_WANT = { duration_ms: BLE.Scanner.INFINITE_SCAN, active: false }
 
 //BTHomev2: ID , Size, Sign, Factor, Name
 let datatypes = [
@@ -367,22 +367,33 @@ function scanCB(ev, res) {
  if (prot != "") { mqttreport(res.addr, res.rssi, hdr); }; // console.log(prot, res.addr, res.rssi, hdr);
 }
 
-// retry several times to start the scanner if script was started before
-// BLE infrastructure was up in the Shelly
-function startBLEScan() {
-  discovered = [];
-  let bleScanSuccess = BLE.Scanner.Start({ duration_ms:  CONFIG.scan_duration, active: false }, scanCB);
-  if( bleScanSuccess === false ) {
-    Timer.set(1000, false, startBLEScan);
-  } else {
-    console.log('Success: BLE passive scanner running');
+function init() {
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
+
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
   }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
+    }
+  }
+
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(scanCB);
 }
 
-//Check for BLE config and print a message if BLE is not enabled on the device
-let BLEConfig = Shelly.getComponentConfig('ble');
-if(BLEConfig.enable === false) {
-  console.log('Error: BLE not enabled');
-} else {
-  Timer.set(1000, false, startBLEScan);
-}
+init();
