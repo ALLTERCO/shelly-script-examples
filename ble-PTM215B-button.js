@@ -10,6 +10,12 @@ let CONFIG = {
     BTN_ADDR: "e2:15:00:05:68:53", // the address can be found on the bottom of the button
     DEBUG: false
 };
+const SCAN_PARAM_WANT = {
+  duration_ms: BLE.Scanner.INFINITE_SCAN,
+  active: false,
+  interval_ms: 60,
+  window_ms: 20
+};
 
 let lock = false;
 
@@ -73,9 +79,33 @@ function getSequenceCounter(advData) {
     return sequenceCounter;
 }
 
-BLE.Scanner.Start({
-    duration_ms: BLE.Scanner.INFINITE_SCAN,
-    active: false,
-    interval_ms: 60,
-    window_ms: 20
-}, scanCB);
+function init() {
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
+
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
+  }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
+    }
+  }
+
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(scanCB);
+}
+
+init();

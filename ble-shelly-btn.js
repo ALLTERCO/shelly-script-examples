@@ -61,7 +61,7 @@ function onButtonPress(BTHparsed) {
 // e.g. if there is an addr property in condition and it matches the value of addr property
 // in BTH parsed object then the condition is true
 let CONFIG = {
-  shelly_blu_name_prefix: "SBBT",
+  // shelly_blu_name_prefix: "SBBT",
   //shelly_blu_address: "bc:02:6e:c3:c8:b9",
   actions: [
     {
@@ -74,12 +74,14 @@ let CONFIG = {
   ],
 };
 // END OF CHANGE
+const SCAN_PARAM_WANT = {
+  duration_ms: BLE.Scanner.INFINITE_SCAN,
+  active: true,
+}
 
 const ALLTERCO_MFD_ID_STR = "0ba9";
 const BTHOME_SVC_ID_STR = "fcd2";
 
-const SCAN_DURATION = BLE.Scanner.INFINITE_SCAN;
-const ACTIVE_SCAN = true;
 
 const uint8 = 0;
 const int8 = 1;
@@ -254,21 +256,33 @@ function scanCB(ev, res) {
   }
 }
 
-// retry several times to start the scanner if script was started before
-// BLE infrastructure was up in the Shelly
-function startBLEScan() {
-  let bleScanSuccess = BLE.Scanner.Start({ duration_ms: SCAN_DURATION, active: ACTIVE_SCAN }, scanCB);
-  if (bleScanSuccess === false) {
-    Timer.set(1000, false, startBLEScan);
-  } else {
-    console.log('Success: BLU button scanner running');
+function init() {
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
+
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
   }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
+    }
+  }
+
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(scanCB);
 }
 
-//Check for BLE config and print a message if BLE is not enabled on the device
-let BLEConfig = Shelly.getComponentConfig('ble');
-if (BLEConfig.enable === false) {
-  console.log('Error: BLE not enabled');
-} else {
-  Timer.set(1000, false, startBLEScan);
-}
+init();

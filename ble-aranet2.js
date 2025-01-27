@@ -276,21 +276,33 @@ function scanCB(ev, res) {
   }
 }
 
-// retry several times to start the scanner if script was started before
-// BLE infrastructure was up in the Shelly
-function startBLEScan() {
-  let bleScanParamHave = BLE.Scanner.Start(SCAN_PARAM_WANT, scanCB);
-  if (bleScanParamHave === null) {
-    console.log('Fail: Aranet2 scanner is not running');
-  } else {
-    console.log('Success: Aranet2 scanner running');
+function init() {
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
+
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
   }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
+    }
+  }
+
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(scanCB);
 }
 
-//Check for BLE config and print a message if BLE is not enabled on the device
-let BLEConfig = Shelly.getComponentConfig('ble');
-if (BLEConfig.enable === false) {
-  console.log('Error: BLE not enabled');
-} else {
-  startBLEScan();
-}
+init();

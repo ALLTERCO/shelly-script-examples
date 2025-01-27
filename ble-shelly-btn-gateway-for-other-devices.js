@@ -257,29 +257,32 @@ function bleScanCallback(event, result) {
 }
 
 function bleScan() {
-    //check whether the bluethooth is enabled
-    let bleConfig = Shelly.getComponentConfig("ble");
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
 
-    //exit if the bluetooth is not enabled
-    if (bleConfig.enable === false) {
-        console.log("BLE is not enabled");
-        return;
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
+  }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
     }
+  }
 
-    //start the scanner
-    let bleScanner = BLE.Scanner.Start({
-        duration_ms: BLE.Scanner.INFINITE_SCAN,
-        active: true
-    });
-
-    //exist if the scanner can not be started
-    if (bleScanner === false) {
-        console.log("Error when starting the BLE scanner");
-        return;
-    }
-
-    BLE.Scanner.Subscribe(bleScanCallback);
-    console.log("BLE is successfully started");
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(bleScanCallback);
 }
 
 function init() {
