@@ -45,8 +45,8 @@ function onButtonPress(BTHparsed) {
   Shelly.emitEvent("BLU_BUTTON", {
     addr: BTHparsed.addr,
     rssi: BTHparsed.rssi,
-    Button: BTHparsed.Button,
-    Battery: BTHparsed.Battery,
+    Button: BTHparsed.button,
+    Battery: BTHparsed.battery,
   });
 
   // Toggles the relay on the device
@@ -67,7 +67,7 @@ let CONFIG = {
     {
       cond: {
         addr: "bc:02:6e:c3:c8:b7",
-        Button: 1,
+        button: 1,
       },
       action: onButtonPress,
     },
