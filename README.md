@@ -5,6 +5,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 2021 for Gen2 Shellies based on ESP32.
 
 # Changelog
+## 2025-2
+- Catch additional error conditions in n-way dimmer
 ## 2024-12
 - Update some legacy code to the latest version.
 ## 2024-11

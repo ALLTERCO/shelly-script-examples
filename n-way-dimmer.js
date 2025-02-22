@@ -74,7 +74,11 @@ function updateLocalKVS(currentState, cb) {
     value: createLightValue(currentState),
   }
 
-  Shelly.call("KVS.Set", kvpData, cb);
+  try {
+    Shelly.call("KVS.Set", kvpData, cb);
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 
@@ -113,13 +117,17 @@ function syncKVSToDimmer(currentItem) {
 // Loop through all the dimmers and send the KVS update
 // This should only be called once a value has changed
 function syncKVSToAll(currentStatus) {
-  for (let i = 0; i < CONFIG.dimmerGroup.length; i++) {
-    // Send data to all remote (skip the local IP)
-    if (CONFIG.dimmerGroup[i] !== CONFIG.wifiIP) {
-      currentStatus.ip = CONFIG.dimmerGroup[i];
-      syncKVSToDimmer(currentStatus);
+    try {
+      for (let i = 0; i < CONFIG.dimmerGroup.length; i++) {
+        // Send data to all remote (skip the local IP)
+        if (CONFIG.dimmerGroup[i] !== CONFIG.wifiIP) {
+          currentStatus.ip = CONFIG.dimmerGroup[i];
+          syncKVSToDimmer(currentStatus);
+        }
+      }
+    } catch (err) {
+        console.log(err);
     }
-  }
 }
 
 // ******************************************************************
@@ -202,7 +210,7 @@ function setLocalDimmerStatus(value) {
       }
     );
   } catch (err) {
-    console.log("Error: Set light status: ", err)
+    console.log("Error: Set light status: ", err);
   }
 }
 
@@ -215,7 +223,11 @@ function createHandler() {
 
       if (event.name === 'light' && event.delta && event.delta.brightness !== undefined) {
         console.log("Someone changed the brightness or pressed the light switch, syncing with the other switches");
-        updateKVSState()
+        try {
+          updateKVSState();
+        } catch (err) {
+          console.log(err);
+        }
       }
 
       // Update dimmer control data
@@ -225,7 +237,7 @@ function createHandler() {
         try {
           updateLightState();
         } catch (err) {
-          console.log(err)
+          console.log(err);
         }
       }
     }
