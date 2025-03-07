@@ -84,6 +84,7 @@ function httpServerHandler(request, response) {
     }).join("")
   ].join("")
   response.code = 200;
+  response.headers = [['Content-Type', 'text/plain; version=0.0.4']]
   response.send();
 }
 
