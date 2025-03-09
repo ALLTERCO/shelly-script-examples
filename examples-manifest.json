@@ -1,5 +1,54 @@
 [
   {
+    "fname": "lora-encrypted-communication/lora-receive-encrypted-msg.js",
+    "title": "LoRa Message Sender with AES Encryption and Checksum",
+    "description": "This script demonstrates how to send secure LoRa messages using Shelly scripting. It encrypts the message with AES-256-ECB and prepends a checksum to ensure message integrity. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-encrypted-communication/lora-receive-encrypted-msg.js",
+    "title": "LoRa Message Receiver with AES Decryption and Checksum Verification",
+    "description": "This script shows how to receive and validate LoRa messages using Shelly scripting. It decrypts incoming messages with AES-256-ECB and verifies their integrity using a prepended checksum. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+
+  {
+    "fname": "lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.js",
+    "title": "Receive cover control commands over LoRa and send BTHome sensor data",
+    "description": "Example how to handle commands over LoRa to control Cover device and data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-covercontrol-receiver/lora-covercontrol-receiver.js",
+    "title": "Remote Cover control over LoRa and receive BTHome sensor data",
+    "description": "Example how to send commands over LoRa to control Cover device and receive data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-covercontrol-sender/lora-covercontrol-sender.js",
+    "title": "Remote Cover control over LoRa",
+    "description": "Example how to send commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-covercontrol-sender/lora-covercontrol-listener.js",
+    "title": "Receive cover control commands over LoRa",
+    "description": "Example how to handle commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-lightcontrol-receiver/lora-lightcontrol-receiver.js",
+    "title": "Receive light control commands over LoRa",
+    "description": "Example how to handle commands over LoRa to control Light device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
+    "fname": "lora-lightcontrol-sender/lora-lightcontrol-sender.js",
+    "title": "Remote Light control over LoRa",
+    "description": "Example how to control remote light device over LoRa with Shelly Scripting. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
+    "doc": "README.md"
+  },
+  {
     "fname": "hue-lights-control.js",
     "title": "Controlling hue lights with Shelly BLU Button or virtual buttons",
     "description": "This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)"
