@@ -1,4 +1,30 @@
 {
+    "LoRa addon send and receive messages": {
+      "child": {
+        "Send message over LoRa": {
+          "code": "function sendMessage(message) {\n  Shelly.call(\n  'Lora.SendBytes',\n  { id: 100, data: btoa(message) },\n   function (_, err_code, err_msg) {\n     if (err_code !== 0) {\n       console.log('Error:', err_code, err_msg);\n     }\n   }\n  );\n};",
+          "meta": {
+            "docs": {
+              "Lora Component (SendBytes)": "https://shelly-api-docs.shelly.cloud/gen2/Addons/ShellyLoRaAddon#lorasendbytes-example"
+            }
+          }
+        },
+        "When message is received over LoRa": {
+          "code": "Shelly.addEventHandler(\n    function (event) {\n      if (\n        typeof event !== 'object' ||\n        event.name !== 'lora' ||\n        !event.info ||\n        !event.info.data\n      ) {\n        return;\n      }\n      const message = atob(event.info.data);\n      console.log('Message from LoRa: ', message);\n    }\n  );",
+          "meta": {
+            "docs": {
+              "Lora Component (Notifications)": "https://shelly-api-docs.shelly.cloud/gen2/Addons/ShellyLoRaAddon#notifications"
+            }
+          }
+        }
+      },
+      "meta": {
+        "docs": {
+          "LoRa Addon": "https://shelly-api-docs.shelly.cloud/gen2/Addons/ShellyLoRaAddon"
+        }
+      }
+    },
+
     "Inputs and Buttons": {
       "child": {
         "When Input is on or off": {
