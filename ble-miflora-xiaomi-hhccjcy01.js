@@ -12,8 +12,8 @@
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
 // Configuration 
-let MI_FLORA_MAC = "5c:85:7e:12:fc:a4";
-let mqtt_prefix = "miflora/rasen1";
+let MI_FLORA_MAC = "XX:XX:XX:XX:XX:XX";
+let mqtt_prefix = "miflora/plant1";
 
 // DON'T CHANGE ANYTHING BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING
 
