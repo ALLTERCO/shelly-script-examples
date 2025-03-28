@@ -1,8 +1,9 @@
-// Shelly BLU Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
+// Shelly BLE Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
 // 2025 - github.com/willyfromtheblock 
 
 // This script parses Xiaomi MiFlora sensor data from BLE advertisements and publishes it to MQTT.
 // Available sensor data includes temperature, illuminance, moisture, and conductivity.
+// Battery level is NOT supported, since newer firmware devices don't send it anymore and a device that still does was not available for testing 
 
 // Prerequisites:
 // - MQTT broker running, configured in Shelly device and accessible
