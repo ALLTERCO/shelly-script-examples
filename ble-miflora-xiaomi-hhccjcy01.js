@@ -1,9 +1,7 @@
-// Shelly BLE Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
-// 2025 - github.com/willyfromtheblock 
+// Shelly BLU Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
 
 // This script parses Xiaomi MiFlora sensor data from BLE advertisements and publishes it to MQTT.
 // Available sensor data includes temperature, illuminance, moisture, and conductivity.
-// Battery level is NOT supported, since newer firmware devices don't send it anymore and a device that still does was not available for testing 
 
 // Prerequisites:
 // - MQTT broker running, configured in Shelly device and accessible
@@ -13,8 +11,8 @@
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
 // Configuration 
-let MI_FLORA_MAC = "XX:XX:XX:XX:XX:XX";
-let mqtt_prefix = "miflora/plant1";
+let MI_FLORA_MAC = "5c:85:7e:12:fc:a4";
+let mqtt_prefix = "miflora/rasen1";
 
 // DON'T CHANGE ANYTHING BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING
 
@@ -60,7 +58,6 @@ function parseXiaomiData(serviceData) {
                     temp = -((~temp + 1) & 0xFFFF);
                 }
                 result.temperature = temp / 10.0;
-                console.log("Temperature: " + result.temperature + "°C");
             }
             break;
 
@@ -68,7 +65,6 @@ function parseXiaomiData(serviceData) {
             if (data.length >= 17) {
                 let humidity = data[15] | (data[16] << 8);
                 result.humidity = humidity / 10.0;
-                console.log("Humidity: " + result.humidity + "%");
             }
             break;
 
@@ -76,19 +72,16 @@ function parseXiaomiData(serviceData) {
             if (data.length >= 18) {
                 let illuminance = data[15] | (data[16] << 8) | (data[17] << 16);
                 result.illuminance = illuminance;
-                console.log("Illuminance: " + result.illuminance + " lux");
             } else if (data.length >= 17) {
                 // In case it's only 2 bytes
                 let illuminance = data[15] | (data[16] << 8);
                 result.illuminance = illuminance;
-                console.log("Illuminance: " + result.illuminance + " lux");
             }
             break;
 
         case 0x08:  // Moisture
             if (data.length >= 16) {
                 result.moisture = data[15];
-                console.log("Moisture: " + result.moisture + "%");
             }
             break;
 
@@ -96,12 +89,8 @@ function parseXiaomiData(serviceData) {
             if (data.length >= 17) {
                 let conductivity = data[15] | (data[16] << 8);
                 result.conductivity = conductivity;
-                console.log("Conductivity: " + result.conductivity + " μS/cm");
             }
             break;
-
-        default:
-            console.log("Unknown data type: 0x" + byteToHex(dataType));
     }
 
     return result;
@@ -114,21 +103,14 @@ function handleScanResult(event, result) {
     // Check if this is our Mi Flora device
     if (result.addr !== MI_FLORA_MAC) return;
 
-    console.log("---------------------------------------------");
-    console.log("Found Mi Flora device: " + result.addr + ", RSSI: " + result.rssi);
-
     // Check if the device has Xiaomi service data
     if (!result.service_data || !result.service_data[XIAOMI_SVC_ID]) {
-        console.log("No Xiaomi service data");
-        console.log("---------------------------------------------");
         return;
     }
 
     // Try to parse the sensor data
     let sensorData = parseXiaomiData(result.service_data[XIAOMI_SVC_ID]);
     if (!sensorData || Object.keys(sensorData).length === 0) {
-        console.log("No sensor data parsed");
-        console.log("---------------------------------------------");
         return;
     }
 
@@ -138,24 +120,20 @@ function handleScanResult(event, result) {
 
     // Publish full state to MQTT
     MQTT.publish(mqtt_prefix + '/state', JSON.stringify(sensorData), 1, true);
-    console.log("Published full state to MQTT");
 
     // Also publish individual values
     for (let key in sensorData) {
         // Only publish actual sensor values, not metadata
         if (key !== 'addr' && key !== 'rssi') {
             MQTT.publish(mqtt_prefix + '/' + key, sensorData[key].toString(), 1, true);
-            console.log("Published " + key + " = " + sensorData[key] + " to MQTT");
         }
     }
-
-    console.log("---------------------------------------------");
 }
 
 // Start BLE scanner
 BLE.Scanner.Start({
     duration_ms: BLE.Scanner.INFINITE_SCAN,
-    active: true
+    active: false
 }, handleScanResult);
 
 console.log("Mi Flora parser started");
