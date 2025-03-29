@@ -10,9 +10,15 @@
 
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
-// Configuration 
+// Required: Configuration 
 let MI_FLORA_MAC = "5c:85:7e:12:fc:a4";
-let mqtt_prefix = "miflora/rasen1";
+let publish_prefix = "miflora/rasen1"; // Change this to your desired MQTT topic prefix
+
+// Optional: Need a custom publish method? Change it here
+function publish(name, data) {
+    // defaults to MQTT
+    MQTT.publish(name, data, 1, true);
+}
 
 // DON'T CHANGE ANYTHING BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING
 
@@ -119,13 +125,13 @@ function handleScanResult(event, result) {
     sensorData.rssi = result.rssi;
 
     // Publish full state to MQTT
-    MQTT.publish(mqtt_prefix + '/state', JSON.stringify(sensorData), 1, true);
+    publish(publish_prefix + '/state', JSON.stringify(sensorData), 1, true);
 
     // Also publish individual values
     for (let key in sensorData) {
         // Only publish actual sensor values, not metadata
         if (key !== 'addr' && key !== 'rssi') {
-            MQTT.publish(mqtt_prefix + '/' + key, sensorData[key].toString(), 1, true);
+            publish(publish_prefix + '/' + key, sensorData[key].toString(), 1, true);
         }
     }
 }
