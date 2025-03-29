@@ -1,6 +1,6 @@
 // Shelly BLU Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
 
-// This script parses Xiaomi MiFlora sensor data from BLE advertisements and publishes it to MQTT.
+// This script parses Xiaomi MiFlora sensor data from BLE advertisements and publishes it to MQTT by default.
 // Available sensor data includes temperature, illuminance, moisture, and conductivity.
 
 // Prerequisites:
@@ -11,8 +11,7 @@
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
 // Required: Configuration 
-let MI_FLORA_MAC = "5c:85:7e:12:fc:a4";
-let publish_prefix = "miflora/rasen1"; // Change this to your desired MQTT topic prefix
+const MI_FLORA_MACS_AND_PREFIXES = { "XX:XX:XX:XX:XX:XX": "miflora/plant1" } // Change this to your MiFlora MAC address and publishing topic 
 
 // Optional: Need a custom publish method? Change it here
 function publish(name, data) {
@@ -107,7 +106,7 @@ function handleScanResult(event, result) {
     if (event !== BLE.Scanner.SCAN_RESULT || !result) return;
 
     // Check if this is our Mi Flora device
-    if (result.addr !== MI_FLORA_MAC) return;
+    if (!(result.addr in MI_FLORA_MACS_AND_PREFIXES)) return;
 
     // Check if the device has Xiaomi service data
     if (!result.service_data || !result.service_data[XIAOMI_SVC_ID]) {
@@ -123,6 +122,9 @@ function handleScanResult(event, result) {
     // Add basic device info
     sensorData.addr = result.addr;
     sensorData.rssi = result.rssi;
+
+    // derive the publish prefix from the MAC address
+    const publish_prefix = MI_FLORA_MACS_AND_PREFIXES[result.addr];
 
     // Publish full state to MQTT
     publish(publish_prefix + '/state', JSON.stringify(sensorData), 1, true);
@@ -170,7 +172,9 @@ function init() {
 
 
     console.log("Mi Flora parser started");
-    console.log("Looking for device: " + MI_FLORA_MAC);
+    for (const mac in MI_FLORA_MACS_AND_PREFIXES) {
+        console.log("Looking for device: " + mac);
+    }
 }
 
 init();
