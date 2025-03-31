@@ -11,12 +11,22 @@
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
 // Required: Configuration 
-const MI_FLORA_MACS_AND_PREFIXES = { "XX:XX:XX:XX:XX:XX": "miflora/plant1" } // Change this to your MiFlora MAC address and publishing topic 
+const MI_FLORA_MACS_AND_PREFIXES = { "5c:85:7e:12:fc:a4": "miflora/rasen1" } // Change this to your MiFlora MAC address and publishing topic 
 
 // Optional: Need a custom publish method? Change it here
-function publish(name, data) {
+function publish(name, sensorData) {
     // defaults to MQTT
-    MQTT.publish(name, data, 1, true);
+
+    // publish entire state
+    MQTT.publish(name + '/state', JSON.stringify(sensorData), 1, true);
+
+    // Also publish individual values
+    for (let key in sensorData) {
+        // Only publish actual sensor values, not metadata
+        if (key !== 'addr' && key !== 'rssi') {
+            MQTT.publish(name + '/' + key, sensorData[key].toString(), 1, true);
+        }
+    }
 }
 
 // DON'T CHANGE ANYTHING BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING
@@ -126,16 +136,8 @@ function handleScanResult(event, result) {
     // derive the publish prefix from the MAC address
     const publish_prefix = MI_FLORA_MACS_AND_PREFIXES[result.addr];
 
-    // Publish full state to MQTT
-    publish(publish_prefix + '/state', JSON.stringify(sensorData), 1, true);
-
-    // Also publish individual values
-    for (let key in sensorData) {
-        // Only publish actual sensor values, not metadata
-        if (key !== 'addr' && key !== 'rssi') {
-            publish(publish_prefix + '/' + key, sensorData[key].toString(), 1, true);
-        }
-    }
+    // Publish
+    publish(publish_prefix, sensorData);
 }
 
 function init() {
