@@ -284,5 +284,10 @@
     "fname": "universal-blu-to-mqtt.js",
     "title": "Example - Universal BLU to MQTT Script",
     "description": "This script is about shares any BLU product's complete payload to MQTT.."
+  },
+  {
+    "fname": "ble-miflora-xiaomi-hhccjcy01.js",
+    "title": "MiFlora Parser / xiaomi_hhccjcy01",
+    "description": "Scans for BLE events of MiFlora plant sensors and publishes them"
   }
 ]
