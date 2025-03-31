@@ -281,3 +281,7 @@ universal-blu-to-mqtt.js: Example - Universal BLU to MQTT Script
 ===
 This script is about shares any BLU product's complete payload to MQTT..
 
+ble-miflora-xiaomi-hhccjcy01.js: MiFlora Parser / xiaomi_hhccjcy01
+===
+Scans for BLE events of MiFlora plant sensors and publishes them
+
