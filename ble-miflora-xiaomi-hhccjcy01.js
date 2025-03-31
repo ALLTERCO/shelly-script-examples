@@ -11,7 +11,7 @@
 // Tested with firmware version 1.5.1 on Shelly 1 Mini Gen3
 
 // Required: Configuration 
-const MI_FLORA_MACS_AND_PREFIXES = { "5c:85:7e:12:fc:a4": "miflora/rasen1" } // Change this to your MiFlora MAC address and publishing topic 
+const MI_FLORA_MACS_AND_PREFIXES = { "XX:XX:XX:XX:XX:XX": "miflora/plant1" } // Change this to your MiFlora MAC address and publishing topic 
 
 // Optional: Need a custom publish method? Change it here
 function publish(name, sensorData) {
