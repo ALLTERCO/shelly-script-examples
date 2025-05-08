@@ -13,8 +13,21 @@ let CONFIG = {
   // if mqtt_src is defined, there will be a src field with this value in every mqtt message to identify the shelly which created this message. ie. "shelly-123456"
   mqtt_src: null,
   discovery_topic: "homeassistant/",
+  // if true the values of button clicks are mapped to a text (single, double, triple, long, hold or null)
+  map_btn_click_values: true,
 };
 const SCAN_PARAM_WANT = { duration_ms: BLE.Scanner.INFINITE_SCAN, active: false }
+
+// Button Click Mapping: ID, Name
+let BTN_CLICK_MAPPING = {
+  0x00: null,
+  0x01: "single",
+  0x02: "double",
+  0x03: "triple",
+  0x04: "long",
+  0x80: "hold",
+  0xFE: "hold"
+}
 
 //BTHomev2: ID , Size, Sign, Factor, Name
 let datatypes = [
@@ -170,6 +183,7 @@ function extractBTHomeData(payload) {
          break;
        }
      }
+         
      if (dataType >-1) {
        let byteSize = datatypes[i][1];
        let factor   = datatypes[i][3];
@@ -179,13 +193,49 @@ function extractBTHomeData(payload) {
        } else {
          value = convertByteArrayToUnsignedInt(rawdata, byteSize);
        }
-       extractedData[ datatypes[i][4] ] = value * factor;
+       addField(extractedData, datatypes[i][4], value * factor);
        index += byteSize;
-     } else { index = 10;}
+     } else { 
+       index = 10;
+     }
     }
 
     return extractedData;
 };
+
+/*
+ * Adds the key and value to the given target object.
+ *
+ * If target object already has a field with the same name, it will add a 
+ * increasing number to it. i.e. button -> button1
+ * 
+ * If CONFIG.map_btn_click_values is enabled and key == "button" the value 
+ * is mapped with BTN_CLICK_MAPPING to a readable string.
+ */
+function addField(target, key, value) {
+  if (CONFIG.map_btn_click_values && key == "button") {
+    value = BTN_CLICK_MAPPING[value];
+  }
+
+  // if target already has a field with "key"
+  if (target.hasOwnProperty(key)) {
+    // increase a counter until key + counter is unknown to the target object or counter has reached 10
+    let cnt = 1;
+    let finished = false
+    while (!finished && cnt < 10) {
+      let k = key + cnt;
+      if (!target.hasOwnProperty(k)) {
+        target[k] = value;
+        finished = true;
+      }
+      cnt++;
+    }
+    
+  } else {
+    target[key] = value;
+  }
+};
+
 
 function gettopicname(resarray) {
          let resstr = "";
