@@ -27,11 +27,12 @@ This setup involves two scripts:
 
 1. Create a script named `lora-lightcontrol-initiator.js`  
 2. This script uses:
-   - `TIME_ENUM` to define scheduled entries, including:
-     - Hour of execution
-     - Desired on/off state
-     - Brightness level
-   - `TIMESPEC` to define cron-like execution timing, which aligns with the `TIME_ENUM` values
+
+- `TIME_ENUM` to define scheduled entries, including:
+  - Hour of execution
+  - Desired on/off state
+  - Brightness level
+- `TIMESPEC` to define cron-like execution timing, which aligns with the `TIME_ENUM` values
 
 > **Note:** After saving and running the script for the first time, modifying `TIME_ENUM` will also require updating the associated schedule.
 
