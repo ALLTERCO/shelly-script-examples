@@ -1,5 +1,15 @@
 [
   {
+    "fname": "lora-send-no-encryption.js",
+    "title": "Send message over lora without encryption",
+    "description": "This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)"
+  },
+    {
+    "fname": "lora-receive-no-encryption.js",
+    "title": "Receive message over lora without encryption",
+    "description": "This script demonstrates how to receive unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)"
+  },
+  {
     "fname": "lora-encrypted-communication/lora-send-encrypted-msg.js",
     "title": "LoRa Message Sender with AES Encryption and Checksum",
     "description": "This script demonstrates how to send secure LoRa messages using Shelly scripting. It encrypts the message with AES-256-ECB and prepends a checksum to ensure message integrity. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
