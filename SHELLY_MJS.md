@@ -1,3 +1,43 @@
+lora-send-no-encryption.js: Send message over lora without encryption
+===
+This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-receive-no-encryption.js: Receive message over lora without encryption
+===
+This script demonstrates how to receive unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-encrypted-communication/lora-send-encrypted-msg.js: LoRa Message Sender with AES Encryption and Checksum
+===
+This script demonstrates how to send secure LoRa messages using Shelly scripting. It encrypts the message with AES-256-ECB and prepends a checksum to ensure message integrity. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-encrypted-communication/lora-receive-encrypted-msg.js: LoRa Message Receiver with AES Decryption and Checksum Verification
+===
+This script shows how to receive and validate LoRa messages using Shelly scripting. It decrypts incoming messages with AES-256-ECB and verifies their integrity using a prepended checksum. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.js: Receive cover control commands over LoRa and send BTHome sensor data
+===
+Example how to handle commands over LoRa to control Cover device and data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-receiver/lora-covercontrol-receiver.js: Remote Cover control over LoRa and receive BTHome sensor data
+===
+Example how to send commands over LoRa to control Cover device and receive data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-sender/lora-covercontrol-sender.js: Remote Cover control over LoRa
+===
+Example how to send commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-sender/lora-covercontrol-listener.js: Receive cover control commands over LoRa
+===
+Example how to handle commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-lightcontrol-receiver/lora-lightcontrol-receiver.js: Receive light control commands over LoRa
+===
+Example how to handle commands over LoRa to control Light device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-lightcontrol-sender/lora-lightcontrol-sender.js: Remote Light control over LoRa
+===
+Example how to control remote light device over LoRa with Shelly Scripting. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
 hue-lights-control.js: Controlling hue lights with Shelly BLU Button or virtual buttons
 ===
 This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)
@@ -9,6 +49,14 @@ This script will control a light entity in Home Assistant via a virtual boolean 
 load-shedding.js: Load shedding with Shelly Pro4PM and Pro3EM
 ===
 Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices
+
+advanced-load-shedding.js: Advanced Load shedding with schedules and notifications
+===
+Adds schedule, device, and notification templates and functionality to the original load shedding script.
+
+monitor-production.js: Add Additional Meter to the Advanced Load Shedding script
+===
+Use this script paired with advanced-load-shedding.js to add a second source - example, grid, PV, generator, etc.
 
 ntc-conversion.js: Converts NTC thermal resistor output to temperature and execute actions
 ===
@@ -167,7 +215,7 @@ Use MQTT in scripting to provide switch status updates on a custom topic
 
 n-way-dimmer.js: n-way-dimmer.js
 ===
-Setup an N-Way dimmer using the Shelly Plus Wall Dimmer. One dimmer is connected to the light while the other dimmer switches can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
+Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
 
 objects.js: mJS example of how to create custom Objects that interact with components (Switch in this case)
 ===
@@ -195,6 +243,10 @@ router-watchdog.js: Router Watchdog
 This script tries to execute HTTP GET requests within a set time, against a set of endpoints.
 
 After certain number of failures the script sets the Switch off and after some time turns it back on.
+
+power-outages.js: Monitor Power Outages or Crashed Services
+===
+Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics.
 
 scene.js: Scene playing in Shelly Gen2
 ===
@@ -264,4 +316,12 @@ Example of reading Switch component's status.
 ip-assignment-watchdog.js: Reboot on DHCP IP assignment issues
 ===
 Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period.
+
+universal-blu-to-mqtt.js: Example - Universal BLU to MQTT Script
+===
+This script is about shares any BLU product's complete payload to MQTT..
+
+ble-miflora-xiaomi-hhccjcy01.js: MiFlora Parser / xiaomi_hhccjcy01
+===
+Scans for BLE events of MiFlora plant sensors and publishes them
 

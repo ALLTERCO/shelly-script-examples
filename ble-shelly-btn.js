@@ -45,8 +45,8 @@ function onButtonPress(BTHparsed) {
   Shelly.emitEvent("BLU_BUTTON", {
     addr: BTHparsed.addr,
     rssi: BTHparsed.rssi,
-    Button: BTHparsed.Button,
-    Battery: BTHparsed.Battery,
+    Button: BTHparsed.button,
+    Battery: BTHparsed.battery,
   });
 
   // Toggles the relay on the device
@@ -61,34 +61,49 @@ function onButtonPress(BTHparsed) {
 // e.g. if there is an addr property in condition and it matches the value of addr property
 // in BTH parsed object then the condition is true
 let CONFIG = {
-  shelly_blu_name_prefix: "SBBT",
+  // shelly_blu_name_prefix: "SBBT",
   //shelly_blu_address: "bc:02:6e:c3:c8:b9",
   actions: [
     {
       cond: {
         addr: "bc:02:6e:c3:c8:b7",
-        Button: 1,
+        button: 1,
       },
       action: onButtonPress,
     },
   ],
 };
 // END OF CHANGE
+const SCAN_PARAM_WANT = {
+  duration_ms: BLE.Scanner.INFINITE_SCAN,
+  active: true,
+}
 
-let ALLTERCO_MFD_ID_STR = "0ba9";
-let BTHOME_SVC_ID_STR = "fcd2";
+const ALLTERCO_MFD_ID_STR = "0ba9";
+const BTHOME_SVC_ID_STR = "fcd2";
 
-let SCAN_DURATION = BLE.Scanner.INFINITE_SCAN;
-let ACTIVE_SCAN =
-  typeof CONFIG.shelly_blu_name_prefix !== "undefined" &&
-  CONFIG.shelly_blu_name_prefix !== null;
 
-let uint8 = 0;
-let int8 = 1;
-let uint16 = 2;
-let int16 = 3;
-let uint24 = 4;
-let int24 = 5;
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
+
+// The BTH object defines the structure of the BTHome data
+const BTH = {
+  0x00: { n: "pid", t: uint8 },
+  0x01: { n: "battery", t: uint8, u: "%" },
+  0x02: { n: "temperature", t: int16, f: 0.01, u: "tC" },
+  0x03: { n: "humidity", t: uint16, f: 0.01, u: "%" },
+  0x05: { n: "illuminance", t: uint24, f: 0.01 },
+  0x21: { n: "motion", t: uint8 },
+  0x2d: { n: "window", t: uint8 },
+  0x2e: { n: "humidity", t: uint8, u: "%" },
+  0x3a: { n: "button", t: uint8 },
+  0x3f: { n: "rotation", t: int16, f: 0.1 },
+  0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
+};
 
 function getByteSize(type) {
   if (type === uint8 || type === int8) return 1;
@@ -98,19 +113,10 @@ function getByteSize(type) {
   return 255;
 }
 
-let BTH = [];
-BTH[0x00] = { n: "pid", t: uint8 };
-BTH[0x01] = { n: "Battery", t: uint8, u: "%" };
-BTH[0x05] = { n: "Illuminance", t: uint24, f: 0.01 };
-BTH[0x1a] = { n: "Door", t: uint8 };
-BTH[0x20] = { n: "Moisture", t: uint8 };
-BTH[0x2d] = { n: "Window", t: uint8 };
-BTH[0x3a] = { n: "Button", t: uint8 };
-BTH[0x3f] = { n: "Rotation", t: int16, f: 0.1 };
-
-let BTHomeDecoder = {
+// functions for decoding and unpacking the service data from Shelly BLU devices
+const BTHomeDecoder = {
   utoi: function (num, bitsz) {
-    let mask = 1 << (bitsz - 1);
+    const mask = 1 << (bitsz - 1);
     return num & mask ? num - (1 << bitsz) : num;
   },
   getUInt8: function (buffer) {
@@ -144,15 +150,17 @@ let BTHomeDecoder = {
     if (type === int24) res = this.getInt24LE(buffer);
     return res;
   },
+
+  // Unpacks the service data buffer from a Shelly BLU device
   unpack: function (buffer) {
-    // beacons might not provide BTH service data
+    //beacons might not provide BTH service data
     if (typeof buffer !== "string" || buffer.length === 0) return null;
     let result = {};
     let _dib = buffer.at(0);
     result["encryption"] = _dib & 0x1 ? true : false;
     result["BTHome_version"] = _dib >> 5;
     if (result["BTHome_version"] !== 2) return null;
-    //Can not handle encrypted data
+    //can not handle encrypted data
     if (result["encryption"]) return result;
     buffer = buffer.slice(1);
 
@@ -161,14 +169,29 @@ let BTHomeDecoder = {
     while (buffer.length > 0) {
       _bth = BTH[buffer.at(0)];
       if (typeof _bth === "undefined") {
-        console.log("BTH: unknown type");
+        console.log("BTH: Unknown type");
         break;
       }
       buffer = buffer.slice(1);
       _value = this.getBufValue(_bth.t, buffer);
       if (_value === null) break;
       if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
-      result[_bth.n] = _value;
+
+      if (typeof result[_bth.n] === "undefined") {
+        result[_bth.n] = _value;
+      }
+      else {
+        if (Array.isArray(result[_bth.n])) {
+          result[_bth.n].push(_value);
+        }
+        else {
+          result[_bth.n] = [
+            result[_bth.n],
+            _value
+          ];
+        }
+      }
+
       buffer = buffer.slice(getByteSize(_bth.t));
     }
     return result;
@@ -233,21 +256,33 @@ function scanCB(ev, res) {
   }
 }
 
-// retry several times to start the scanner if script was started before
-// BLE infrastructure was up in the Shelly
-function startBLEScan() {
-  let bleScanSuccess = BLE.Scanner.Start({ duration_ms: SCAN_DURATION, active: ACTIVE_SCAN }, scanCB);
-  if( bleScanSuccess === false ) {
-    Timer.set(1000, false, startBLEScan);
-  } else {
-    console.log('Success: BLU button scanner running');
+function init() {
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
+
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
   }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
+    }
+  }
+
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(scanCB);
 }
 
-//Check for BLE config and print a message if BLE is not enabled on the device
-let BLEConfig = Shelly.getComponentConfig('ble');
-if(BLEConfig.enable === false) {
-  console.log('Error: BLE not enabled');
-} else {
-  Timer.set(1000, false, startBLEScan);
-}
+init();

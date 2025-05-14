@@ -18,7 +18,7 @@
 
 
 /** =============================== CHANGE HERE =============================== */
-let CONFIG = {
+const CONFIG = {
     bluButtonAddress: "b4:35:22:fe:56:e5", //the mac address of shelly blu button1 that will trigger the actions
     actions: { //urls to be called on a event
         //when adding urls you must separate them with commas and put them in quotation marks
@@ -44,28 +44,34 @@ let CONFIG = {
 };
 /** =============================== STOP CHANGING HERE =============================== */
 
-let urlsPerCall = 3; 
+let urlsPerCall = 3;
 let urlsQueue = [];
 let callsCounter = 0;
 
-let ALLTERCO_MFD_ID_STR = "0ba9";
-let BTHOME_SVC_ID_STR = "fcd2";
+const ALLTERCO_MFD_ID_STR = "0ba9";
+const BTHOME_SVC_ID_STR = "fcd2";
 
-let uint8 = 0;
-let int8 = 1;
-let uint16 = 2;
-let int16 = 3;
-let uint24 = 4;
-let int24 = 5;
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
 
-let BTH = {};
-BTH[0x00] = { n: "pid", t: uint8 };
-BTH[0x01] = { n: "Battery", t: uint8, u: "%" };
-BTH[0x05] = { n: "Illuminance", t: uint24, f: 0.01 };
-BTH[0x1a] = { n: "Door", t: uint8 };
-BTH[0x20] = { n: "Moisture", t: uint8 };
-BTH[0x2d] = { n: "Window", t: uint8 };
-BTH[0x3a] = { n: "Button", t: uint8 };
+// The BTH object defines the structure of the BTHome data
+const BTH = {
+    0x00: { n: "pid", t: uint8 },
+    0x01: { n: "battery", t: uint8, u: "%" },
+    0x02: { n: "temperature", t: int16, f: 0.01, u: "tC" },
+    0x03: { n: "humidity", t: uint16, f: 0.01, u: "%" },
+    0x05: { n: "illuminance", t: uint24, f: 0.01 },
+    0x21: { n: "motion", t: uint8 },
+    0x2d: { n: "window", t: uint8 },
+    0x2e: { n: "humidity", t: uint8, u: "%" },
+    0x3a: { n: "button", t: uint8 },
+    0x3f: { n: "rotation", t: int16, f: 0.1 },
+    0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
+};
 
 function getByteSize(type) {
     if (type === uint8 || type === int8) return 1;
@@ -75,9 +81,10 @@ function getByteSize(type) {
     return 255;
 }
 
-let BTHomeDecoder = {
+// functions for decoding and unpacking the service data from Shelly BLU devices
+const BTHomeDecoder = {
     utoi: function (num, bitsz) {
-        let mask = 1 << (bitsz - 1);
+        const mask = 1 << (bitsz - 1);
         return num & mask ? num - (1 << bitsz) : num;
     },
     getUInt8: function (buffer) {
@@ -111,6 +118,8 @@ let BTHomeDecoder = {
         if (type === int24) res = this.getInt24LE(buffer);
         return res;
     },
+
+    // Unpacks the service data buffer from a Shelly BLU device
     unpack: function (buffer) {
         //beacons might not provide BTH service data
         if (typeof buffer !== "string" || buffer.length === 0) return null;
@@ -128,14 +137,29 @@ let BTHomeDecoder = {
         while (buffer.length > 0) {
             _bth = BTH[buffer.at(0)];
             if (typeof _bth === "undefined") {
-                console.log("BTH: unknown type");
+                console.log("BTH: Unknown type");
                 break;
             }
             buffer = buffer.slice(1);
             _value = this.getBufValue(_bth.t, buffer);
             if (_value === null) break;
             if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
-            result[_bth.n] = _value;
+
+            if (typeof result[_bth.n] === "undefined") {
+                result[_bth.n] = _value;
+            }
+            else {
+                if (Array.isArray(result[_bth.n])) {
+                    result[_bth.n].push(_value);
+                }
+                else {
+                    result[_bth.n] = [
+                        result[_bth.n],
+                        _value
+                    ];
+                }
+            }
+
             buffer = buffer.slice(getByteSize(_bth.t));
         }
         return result;
@@ -143,35 +167,31 @@ let BTHomeDecoder = {
 };
 
 function callQueue() {
-    if(callsCounter < 6 - urlsPerCall) {
-        for(let i = 0; i < urlsPerCall && i < urlsQueue.length; i++) {
+    if (callsCounter < 6 - urlsPerCall) {
+        for (let i = 0; i < urlsPerCall && i < urlsQueue.length; i++) {
             let url = urlsQueue.splice(0, 1)[0];
             callsCounter++;
-            Shelly.call("HTTP.GET", { 
-                url: url, 
+            Shelly.call("HTTP.GET", {
+                url: url,
                 timeout: 5
-                }, 
-                function(_, error_code, _, data) {
-                    if(error_code !== 0) {
+            },
+                function (_, error_code, _, data) {
+                    if (error_code !== 0) {
                         console.log("Calling", data.url, "failed");
                     }
-                    else {
-                        console.log("Calling", data.url, "successed");
-                    }
-
                     callsCounter--;
-                }, 
+                },
                 { url: url }
             );
         }
     }
 
     //if there are more urls in the queue
-    if(urlsQueue.length > 0) {
+    if (urlsQueue.length > 0) {
         Timer.set(
             1000, //the delay
-            false, 
-            function() {
+            false,
+            function () {
                 callQueue();
             }
         );
@@ -186,10 +206,10 @@ function bleScanCallback(event, result) {
     }
 
     //exit if the data is not coming from a Shelly Blu button1 and if the mac address doesn't match
-    if (    typeof result.local_name === "undefined" || 
-            typeof result.addr === "undefined" || 
-            result.local_name.indexOf("SBBT") !== 0 || 
-            result.addr !== CONFIG.bluButtonAddress
+    if (typeof result.local_name === "undefined" ||
+        typeof result.addr === "undefined" ||
+        result.local_name.indexOf("SBBT") !== 0 ||
+        result.addr !== CONFIG.bluButtonAddress
     ) {
         return;
     }
@@ -197,7 +217,7 @@ function bleScanCallback(event, result) {
     let servData = result.service_data;
 
     //exit if service data is null/device is encrypted
-    if(servData === null || typeof servData === "undefined" || typeof servData[BTHOME_SVC_ID_STR] === "undefined") {
+    if (servData === null || typeof servData === "undefined" || typeof servData[BTHOME_SVC_ID_STR] === "undefined") {
         console.log("Can't handle encrypted devices");
         return;
     }
@@ -205,7 +225,7 @@ function bleScanCallback(event, result) {
     let receivedData = BTHomeDecoder.unpack(servData[BTHOME_SVC_ID_STR]);
 
     //exit if unpacked data is null or the device is encrypted
-    if(receivedData === null || typeof receivedData === "undefined" || receivedData["encryption"]) {
+    if (receivedData === null || typeof receivedData === "undefined" || receivedData["encryption"]) {
         console.log("Can't handle encrypted devices");
         return;
     }
@@ -218,18 +238,18 @@ function bleScanCallback(event, result) {
     lastPacketId = receivedData["pid"];
 
     //getting and execuing the action
-    let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["Button"]];
+    let actionType = ["", "singlePush", "doublePush", "triplePush", "longPush"][receivedData["button"]];
 
     let actionUrls = CONFIG.actions[actionType];
 
     //exit if the event doesn't exist in the config    
-    if(typeof actionType === "undefined") {
+    if (typeof actionType === "undefined") {
         console.log("Unknown event type in the config");
         return;
     }
 
     //save all urls into the queue for the current event
-    for(let i in actionUrls) {
+    for (let i in actionUrls) {
         urlsQueue.push(actionUrls[i]);
     }
 
@@ -237,46 +257,49 @@ function bleScanCallback(event, result) {
 }
 
 function bleScan() {
-    //check whether the bluethooth is enabled
-    let bleConfig = Shelly.getComponentConfig("ble");
+  // get the config of ble component
+  const BLEConfig = Shelly.getComponentConfig("ble");
 
-    //exit if the bluetooth is not enabled
-    if(bleConfig.enable === false) {
-        console.log("BLE is not enabled");
-        return;
+  // exit if the BLE isn't enabled
+  if (!BLEConfig.enable) {
+    console.log(
+      "Error: The Bluetooth is not enabled, please enable it from settings"
+    );
+    return;
+  }
+
+  // check if the scanner is already running
+  if (BLE.Scanner.isRunning()) {
+    console.log("Info: The BLE gateway is running, the BLE scan configuration is managed by the device");
+  }
+  else {
+    // start the scanner
+    const bleScanner = BLE.Scanner.Start(SCAN_PARAM_WANT);
+
+    if (!bleScanner) {
+      console.log("Error: Can not start new scanner");
     }
+  }
 
-    //start the scanner
-    let bleScanner = BLE.Scanner.Start({
-        duration_ms: BLE.Scanner.INFINITE_SCAN,
-        active: true
-    });
-
-    //exist if the scanner can not be started
-    if(bleScanner === false) {
-        console.log("Error when starting the BLE scanner");
-        return;
-    }
-
-    BLE.Scanner.Subscribe(bleScanCallback);
-    console.log("BLE is successfully started");
+  // subscribe a callback to BLE scanner
+  BLE.Scanner.Subscribe(bleScanCallback);
 }
 
 function init() {
     //exit if there isn't a config
-    if(typeof CONFIG === "undefined") {
+    if (typeof CONFIG === "undefined") {
         console.log("Can't read the config");
         return;
     }
 
     //exit if there isn't a blu button address
-    if(typeof CONFIG.bluButtonAddress !== "string") {
+    if (typeof CONFIG.bluButtonAddress !== "string") {
         console.log("Error with the Shelly BLU button1's address");
         return;
     }
-    
+
     //exit if there isn't action object
-    if(typeof CONFIG.actions === "undefined") {
+    if (typeof CONFIG.actions === "undefined") {
         console.log("Can't find the actions object in the config");
         return;
     }
