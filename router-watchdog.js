@@ -25,19 +25,58 @@ let CONFIG = {
     "https://global.gcping.com/ping",
     "https://us-central1-5tkroniexa-uc.a.run.app/ping",
   ],
-  //number of failures that trigger the reset
-  numberOfFails: 3,
-  //time in seconds after which the http request is considered failed
-  httpTimeout: 10,
-  //time in seconds for the relay to be off
-  toggleTime: 30,
-  //time in seconds to retry a "ping"
-  pingTime: 60,
+  numberOfFails: 3,         // failures before reset
+  httpTimeout: 10,          // seconds before request timeout
+  toggleTime: 30,           // seconds to keep relay off
+  pingTime: 60,            // seconds between connectivity checks
+  maxBackoffTime: 14400,    // max backoff (4 hours)
+  initialBackoffTime: 300,  // initial backoff (5 minutes)
+  backoffMultiplier: 2,     // backoff multiplier
 };
 
 let endpointIdx = 0;
 let failCounter = 0;
 let pingTimer = null;
+let resetCounter = 0;
+let currentBackoffTime = 0;
+
+/**
+ * Reset router with exponential backoff for persistent failures
+ */
+function resetRouter() {
+  print("Too many fails, resetting...");
+  failCounter = 0;
+  resetCounter++;
+  Timer.clear(pingTimer);
+  
+  // Apply backoff after first reset
+  if (resetCounter > 1) {
+    if (currentBackoffTime === 0) {
+      currentBackoffTime = CONFIG.initialBackoffTime;
+    } else {
+      // Increase backoff time exponentially with cap
+      currentBackoffTime = currentBackoffTime * CONFIG.backoffMultiplier;
+      if (currentBackoffTime > CONFIG.maxBackoffTime) {
+        currentBackoffTime = CONFIG.maxBackoffTime;
+      }
+    }
+    print("Backoff active: " + currentBackoffTime + " seconds before next check");
+  }
+  
+  // Turn off switch and toggle back after delay
+  Shelly.call(
+    "Switch.Set",
+    { id: 0, on: false, toggle_after: CONFIG.toggleTime },
+    function () {}
+  );
+}
+
+/**
+ * Start timer for connectivity checks
+ */
+function startPingTimer() {
+  pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
+}
 
 function pingEndpoints() {
   Shelly.call(
@@ -48,43 +87,46 @@ function pingEndpoints() {
       if (error_code === -114 || error_code === -104) {
         print("Failed to fetch ", CONFIG.endpoints[endpointIdx]);
         failCounter++;
-        print("Rotating through endpoints");
+        print("Number of fails:", failCounter);
+        print("Checking next endpoint...");
         endpointIdx++;
         endpointIdx = endpointIdx % CONFIG.endpoints.length;
       } else {
+        print("We are online :)");
         failCounter = 0;
+        // Reset backoff on successful connection
+        resetCounter = 0;
+        currentBackoffTime = 0;
       }
 
       if (failCounter >= CONFIG.numberOfFails) {
-        print("Too many fails, resetting...");
-        failCounter = 0;
-        Timer.clear(pingTimer);
-        //set the output with toggling back
-        Shelly.call(
-          "Switch.Set",
-          { id: 0, on: false, toggle_after: CONFIG.toggleTime },
-          function () {}
-        );
+        resetRouter();
         return;
       }
     }
   );
 }
 
-print("Start watchdog timer");
-pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
+print("Starting watchdog timer...");
+startPingTimer();
 
+// Handle router restart completion
 Shelly.addStatusHandler(function (status) {
-  //is the component a switch
-  if(status.name !== "switch") return;
-  //is it the one with id 0
-  if(status.id !== 0) return;
-  //does it have a delta.source property
-  if(typeof status.delta.source === "undefined") return;
-  //is the source a timer
-  if(status.delta.source !== "timer") return;
-  //is it turned on
-  if(status.delta.output !== true) return;
-  //start the loop to ping the endpoints again
-  pingTimer = Timer.set(CONFIG.pingTime * 1000, true, pingEndpoints);
+  // Only process switch events from timer for our switch
+  if (status.name !== "switch" || 
+      status.id !== 0 || 
+      typeof status.delta.source === "undefined" || 
+      status.delta.source !== "timer" || 
+      status.delta.output !== true) return;
+  
+  // Apply backoff if needed or restart immediately
+  if (currentBackoffTime > 0) {
+    print("Applying backoff: " + currentBackoffTime + " seconds");
+    Timer.set(currentBackoffTime * 1000, false, function() {
+      print("Backoff complete, resuming checks");
+      startPingTimer();
+    });
+  } else {
+    startPingTimer();
+  }
 });
