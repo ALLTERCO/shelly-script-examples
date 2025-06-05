@@ -171,15 +171,15 @@ function extractBTHomeData(payload) {
        }
      }
      if (dataType >-1) {
-       let byteSize = datatypes[i][1];
-       let factor   = datatypes[i][3];
+       let byteSize = datatypes[dataType][1];
+       let factor   = datatypes[dataType][3];
        let rawdata = payload.slice(index, index + byteSize);
-       if (datatypes[i][2]) {
+       if (datatypes[dataType][2]) {
          value = convertByteArrayToSignedInt(rawdata, byteSize);
        } else {
          value = convertByteArrayToUnsignedInt(rawdata, byteSize);
        }
-       extractedData[ datatypes[i][4] ] = value * factor;
+       extractedData[ datatypes[dataType][4] ] = value * factor;
        index += byteSize;
      } else { index = 10;}
     }
