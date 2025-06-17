@@ -7,11 +7,11 @@
  * Because BLE passive scanner process data of all surroudning BLE devices, this script allows to filter them by MAC address.
  * To do so enter the device data into `CONFIG.allowed_devicess` variable, or into KVS under `allowed_devicess` key.
  * The KVS allows to add devices without need of changing the code of the script.
- 
- * The format of those data is: { "<mac address>": [ "<manufacturer>", "<model>" ], } for example: 
- * 
- * { 
- *   "xxxxfxxxxxxx": [ "Shelly", "DW BLU" ],
+
+ * The format of those data is: { "<mac address>": [ "<manufacturer>", "<model>" ], } for example:
+ *
+ * {
+ *   "xxxxxxxxxxxx": [ "Shelly", "DW BLU" ],
  *   "yyyyyyyyyyyy": [ "Shelly", "Motion BLU" ],
  *   "zzzzzzzzzzzz": [ "Shelly", "H&T BLU" ]
  * }
@@ -55,9 +55,10 @@ let CONFIG = {
     /**
      * Structure providing device data, identified by its MAC address
      *
+     * IF `filter_devices` IS `true`, THEN
      * ONLY BLE DEVICES IDENTIFIED BY MAC ADDRESSES FOUND IN THIS STRUCTURE WILL BE PROCESSED
      *
-     * Data might also be stored in KVS under `ble_macs` key (the same structure). It will be merged with the variable.\
+     * Data might also be stored in KVS under `allowed_devices` key (the same structure). It will be merged with the variable.\
      * The script needs to be restarted to load changes from KVS.
      *
      * Examples:
@@ -66,7 +67,7 @@ let CONFIG = {
      * Model and Manufacturer are optional. But missing won't be reported to MQTT Discovery as device properties.
      */
     allowed_devices: {},
-    
+
     /**
      * value added payload stored into mqtt_topic. Indicates a device which has stored the data (device the script is running on).
      * Set to null to disable reporting.
@@ -81,6 +82,12 @@ let CONFIG = {
     kvs_key: "allowed_devices",
     mqtt_topic: "blegateway/",
     discovery_topic: "homeassistant/",
+
+    /**
+     * Possible values: `mqtt_event`, `device_trigger`.\
+     * Prefered one is: `mqtt_event` as most recent and better supported
+     */
+    buttons_as: "mqtt_event"
 };
 const SCAN_PARAM_WANT = { duration_ms: BLE.Scanner.INFINITE_SCAN, active: false }
 
@@ -260,26 +267,27 @@ function extractBTHomeData(payload) {
 /**
  * Decides topic name for data
  *
- * Actually this is not a good design rendering in some corner cases. It seems like never polished POC.
+ * Actually, this may break into pieces if the BLE payload differs between reports.
+ * While for the topic alone it's ok, the topic is used as a part of a key to avoid repeating the discovery.
  *
- * @param {object} resarray Array of data
+ * @param {<Object>} resarray Array of data
  * @returns {string} name of an MQTT topic to store data to
  */
-function gettopicname(resarray) {
-         let resstr = "";
-         let rlen = Object.keys(resarray).length;
-         if (rlen>0) {
-           if (rlen==1) {
-             resstr = Object.keys(resarray)[0];
-           } else if (("temperature" in resarray) || ("humidity" in resarray) || ("pressure" in resarray)) {
-             resstr = "sensor";
-           } else if ("battery" in resarray) {
-             resstr = "telemetry";
-           } else {
-             resstr = "status";
-           }
-         }
-         return resstr;
+function getTopicName(resarray) {
+    let resstr = "";
+    let rlen = Object.keys(resarray).length;
+    if (rlen == 0) return resstr
+
+    if (rlen==1) {
+      resstr = Object.keys(resarray)[0];
+    } else if (("temperature" in resarray) || ("humidity" in resarray) || ("pressure" in resarray)) {
+      resstr = "sensor";
+    } else if ("battery" in resarray) {
+      resstr = "telemetry";
+    } else {
+      resstr = "status";
+    }
+    return resstr;
 }
 
 /**
@@ -290,9 +298,9 @@ function gettopicname(resarray) {
  * via_device is set to Shelly address the script is run on.
  *
  * @param address {string} - normalized already mac address of the BLE device.
- * @returns {object} device object structured for MQTT discovery
+ * @returns {<Object>} device object structured for MQTT discovery
  */
-function autodiscovery_device(address) {
+function discoveryDevice(address) {
 
     model="";
 
@@ -314,140 +322,167 @@ function autodiscovery_device(address) {
       device["model"] = model;
     }
 
-    printDebug("Device name: " + device["name"]);
+    printDebug("Device name: ", device["name"]);
 
     return device;
 }
 
 /**
- *
+ * Cretes and publishes discovery topic for single entity
  * @param {string} address MAC address of the BLE device
  * @param {string} topic MQTT topic where data are reported to. Needed to include into Discovery definition
- * @param {object} jsonstr Data
- * @returns {Array<Object>} Array of MQTT Discovery objects
+ * @param {string} name Data
+ * @param {<Object>} device Device information to be added to dicovery data
  */
-function autodiscovery(address, topic, jsonstr) {
-
-    let adstr = [];
-    let params = Object.keys(jsonstr);
+function discoveryEntity(address, topic, name, device) {
 
     let domain = "sensor"
-    let custom_topic_for = ['motion', 'window'];
 
-    device = autodiscovery_device(address);
+    let pload = {};
+    pload["device"]  = device;
+    pload["name"]    = name;
+    pload["stat_t"]  = topic;
+    pload["val_tpl"] = "{{ value_json." + name + " }}";
 
-    for (let i = 0; i < params.length; i++) {
-        let pload = {};
-        let manufacturer, model;
-        let subt = "";
+    let subt = "";
 
-        pload["device"]  = device;
-        pload["name"]    = params[i]
-        domain = "sensor";
+    switch (name) {
 
-        switch (params[i]) {
+        /* SENSORS */
 
-            /* SENSORS */
+        case "temperature":
+        case "humidity":
+            domain                  = "sensor";
+            pload["dev_cla"]        = name;
+            pload["unit_of_meas"]   = name === "temperature" ? "°C" : "%";
+            subt                    = name;
+            break;
 
-            case "temperature":
-            case "humidity":
-                domain                  = "sensor";
-                pload["dev_cla"]        = params[i];
-                pload["unit_of_meas"]   = params[i] === "temperature" ? "°C" : "%";
-                subt                    = params[i];
-                break;
+        case "battery":
+            domain                  = "sensor";
+            pload["dev_cla"]        = "battery";
+            pload["ent_cat"]        = "diagnostic";
+            pload["unit_of_meas"]   = "%";
+            subt                    = "battery";
+            break;
 
-            case "battery":
-                domain                  = "sensor";
-                pload["dev_cla"]        = "battery";
-                pload["ent_cat"]        = "diagnostic";
-                pload["unit_of_meas"]   = "%";
-                subt                    = "battery";
-                break;
+        case "illuminance":
+            domain                  = "sensor";
+            pload["dev_cla"]        = "illuminance";
+            pload["unit_of_meas"]   = "lx";
+            subt                    = "illuminance";
+            break;
 
-            case "illuminance":
-                domain                  = "sensor";
-                pload["dev_cla"]        = "illuminance";
-                pload["unit_of_meas"]   = "lx";
-                subt                    = "illuminance";
-                break;
+        case "pressure":
+            domain                  = "sensor";
+            pload["dev_cla"]        = "atmospheric_pressure";
+            pload["unit_of_meas"]   = "hPa";
+            subt                    = "atmospheric_pressure";
+            break;
 
-            case "pressure":
-                domain                  = "sensor";
-                pload["dev_cla"]        = "atmospheric_pressure";
-                pload["unit_of_meas"]   = "hPa";
-                subt                    = "atmospheric_pressure";
-                break;
+        case "rssi":
+            domain                  = "sensor";
+            pload["dev_cla"]        = "signal_strength";
+            pload["ent_cat"]        = "diagnostic";
+            pload["unit_of_meas"]   = "dBm";
+            subt                    = "rssi";
+            break;
 
-            case "rssi":
-                domain                  = "sensor";
-                pload["dev_cla"]        = "signal_strength";
-                pload["ent_cat"]        = "diagnostic";
-                pload["unit_of_meas"]   = "dBm";
-                subt                    = "rssi";
-                break;
+        case "rotation":
+            pload["name"]           = "tilt";
+            domain                  = "sensor";
+            pload["unit_of_meas"]   = "°";
+            subt                    = "tilt";
+            pload["stat_t"]         = topic + "/rotation";
+            delete pload.val_tpl;
+            break;
 
-            case "rotation":
-                pload["name"]           = "tilt";
-                domain                  = "sensor";
-                pload["unit_of_meas"]   = "°";
-                subt                    = "tilt";
-                pload["stat_t"]         = topic + "/rotation";
-                break;
+        /* BINARY SENSORS */
 
-            /* BINARY SENSORS */
+        case "window":
+            domain                  = "binary_sensor";
+            pload["name"]           = "contact";
+            pload["dev_cla"]        = "opening";
+            subt                    = "opening";
+            pload["pl_on"]          = 1;
+            pload["pl_off"]         = 0;
+            pload["stat_t"]         = topic + "/window";
+            delete pload.val_tpl;
+            break;
 
-            case "window":
-                domain                  = "binary_sensor";
-                pload["name"]           = "contact";
-                pload["dev_cla"]        = "opening";
-                subt                    = "opening";
-                pload["pl_on"]          = 1;
-                pload["pl_off"]         = 0;
-                pload["stat_t"]         = topic + "/window";
-                break;
+        case "motion":
+            domain                  = "binary_sensor";
+            pload["dev_cla"]        = "motion";
+            subt                    = "motion";
+            pload["pl_on"]          = 1;
+            pload["pl_off"]         = 0;
+            break;
 
-            case "motion":
-                domain                  = "binary_sensor";
-                pload["dev_cla"]        = "motion";
-                subt                    = "motion";
-                pload["pl_on"]          = 1;
-                pload["pl_off"]         = 0;
-                break;
+        /* BUTTON */
 
-            default:
-                continue;
-                break;
-        }
+        case "button":
 
-        // has to be below case, since it can be overridden by it
-        pload["uniq_id"] = address + "-" + pload["name"];
+            switch (CONFIG.buttons_as) {
+                case "mqtt_event":
+                    domain                  = "event";
+                    pload["platform"]       = "event";
+                    pload["device_class"]   = "button";
+                    pload["event_types"]    = ["click"];
 
-        if (domain === "sensor") pload["stat_cla"] = "measurement";
-
-        if (custom_topic_for.indexOf(params[i]) == -1) {
-            pload["stat_t"] = topic;
-            pload["val_tpl"] = "{{ value_json." + params[i] + " }}";
-        }
-
-        adstr.push({"topic": CONFIG.discovery_topic + domain + "/" + address + "/" + subt + "/config", "data": pload});
-
-        printDebug("Entity name: " + pload["name"]);
+                    pload["name"]           = "button";
+                    subt                    = pload["name"];
+                    pload["state_topic"]    = topic;
+                    pload["val_tpl"] = ' \
+{ {% if  value_json.get("button") %} \
+"button": "button", \
+"event_type": "click" \
+{% endif %} }';
+                    break;
+                case "device_trigger":
+                    domain                  = "device_automation";
+                    pload["automation_type"]= "trigger";
+                    pload["platform"]       = "device_automation";
+                    pload["type"]           = "action";
+                    pload["subtype"]        = "button_click";
+                    subt                    = pload["type"] + "_" +  pload["subtype"];
+                    pload["payload"]        = "1";
+                    pload["topic"]          = topic;
+                    break;
+            }
+            break;
+        default:
+            printDebug("Unrecognized param: ", name);
+            return;
+            break;
     }
 
-    return adstr;
+    // has to be after the case statement, because of pload["name"]
+    pload["uniq_id"] = address + "-" + pload["name"];
+
+    if (domain === "sensor") pload["stat_cla"] = "measurement";
+
+    let discoveryTopic = CONFIG.discovery_topic + domain + "/" + address + "/" + subt + "/config";
+    printDebug("Discovered: ", pload["name"], "; path", discoveryTopic );
+
+    let adstr = {"topic": discoveryTopic, "data": pload};
+    MQTT.publish(adstr.topic + "", JSON.stringify(adstr.data), 1, true);
 }
 
 
 /**
  * Normalize MAC address removing : and - characters, and making the rest lowercase
- * @param {string} address
- * @returns normalized MAC address
+ * @param {string} address MAC address
+ * @returns {string} normalized MAC address
  */
 function normalizeMacAddress(address) {
   return String(address).split("-").join("").split(":").join("").toLowerCase();
 }
 
+/**
+ * Determines whethere device identified by the `address` has to be processed or skipped.
+ * @param {string} address Normalized form of MAC address
+ * @returns {bool}
+ */
 function allowDevices(address) {
   if (!CONFIG.filter_devices) return true;
 
@@ -459,34 +494,60 @@ function allowDevices(address) {
   return true;
 }
 
+/**
+ * Generate discovery topics when not yet reported
+ * @param {string} address
+ * @param {string} topic
+ * @param {<Object>} jsonstr
+ */
+function discoveryItems(address, topic, jsonstr) {
+
+  let params = Object.keys(jsonstr);
+  let device = discoveryDevice(address);
+
+  // Iterate through all values, even unsupported.
+  // Not supported params will be ignored within autodiscovery()
+  // then stored into `discovered` array and never processed again.
+  for (let i = 0; i < params.length; i++) {
+
+    let discKey = address+params[i];
+
+    if (discovered.indexOf(discKey) == -1) {
+
+      discoveryEntity(address, topic, params[i], device);
+
+      discovered.push(discKey); //mark as discovered
+    }
+  }
+
+}
+
 function mqttreport(address, rssi, jsonstr) {
     let macNormalized = normalizeMacAddress(address);
 
     if (!allowDevices(macNormalized)) {
-      printDebug("Ignored MAC: " + macNormalized);
+      printDebug("Ignored MAC: ", macNormalized);
       return;
     }
 
-    printDebug("Processed MAC: " + macNormalized);
+    printDebug("Processed MAC: ", macNormalized);
+    printDebug("Data: ", JSON.stringify(jsonstr));
 
-    let topname = gettopicname(jsonstr);
+    let topname = getTopicName(jsonstr);
     let topic = CONFIG.mqtt_topic + macNormalized + "/" + topname;
+    printDebug("Topic:", topic);
+
     jsonstr['rssi'] = rssi;
     if (CONFIG.mqtt_src) {
         jsonstr['src'] = CONFIG.mqtt_src;
     }
-    if (discovered.indexOf(macNormalized + topname) == -1) {
-        let adstr = autodiscovery(macNormalized,topic, jsonstr);
 
-        if (adstr.length > 0) {
-            for (let i = 0; i < adstr.length; i++) {
-                    MQTT.publish(adstr[i].topic + "", JSON.stringify(adstr[i].data), 1, true);
-            }
-        }
-        discovered.push(macNormalized + topname); //mark as discovered
-    } // end AD
-    MQTT.publish(topic, JSON.stringify(jsonstr), 1, false); //  console.log(topic,JSON.stringify(jsonstr),1,true);
+    discoveryItems(macNormalized, topic, jsonstr);
 
+    MQTT.publish(topic, JSON.stringify(jsonstr), 1, false);
+
+    // Need to store those parameters into separate topics, since they are not reported with every message.
+    // It renders in unavailable state on HA restart
     if (jsonstr.hasOwnProperty('window')) {
         MQTT.publish(topic + '/window', JSON.stringify(jsonstr.window), 1, true);
     }
@@ -620,8 +681,16 @@ function init() {
 
 init();
 
-function printDebug(str) {
+/**
+ * Outputs passed arguments to console, only if `CONFIG.debug` is true
+ */
+function printDebug() {
     if (!CONFIG.debug) return;
+
+    let str = "";
+    for (let i = 0; i < arguments.length; i++) {
+      str = str + arguments[i];
+    }
 
     console.log(str);
 }
@@ -654,8 +723,7 @@ function kvsGet(key, callback) {
 
 
 /**
- * Loads data of devices to be processed from KVS to CONFIG.ble_macs.\
- * ToDo - merge with existing value in the `CONFIG.allowedMACs`
+ * Loads data of devices to be processed from KVS to `CONFIG.allowed_devices`.\
  * @param {function} callback
  * @async
  */
@@ -680,7 +748,7 @@ loadBleMacsFromKVS(function() {
   if (Object.keys(CONFIG.allowed_devices).length > 0 && CONFIG.debug) {
     let msg = "Devices configured for processing:\n";
     for (let k in CONFIG.allowed_devices) {
-      msg = msg + "\n" + "MAC: " + k 
+      msg = msg + "\n" + "MAC: " + k
               + "; Manufacturer: " + (CONFIG.allowed_devices[k][0] === undefined ? "<none>" : CONFIG.allowed_devices[k][0])
               + "; Model: " + (CONFIG.allowed_devices[k][1] === undefined ? "<none>" : CONFIG.allowed_devices[k][1]);
     }
