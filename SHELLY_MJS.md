@@ -1,3 +1,43 @@
+lora-send-no-encryption.js: Send message over lora without encryption
+===
+This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-receive-no-encryption.js: Receive message over lora without encryption
+===
+This script demonstrates how to receive unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-encrypted-communication/lora-send-encrypted-msg.js: LoRa Message Sender with AES Encryption and Checksum
+===
+This script demonstrates how to send secure LoRa messages using Shelly scripting. It encrypts the message with AES-256-ECB and prepends a checksum to ensure message integrity. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-encrypted-communication/lora-receive-encrypted-msg.js: LoRa Message Receiver with AES Decryption and Checksum Verification
+===
+This script shows how to receive and validate LoRa messages using Shelly scripting. It decrypts incoming messages with AES-256-ECB and verifies their integrity using a prepended checksum. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.js: Receive cover control commands over LoRa and send BTHome sensor data
+===
+Example how to handle commands over LoRa to control Cover device and data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-receiver/lora-covercontrol-receiver.js: Remote Cover control over LoRa and receive BTHome sensor data
+===
+Example how to send commands over LoRa to control Cover device and receive data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-sender/lora-covercontrol-sender.js: Remote Cover control over LoRa
+===
+Example how to send commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-covercontrol-sender/lora-covercontrol-listener.js: Receive cover control commands over LoRa
+===
+Example how to handle commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-lightcontrol-receiver/lora-lightcontrol-receiver.js: Receive light control commands over LoRa
+===
+Example how to handle commands over LoRa to control Light device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
+lora-lightcontrol-sender/lora-lightcontrol-sender.js: Remote Light control over LoRa
+===
+Example how to control remote light device over LoRa with Shelly Scripting. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+
 hue-lights-control.js: Controlling hue lights with Shelly BLU Button or virtual buttons
 ===
 This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)
@@ -280,4 +320,8 @@ Monitor for valid IP assignment from DHCP server and reboot if not received with
 universal-blu-to-mqtt.js: Example - Universal BLU to MQTT Script
 ===
 This script is about shares any BLU product's complete payload to MQTT..
+
+ble-miflora-xiaomi-hhccjcy01.js: MiFlora Parser / xiaomi_hhccjcy01
+===
+Scans for BLE events of MiFlora plant sensors and publishes them
 
