@@ -105,6 +105,11 @@
     "description": "Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with \"ble-events-handler.js\" script that handles the events \n(Requires firmware version: 1.0.0-beta or newer)"
   },
   {
+    "fname": "ble-shelly-blu-remote-control-cover.js",
+    "title": "Control a cover with a Shelly BLU Remote Control ZB",
+    "description": "Script that handles bluetooh events from a Shelly BLU Remote Control ZB device and controls a cover connected to a Shelly 2PM (gen 2 or newer). Requires the \"ble-shelly-blu.js\" script to be installed and running \n(Requires firmware version: 1.0.0-beta or newer)"
+  },
+  {
     "fname": "ble-events-handler.js",
     "title": "Handles event from the device (at the moment tested only with BLU events from \"ble-shelly-blu.js\" example",
     "description": "Do automations based on events and easy conditioning. This script must be used with another script that emits events for example \"ble-shelly-blu.js\" script. \n(Requires firmware version: 1.0.0-beta or newer)"
