@@ -6,6 +6,8 @@ Initial support for Shelly Script comes with firmware version 0.9, September
 
 # Changelog
 
+## 2025-11
+- Add script that allows to monitor data from Victron's Smartsolar charge controller.
 ## 2025-05
 
 - Add examples of how to send and receive messages using the LoRa Addon.
