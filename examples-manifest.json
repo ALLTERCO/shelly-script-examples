@@ -1,4 +1,9 @@
 [
+   {
+    "fname": "victron-mppt-solar-controller.shelly.js",
+    "title": "Victron's Smartsolar charge controller data monitoring",
+    "description": "This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values."
+  },
   {
     "fname": "lora-send-no-encryption.js",
     "title": "Send message over lora without encryption",
