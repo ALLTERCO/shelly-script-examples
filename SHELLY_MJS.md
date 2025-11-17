@@ -1,3 +1,7 @@
+victron-mppt-solar-controller.shelly.js: Victron's Smartsolar charge controller data monitoring
+===
+This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values.
+
 lora-send-no-encryption.js: Send message over lora without encryption
 ===
 This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
