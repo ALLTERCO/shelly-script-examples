@@ -1,3 +1,7 @@
+victron-mppt-solar-controller.shelly.js: Victron's Smartsolar charge controller data monitoring
+===
+This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values.
+
 lora-send-no-encryption.js: Send message over lora without encryption
 ===
 This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
@@ -75,6 +79,11 @@ This script allows the creation of personalized commands for a Telegram bot, pro
 ble-shelly-blu.js: Shelly BLU devices event handler for scripts
 ===
 Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with "ble-events-handler.js" script that handles the events 
+(Requires firmware version: 1.0.0-beta or newer)
+
+ble-shelly-blu-remote-control-cover.js: Control a cover with a Shelly BLU Remote Control ZB
+===
+Script that handles bluetooh events from a Shelly BLU Remote Control ZB device and controls a cover connected to a Shelly 2PM (gen 2 or newer). Requires the "ble-shelly-blu.js" script to be installed and running 
 (Requires firmware version: 1.0.0-beta or newer)
 
 ble-events-handler.js: Handles event from the device (at the moment tested only with BLU events from "ble-shelly-blu.js" example

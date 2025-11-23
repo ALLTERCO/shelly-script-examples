@@ -23,6 +23,9 @@
  * @property {number | number[]} [window] - Window status: 0 for closed, 1 for open (if the device has a reed switch). (Can be an array if has multiple instances)
  * @property {number | number[]} [button] - The number of presses if the device has a button. (Can be an array if has multiple instances)
  * @property {number | number[]} [rotation] - The angle of rotation in degrees if the device has a gyroscope. (Can be an array if has multiple instances)
+ * @property {number | number[]} [channel] - The channel number if the device has a channel. (Can be an array if has multiple instances)
+ * @property {number | number[]} [dimmer] - The direction of rotation if the device has a dimmer. (Can be an array if has multiple instances)
+ * @property {number | number[]} [dimmersteps] - The number of steps if the device has a dimmer. (Can be an array if has multiple instances)
  * 
  * @example
  * {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
@@ -51,6 +54,7 @@ const uint16 = 2;
 const int16 = 3;
 const uint24 = 4;
 const int24 = 5;
+const dimmert = 6; // special data type for dimmer event
 
 // The BTH object defines the structure of the BTHome data
 const BTH = {
@@ -63,13 +67,15 @@ const BTH = {
   0x2d: { n: "window", t: uint8 },
   0x2e: { n: "humidity", t: uint8, u: "%" },
   0x3a: { n: "button", t: uint8 },
+  0x3c: { n: "dimmer", t: dimmert },
   0x3f: { n: "rotation", t: int16, f: 0.1 },
   0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
+  0x60: { n: "channel", t: uint8 },
 };
 
 function getByteSize(type) {
   if (type === uint8 || type === int8) return 1;
-  if (type === uint16 || type === int16) return 2;
+  if (type === uint16 || type === int16 || type === dimmert) return 2;
   if (type === uint24 || type === int24) return 3;
   //impossible as advertisements are much smaller;
   return 255;
@@ -83,6 +89,9 @@ const BTHomeDecoder = {
   },
   getUInt8: function (buffer) {
     return buffer.at(0);
+  },
+  getDimmer: function (buffer) {
+    return {"dimmer": buffer.at(0), "dimmersteps": buffer.at(1)};
   },
   getInt8: function (buffer) {
     return this.utoi(this.getUInt8(buffer), 8);
@@ -110,6 +119,7 @@ const BTHomeDecoder = {
     if (type === int16) res = this.getInt16LE(buffer);
     if (type === uint24) res = this.getUInt24LE(buffer);
     if (type === int24) res = this.getInt24LE(buffer);
+    if (type === dimmert) res = this.getDimmer(buffer);
     return res;
   },
 
@@ -136,6 +146,13 @@ const BTHomeDecoder = {
       }
       buffer = buffer.slice(1);
       _value = this.getBufValue(_bth.t, buffer);
+
+      //handle dimmer special case
+      if (typeof _value === "object" && _bth.t === dimmert) {
+        result["dimmersteps"] = _value["dimmersteps"];
+        _value = _value["dimmer"];
+      }
+
       if (_value === null) break;
       if (typeof _bth.f !== "undefined") _value = _value * _bth.f;
 

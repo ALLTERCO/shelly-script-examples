@@ -1,4 +1,9 @@
 [
+   {
+    "fname": "victron-mppt-solar-controller.shelly.js",
+    "title": "Victron's Smartsolar charge controller data monitoring",
+    "description": "This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values."
+  },
   {
     "fname": "lora-send-no-encryption.js",
     "title": "Send message over lora without encryption",
@@ -103,6 +108,11 @@
     "fname": "ble-shelly-blu.js",
     "title": "Shelly BLU devices event handler for scripts",
     "description": "Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with \"ble-events-handler.js\" script that handles the events \n(Requires firmware version: 1.0.0-beta or newer)"
+  },
+  {
+    "fname": "ble-shelly-blu-remote-control-cover.js",
+    "title": "Control a cover with a Shelly BLU Remote Control ZB",
+    "description": "Script that handles bluetooh events from a Shelly BLU Remote Control ZB device and controls a cover connected to a Shelly 2PM (gen 2 or newer). Requires the \"ble-shelly-blu.js\" script to be installed and running \n(Requires firmware version: 1.0.0-beta or newer)"
   },
   {
     "fname": "ble-events-handler.js",
