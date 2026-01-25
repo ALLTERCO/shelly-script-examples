@@ -150,6 +150,7 @@ let RuuviParser = {
     if (hdr.data_fmt == 3) return this.parseV3(packedStruct, res);
     if (hdr.data_fmt == 5) return this.parseV5(packedStruct, res);
     if (hdr.data_fmt == 0xC5) return this.parseVC5(packedStruct, res);
+    if (hdr.data_fmt == 6) return this.parseV6(packedStruct, res);
     if (hdr.data_fmt == 8) return this.parseV8(packedStruct, res);
 
     print("unsupported data format", hdr.data_fmt, "from", res.addr);
@@ -223,6 +224,34 @@ let RuuviParser = {
     rm.pressure = rm.pressure + 50000;
     rm.batt = (rm.pwr >> 5) + 1600;
     rm.tx = (rm.pwr & 0x001f * 2) - 40;
+    rm.addr = res.addr;
+    rm.rssi = res.rssi;
+    return rm;
+  },
+  parseV6: function(packedStruct, res) {
+    if (packedStruct.buffer.length < 19) {
+      print("V6 packet too short (", packedStruct.buffer.length + 3, ") from", res.addr);
+      return null;
+    }
+    let rm = packedStruct.unpack('>hHHHHBBBBBBBBB', [
+      'temp',
+      'humidity',
+      'pressure',
+      'pm',
+      'co2',
+      'voc',
+      'nox',
+      'luminosity',
+      'reserved',
+      'sequence',
+      'flags',
+      'mac_0','mac_1','mac_2',
+    ]);
+    rm.temp = rm.temp * 0.005;
+    rm.humidity = rm.humidity * 0.0025;
+    rm.pressure = rm.pressure + 50000;
+    rm.voc = ((rm.flags >>> 6) & 1) + (rm.voc << 1);
+    rm.nox = ((rm.flags >>> 7) & 1) + (rm.nox << 1);
     rm.addr = res.addr;
     rm.rssi = res.rssi;
     return rm;
