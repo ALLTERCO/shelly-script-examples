@@ -61,15 +61,23 @@ const BTH = {
   0x00: { n: "pid", t: uint8 },
   0x01: { n: "battery", t: uint8, u: "%" },
   0x02: { n: "temperature", t: int16, f: 0.01, u: "tC" },
+  0x04: { n: "atm. pressure", t: int24, f: 0.01, u: "hPa" },
   0x03: { n: "humidity", t: uint16, f: 0.01, u: "%" },
   0x05: { n: "illuminance", t: uint24, f: 0.01 },
+  0x08: { n: "dew point", t: uint16, f: 0.01, u: "tC" },
+  0x0C: { n: "capacitor voltage", t: uint16, f: 0.001, u: "V" },
+  0x20: { n: "raining", t: uint8},
   0x21: { n: "motion", t: uint8 },
   0x2d: { n: "window", t: uint8 },
   0x2e: { n: "humidity", t: uint8, u: "%" },
   0x3a: { n: "button", t: uint8 },
   0x3c: { n: "dimmer", t: dimmert },
   0x3f: { n: "rotation", t: int16, f: 0.1 },
+  0x44: { n: "wind speed", t: int16, f: 0.01, u: "m/s" },
   0x45: { n: "temperature", t: int16, f: 0.1, u: "tC" },
+  0x46: { n: "UV index", t: int8, f: 0.1 },
+  0x5E: { n: "wind direction", t: int16, f: 0.01 },
+  0x5F: { n: "precipitation", t: int16, f: 0.1, u: "mm" },
   0x60: { n: "channel", t: uint8 },
 };
 
@@ -185,7 +193,6 @@ function emitData(data) {
   if (typeof data !== "object") {
     return;
   }
-
   Shelly.emitEvent(CONFIG.eventName, data);
 }
 
