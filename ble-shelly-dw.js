@@ -224,6 +224,13 @@ function scanCB(ev, res) {
   )
     return;
   let BTHparsed = ShellyBLUParser.getData(res);
+  // it will not work without this!!
+  if (BTHparsed.window == 1) {
+    triggerAutomation();
+  }
+  if (BTHparsed.window == 0) {
+    printClosed();
+  }
   // skip if parsing failed
   if (BTHparsed === null) {
     console.log("Failed to parse BTH data");
