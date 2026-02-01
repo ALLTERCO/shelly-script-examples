@@ -25,7 +25,7 @@ The decoded message consists of two parts:
 
 ### Receive Message and Trigger RPC Call
 
-1. Create a script named `lora-lightcontrol-receiver.js`  
+1. Create a script named `lora-lightcontrol-receiver.shelly.js`  
 2. The script will:
    - Listen for messages sent from another LoRa-enabled device  
    - Parse the message and convert the values  

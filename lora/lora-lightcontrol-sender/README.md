@@ -25,7 +25,7 @@ This setup involves two scripts:
 
 ### Script: Initiator
 
-1. Create a script named `lora-lightcontrol-initiator.js`  
+1. Create a script named `lora-lightcontrol-initiator.shelly.js`  
 2. This script uses:
 
 - `TIME_ENUM` to define scheduled entries, including:
@@ -40,5 +40,6 @@ This setup involves two scripts:
 
 ### Script: Sender
 
-1. Create a script named `lora-lightcontrol-sender.js`  
+1. Create a script named `lora-lightcontrol-sender.shelly.js`  
 2. This script listens for events emitted by the initiator and sends encrypted messages to target DimmerG3 devices to update their state and brightness
+

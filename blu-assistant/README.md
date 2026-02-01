@@ -3,7 +3,7 @@
 This folder contains example scripts for the **Shelly BLU Assistant**. They demonstrate how to use the built-in Espruino/JavaScript engine on the ESP32 to manage Shelly devices over BLE and Wi-Fi.
 
 > **Note:**  
-> The **create-demo-virtual-components.js** script here is scoped to our demo, it only creates the exact fields/buttons used by scripts 2-4. If you fork or extend these examples, you’ll need to add or remap any additional virtual components yourself.
+> The **create-demo-virtual-components.shelly.js** script here is scoped to our demo, it only creates the exact fields/buttons used by scripts 2-4. If you fork or extend these examples, you’ll need to add or remap any additional virtual components yourself.
 
 -
 
@@ -25,7 +25,7 @@ This folder contains example scripts for the **Shelly BLU Assistant**. They demo
 
 -
 
-## 1. Demo Setup Script (create-demo-virtual-components.js)
+## 1. Demo Setup Script (create-demo-virtual-components.shelly.js)
 
 **Purpose**  
 Automatically creates **only** the virtual components needed by our three demo scripts.  
@@ -66,7 +66,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 **Usage**  
 
 1. In the Web UI **Scripts** tab, create `create-demo-virtual-components`.  
-2. Paste in `create-demo-virtual-components.js`.  
+2. Paste in `create-demo-virtual-components.shelly.js`.  
 3. Save & **Run** once—the script self-terminates when done.  
 
 -
@@ -75,7 +75,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 > **After** running `create-demo-virtual-components`, these three scripts will use the fields/buttons above.
 
-### 2.1 Wi-Fi Provisioning (add-to-wifi.js)
+### 2.1 Wi-Fi Provisioning (add-to-wifi.shelly.js)
 
 - **Purpose:**  
   Scans BLE, filters by your **BLE ID** (`text:200`), and joins devices to the SSID/Pass you entered.  
@@ -92,7 +92,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 -
 
-### 2.2 Full Device Configuration & Update (full-config.js)
+### 2.2 Full Device Configuration & Update (full-config.shelly.js)
 
 - **Purpose:**  
   1. BLE connect → Wi-Fi join (disables AP after provision, 6s delay)  
@@ -118,7 +118,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 > These aren’t created by the demo setup. You must add or remap virtual components if you want to run them:
 
-### 3.1 Factory Reset (factory-reset-device.js)
+### 3.1 Factory Reset (factory-reset-device.shelly.js)
 
 - **Purpose:**  
   BLE-scans for devices matching your **BLE ID** and issues a `Shelly.FactoryReset`, wiping them back to factory defaults.
@@ -135,7 +135,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 -
 
-### 3.2 Gen3 Matter Update (gen3-update-matter.js)
+### 3.2 Gen3 Matter Update (gen3-update-matter.shelly.js)
 
 - **Purpose:**  
   Bulk-discovers all nearby Gen3 Shelly devices, provisions them onto Wi-Fi, checks firmware, applies any “Matter-ready” updates, reboots, and finally enables Matter support.
@@ -153,7 +153,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 -
 
-### 3.3 Inventory Labels with Printer (print-label-online.js)
+### 3.3 Inventory Labels with Printer (print-label-online.shelly.js)
 
 - **Purpose:**  
   Transforms your Assistant into a mobile labeling station: reads a device’s info over BLE, fills a ZPL label template, and sends it to a network-connected label printer.
@@ -171,7 +171,7 @@ Automatically creates **only** the virtual components needed by our three demo s
 
 -
 
-### 3.4 BLU Door/Window → Webhook Bridge (bthome-webhook.js)
+### 3.4 BLU Door/Window → Webhook Bridge (bthome-webhook.shelly.js)
 
 - **Purpose:**  
   Listens for open/close events from a Shelly BLU Door/Window sensor and instantly fires HTTP webhooks to trigger other devices or services (lights, alarms, notifications).
@@ -223,3 +223,4 @@ Automatically creates **only** the virtual components needed by our three demo s
 - **No devices found?** Check BLE range/power and correct BLE ID (`text:200`).  
 - **Command failures?** Inspect Shelly logs and increase retry settings.  
 - **Missing UI fields?** Re-run or extend the setup script to create the fields your custom scripts require.  
+

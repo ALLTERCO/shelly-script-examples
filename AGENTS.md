@@ -34,19 +34,19 @@ shelly-script-examples/
 | **Home Automation** | hue-lights, load-shedding | Scene control, power management |
 | **LoRa** | lora/* | Long-range communication |
 | **Utilities** | power-*, scheduler-*, weather-* | Monitoring, scheduling |
-| **Blu Assistant** | blu-assistant/*.js | Virtual component management |
+| **Blu Assistant** | blu-assistant/*.shelly.js | Virtual component management |
 
 ---
 
 ## Coding Standards
 
 ### Single File Application
-- **Each script is standalone**: Every `.js` file is a complete, self-contained application
+- **Each script is standalone**: Every `.shelly.js` file is a complete, self-contained application
 - **No imports or includes**: Shelly mJS does not support importing code from other files
 - **No shared dependencies**: Each script must contain all the code it needs
 
 ### File Naming
-- Use descriptive kebab-case names: `ble-shelly-motion.js`, `mqtt-discovery.js`
+- Use descriptive kebab-case names: `ble-shelly-motion.shelly.js`, `mqtt-discovery.shelly.js`
 - Reflect the script's purpose in the filename
 
 ### Code Style (Enforced via .editorconfig/.prettierrc)
@@ -212,7 +212,7 @@ The `examples-manifest.json` is the central registry for all scripts. **Every ne
 ### Manifest Entry Format
 ```json
 {
-  "fname": "script-name.js",
+  "fname": "script-name.shelly.js",
   "title": "Human-Readable Title",
   "description": "What the script does and its requirements",
   "doc": "subdirectory/README.md"  // Optional: path to additional docs
@@ -487,4 +487,5 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ### Community
 - [Shelly Support Forum](https://www.shelly-support.eu/)
 - [GitHub Issues](https://github.com/ALLTERCO/shelly-script-examples/issues)
+
 
