@@ -1,3 +1,14 @@
+/**
+ * @title n-way-dimmer.shelly.js
+ * @description Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products.
+ *   One dimmer is connected to the light while the other dimmer products
+ *   can be useed to remotely control the light and will reflect the
+ *   current state of the light. This setup only requires wifi
+ *   connectivity, the swiches communicate directly with each other. You
+ *   will need to update the CONFIG GROUP with the IP addresses of all the
+ *   switches in the group.
+ */
+
 // Allows between 2 and 5 Shelly Plus, Pro, and Gen3 dimming products to work in a N-Way Dimmer group. A change at any dimmer is sent to all devices in the group. 
 
 //This script allows multiple configurations - here is a list of some potential examples:

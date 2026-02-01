@@ -1,3 +1,8 @@
+/**
+ * @title Activation switch
+ * @description Replicate activation_switch profile from Gen1 devices.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

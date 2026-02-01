@@ -1,3 +1,10 @@
+/**
+ * @title Alert on inactivity
+ * @description Script that will monitor the inputs of a Shelly and if there was no
+ *   user interaction with the input(s) It will call an URL with a
+ *   predefined message
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
