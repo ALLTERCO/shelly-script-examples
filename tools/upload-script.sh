@@ -75,7 +75,7 @@ if [ $OPTIND -eq 1 ]; then
 fi
 
 if [ -z $SCRIPT_FILE ] && $(hash dialog 2>/dev/null); then
-  SCRIPT_FILE=$(dialog --title "Shelly script" --stdout --title "Please choose a script to upload" --fselect ./*.js 14 48)
+  SCRIPT_FILE=$(dialog --title "Shelly script" --stdout --title "Please choose a script to upload" --fselect ./*.shelly.js 14 48)
 fi
 
 SHELLY_HTTP="http://${SHELLY_IP}/rpc/"

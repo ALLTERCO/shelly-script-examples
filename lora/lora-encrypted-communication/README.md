@@ -23,12 +23,13 @@ Example scripts for encrypted communication between devices using the LoRa add-o
 
 ### To Send Messages
 
-1. On the **sender** device, create a script from `lora-send-encrypted-msg.js`, then save and run it  
+1. On the **sender** device, create a script from `lora-send-encrypted-msg.shelly.js`, then save and run it  
 2. Use the `sendMessage(STRING)` function to send encrypted messages
 
 ---
 
 ### To Receive Messages
 
-1. On the **receiver** device, create a script from `lora-receive-encrypted-msg.js`, then save and run it  
+1. On the **receiver** device, create a script from `lora-receive-encrypted-msg.shelly.js`, then save and run it  
 2. Use the `Shelly.addEventHandler()` callback to listen for and handle incoming messages
+

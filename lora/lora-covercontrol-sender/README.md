@@ -24,7 +24,7 @@ This setup includes:
 
 ### To Send Commands
 
-1. Create a script named `lora-covercontrol-sender.js`  
+1. Create a script named `lora-covercontrol-sender.shelly.js`  
 2. Use the following commands:
    - For open: `sendMessage(OPEN_MSG);`  
    - For close: `sendMessage(CLOSE_MSG);`
@@ -33,4 +33,4 @@ This setup includes:
 
 ### To Receive Messages from BTHome Sensors
 
-1. Create a script named `lora-covercontrol-listener.js`
+1. Create a script named `lora-covercontrol-listener.shelly.js`

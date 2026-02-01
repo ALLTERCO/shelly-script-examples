@@ -23,7 +23,7 @@ This setup allows a Shelly device to either receive open/close commands via LoRa
 
 ### To Receive Open/Close Commands
 
-1. Create a script named `lora-covercontrol-receiver.js`  
+1. Create a script named `lora-covercontrol-receiver.shelly.js`  
 2. Start the script  
 
 > **Note:** The Shelly device must be in **Cover Mode** and properly calibrated
@@ -32,7 +32,8 @@ This setup allows a Shelly device to either receive open/close commands via LoRa
 
 ### To Send Sensor States
 
-1. Create a script named `lora-covercontrol-bthome-emitter.js`  
+1. Create a script named `lora-covercontrol-bthome-emitter.shelly.js`  
 2. Start the script  
 3. Define the components the script should listen to (e.g., `bthomesensor:201`)  
 4. Set humidity and temperature thresholds
+
