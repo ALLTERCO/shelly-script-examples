@@ -1,3 +1,9 @@
+/**
+ * @title Monitor Power Outages or Crashed Services
+ * @description Monitors any device or service that returns data from HTTP/HTTPS
+ *   requests. Executes webhooks and/or updates MQTT topics.
+ */
+
 /************************   settings  ************************/
 notify = [ { "name": "web-a", "url":"http://192.168.1.188/rpc/switch.Toggle?id=0" },
            { "name": "web-b", "url":"http://192.168.1.189/rpc/switch.Toggle?id=0" },

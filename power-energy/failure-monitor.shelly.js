@@ -1,3 +1,10 @@
+/**
+ * @title Load monitoring and alerting in Shelly Gen2
+ * @description This script listens for events when power changes to 0 and if the
+ *   switch is still on then it alerts that something might have happened
+ *   to the load.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
