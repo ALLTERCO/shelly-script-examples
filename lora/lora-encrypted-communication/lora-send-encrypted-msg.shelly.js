@@ -1,3 +1,11 @@
+/**
+ * @title LoRa Message Sender with AES Encryption and Checksum
+ * @description This script demonstrates how to send secure LoRa messages using Shelly
+ *   scripting. It encrypts the message with AES-256-ECB and prepends a
+ *   checksum to ensure message integrity. (Requires firmware version: 1.6
+ *   or newer and LoRa Add-on hardware installed)
+ */
+
 //AES key is only for example, generate unique key!!
 const aesKey = 'dd469421e5f4089a1418ea24ba37c61bdd469421e5f4089a1418ea24ba37c61b';
 const CHECKSUM_SIZE = 4;

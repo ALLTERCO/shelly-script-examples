@@ -1,3 +1,10 @@
+/**
+ * @title Receive cover control commands over LoRa
+ * @description Example how to handle commands over LoRa to control Cover device.
+ *   Check README.md before use. (Requires firmware version: 1.6 or newer
+ *   and LoRa Add-on hardware installed)
+ */
+
 //AES key is only for example, generate unique key!!
 const aesKey = 'TNSFmcJnYzU+F4P9hlT4G7eQNXDTKeoB3bzdRCiTSLCACD/SlB0+/CSBZF7l7klM';
 const CHECKSUM_SIZE = 4;

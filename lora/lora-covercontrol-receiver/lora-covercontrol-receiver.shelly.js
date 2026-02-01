@@ -1,3 +1,11 @@
+/**
+ * @title Remote Cover control over LoRa and receive BTHome sensor data
+ * @description Example how to send commands over LoRa to control Cover device and
+ *   receive data from BTHome sensors. Check README.md before use.
+ *   (Requires firmware version: 1.6 or newer and LoRa Add-on hardware
+ *   installed)
+ */
+
 //AES key is only for example, generate unique key!!
 const aesKey = 'dd469421e5f4089a1418ea24ba37c61bdd469421e5f4089a1418ea24ba37c61b';
 const CHECKSUM_SIZE = 4;
