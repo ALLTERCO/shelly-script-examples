@@ -1,3 +1,9 @@
+/**
+ * @title Periodically send Switch status to MQTT topic
+ * @description Use MQTT in scripting to periodically provide switch status updates on
+ *   the mentioned topic "<topic_prefix>/status/switch:0"
+ */
+
 
 const mqttConfig = Shelly.getComponentConfig("MQTT"); // Get mqtt config
 

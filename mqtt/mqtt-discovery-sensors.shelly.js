@@ -1,3 +1,11 @@
+/**
+ * @title MQTT Auto Discovery in Home Assistant - Sensors
+ * @description This script is registering a virtual switch device in HA. Switch
+ *   sensors are also registered as entities. Note: Requires
+ *   configuration.yaml change in HA, please refer to the comments in the
+ *   code of this file.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
