@@ -1,3 +1,9 @@
+/**
+ * @title Example - Switch notifications - reading consumption active power
+ * @description Example how to read Switch notifications and listen for when active
+ *   power is more than 4W.
+ */
+
 // status of switch can be power consumption change, apower is watts
 // {
 //     "delta": { "apower": 5.12, "id": 0 },

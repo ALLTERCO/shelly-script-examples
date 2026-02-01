@@ -1,3 +1,8 @@
+/**
+ * @title Example - Input events
+ * @description Example showing how to work with Input component's events.
+ */
+
 Shelly.addEventHandler(function (event) {
   //check if the event source is an input
   //and if the id of the input is 0

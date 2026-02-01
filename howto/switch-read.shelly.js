@@ -1,3 +1,8 @@
+/**
+ * @title Example - Reading Switch status
+ * @description Example of reading Switch component's status.
+ */
+
 // report for switch status
 // {
 //     "temperature": { "tF": 121.1, "tC": 49.5 },
