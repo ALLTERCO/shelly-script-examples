@@ -1,3 +1,10 @@
+/**
+ * @title Send message over lora without encryption
+ * @description This script demonstrates how to send unencrypted LoRa messages using
+ *   Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa
+ *   Add-on hardware installed)
+ */
+
 // LoRa Sender
 let id = 0;
 

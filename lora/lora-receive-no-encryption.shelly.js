@@ -1,3 +1,10 @@
+/**
+ * @title Receive message over lora without encryption
+ * @description This script demonstrates how to receive unencrypted LoRa messages
+ *   using Shelly scripting. (Requires firmware version: 1.6 or newer and
+ *   LoRa Add-on hardware installed)
+ */
+
 //LoRa Receiver
 Shelly.addEventHandler(function (event) {
   if (
