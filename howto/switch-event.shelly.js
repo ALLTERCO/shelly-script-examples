@@ -1,3 +1,8 @@
+/**
+ * @title Example - Switch events
+ * @description Example showing how to work with Switch component's events.
+ */
+
 Shelly.addEventHandler(function (event) {
   //check if the event source is a switch
   //and if the id of the input is 0

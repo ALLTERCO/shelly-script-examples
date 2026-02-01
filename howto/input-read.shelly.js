@@ -1,3 +1,8 @@
+/**
+ * @title Example - Reading Input status
+ * @description Example showing how to read Input component's status.
+ */
+
 const result = Shelly.getComponentStatus("Input:0");
 
 print(JSON.stringify(result));
