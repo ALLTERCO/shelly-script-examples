@@ -1,3 +1,11 @@
+/**
+ * @title Control a Shelly 2.5 (Gen1) depending on current cloud conditions
+ * @description The script, when run, will fetch via REST api from a weather service
+ *   the current conditions for a location check if cloud coverage is above
+ *   or below certain percentage and respectively open or close window
+ *   shades by calling a Shelly 2.5 (Gen1) endpoint.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,3 +1,11 @@
+/**
+ * @title turn-on-weather.shelly.js
+ * @description Turn on when temperature is below CONFIG.tempBelowTurnOn. Turn off
+ *   when temperature is above CONFIG.tempAboveTurnOff. For getting an
+ *   API-KEY from Accuweather follow the instructions on their site for
+ *   registering a new application, copy the key and paste it here.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

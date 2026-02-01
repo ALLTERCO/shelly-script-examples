@@ -1,3 +1,10 @@
+/**
+ * @title Converts NTC thermal resistor output to temperature and execute actions
+ * @description Reads voltage data from the Shelly Plus Add-on, calculate the
+ *   corresponding temperature using the Steinhart-Hart equation, and take
+ *   action based on the temperature reading
+ */
+
 // SH Coefficient Calculator
 // https://rusefi.com/Steinhart-Hart.html
 //
