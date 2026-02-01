@@ -1,3 +1,11 @@
+/**
+ * @title Shelly XPM - Send HTTP notification if power goes above threshold
+ * @description This script subscribes for notifications, monitors the instanteneous
+ *   power of the output switch and if that goes above a threshold value
+ *   and if current time is within the active time window will send an HTTP
+ *   notification
+ */
+
 // Shelly Script example: Shelly Plus 1PM - Notify within active hours when power
 // passes a threshold
 
