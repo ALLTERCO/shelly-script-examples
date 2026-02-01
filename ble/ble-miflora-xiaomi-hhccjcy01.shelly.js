@@ -1,3 +1,8 @@
+/**
+ * @title MiFlora Parser / xiaomi_hhccjcy01
+ * @description Scans for BLE events of MiFlora plant sensors and publishes them
+ */
+
 // Shelly BLU Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome
 
 // This script parses Xiaomi MiFlora sensor data from BLE advertisements and publishes it to MQTT by default.

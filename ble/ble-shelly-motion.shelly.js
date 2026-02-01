@@ -1,3 +1,9 @@
+/**
+ * @title BLE in Scripting - Shelly BLU Motion script actions
+ * @description Example how to use a Shelly BLU Motion, read advertising data, decode
+ *   and turn on switch. (Requires firmware version 0.12.0-beta1 or newer)
+ */
+
 /******************* START CHANGE HERE *******************/
 let CONFIG = {
   // When set to true, debug messages will be logged to the console

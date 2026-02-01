@@ -1,3 +1,10 @@
+/**
+ * @title BLE in Scripting - Ruuvi example
+ * @description Example how to use a 3rd party BLE sensor, read data and turn on
+ *   switch based on the data. (Requires firmware version 0.12.0-beta1 or
+ *   newer)
+ */
+
 let CONFIG = {
   temperature_thr: 18,
   switch_id: 0,

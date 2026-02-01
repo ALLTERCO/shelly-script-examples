@@ -1,8 +1,7 @@
 /**
- * BLU Presence Watcher (Gen3)
- * - Uses bthomedevice:ID and bthomesensor:ID
- * - Optional MAC check
- * - Quiet when present; prints periodically while absent
+ * @title BLU presence watcher with auto-off
+ * @description Tracks BLU device presence via BTHome, logs absence, and turns off a
+ *   local switch after a timeout.
  */
 
 /* === CONFIG === */

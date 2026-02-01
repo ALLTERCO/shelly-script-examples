@@ -1,7 +1,7 @@
 /**
- * ARANET4 BLE Support in Shelly
- * https://aranet.com/products/aranet4/
- * Parses BLE advertisements and executes actions depending on conditions
+ * @title Aranet4 example with BLE scripting
+ * @description Example how to use a 3rd party BLE sensor and execute actions based on
+ *   conditions. (Requires firmware version 0.12.0-beta1 or newer)
  */
 
 /** =============================== CHANGE HERE =============================== */

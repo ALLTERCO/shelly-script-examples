@@ -1,3 +1,11 @@
+/**
+ * @title Controlling hue lights with Shelly BLU Button or virtual buttons
+ * @description This script allows you to control your hue lights with a Shelly BLU
+ *   Button or virtual buttons. You can turn on/off lights, change
+ *   brightness and color temperature. (Requires firmware version: 1.3 or
+ *   newer)
+ */
+
 const CONFIG = {
   ip: '', // Hue bridge IP
   user: '', // Hue bridge user

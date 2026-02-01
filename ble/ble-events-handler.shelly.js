@@ -1,8 +1,16 @@
 /**
+ * @title Handles event from the device (at the moment tested only with BLU events from "ble-shelly-blu.shelly.js" example
+ * @description Do automations based on events and easy conditioning. This script must
+ *   be used with another script that emits events for example
+ *   "ble-shelly-blu.shelly.js" script. (Requires firmware version:
+ *   1.0.0-beta or newer)
+ */
+
+/**
  * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.shelly.js` example.
- * This script CAN'T be used standone for BLE events. You need the `ble-shelly-blu.shelly.js` example running in order to use this 
+ * This script CAN'T be used standone for BLE events. You need the `ble-shelly-blu.shelly.js` example running in order to use this
  * example for automations
- * 
+ *
  * The `CONFIG` object contains a scenes property which is an array of scene objects.
  * Each scene object consists of two properties: `conditions` and `action`. The `conditions` property
  * defines the conditions under which the scene should be triggered, and the `action`
@@ -12,11 +20,11 @@
  * These keys correspond to specific data values received with the event.
  * The values associated with these keys can be either a direct value, an object specifying a comparison, or a function that
  * must return boolean value.
- * The `conditions` value supports various types: 
+ * The `conditions` value supports various types:
  * - key: value pair, where the key is fetched from the received data and must equal to the target value
  * - function that receives the current value and must return boolean
  * - object with `compare` and `value` keys:
- * Where `compare` supports the following methods: 
+ * Where `compare` supports the following methods:
  * - "==" -> both values are the same
  * - "<" -> the current value is less than the target value
  * - ">" -> the current value is bigger than the target value
@@ -27,7 +35,7 @@
  *
  * The `action` property defines a function that receives event's data as an input. You can write custom code within this function to
  * perform specific actions.
- * 
+ *
  * Some examples can be seen bellow.
  *
  * Event name for the `ble-shelly-blu.shelly.js` example is `shelly-blu`.

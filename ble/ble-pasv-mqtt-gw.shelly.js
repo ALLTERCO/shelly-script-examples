@@ -1,11 +1,9 @@
 /**
- * BLE passive temperature sensor scanner and MQTT gateway
- * Detected devices will be automatically registered to HA/Domoticz MQTT Autodiscovery
- *
- * Supported payloads: ATC/Xiaomi/BTHomev2 through advertisements packets
- *
- * Sensor values sent to 'mqtt_topic' and device config objects sent to 'discovery_topic'.
- * Copyleft Alexander Nagy @ bitekmindenhol.blog.hu
+ * @title BLE Thermometer passive data collector for MQTT Autodiscovery
+ * @description BLE passive mode scanner for non-battery operated Gen2 devices.
+ *   Decoding protocols Mijia/ATC/pvvx/BTHome2, forwards data to the MQTT
+ *   broker with Autodiscovery objects. (Requires firmware version
+ *   0.12.0-beta1 or newer)
  */
 
 let CONFIG = {
