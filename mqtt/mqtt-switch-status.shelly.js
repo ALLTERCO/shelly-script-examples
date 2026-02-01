@@ -1,3 +1,9 @@
+/**
+ * @title Send Switch status to a custom MQTT topic
+ * @description Use MQTT in scripting to provide switch status updates on a custom
+ *   topic
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

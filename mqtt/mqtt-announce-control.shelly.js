@@ -1,3 +1,11 @@
+/**
+ * @title Backward compatibility with Gen1 MQTT format (extended)
+ * @description Use MQTT in scripting to provide backwards compatibility with Gen1
+ *   MQTT topics shellies/announce, shellies/command, <device-id>/command,
+ *   /command/switch:0/output. Publish device status, input and switch
+ *   status
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,3 +1,11 @@
+/**
+ * @title Control Light entity from HA via virtual boolean component
+ * @description This script will control a light entity in Home Assistant via a
+ *   virtual boolean component in Shelly. The script will listen for
+ *   changes in the boolean component and will turn on or off the light
+ *   entity in Home Assistant accordingly.
+ */
+
 const CONFIG = {
   ha_ip: "", // Home Assistant IP
   ha_port: 8123, // Home Assistant Port
