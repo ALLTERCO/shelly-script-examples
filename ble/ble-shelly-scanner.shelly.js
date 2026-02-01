@@ -1,7 +1,8 @@
 /**
- * This script uses the BLE scan functionality in scripting
- * Will look for Shelly BLU devices fingerprints in BLE advertisements
- * Prints device name and address
+ * @title BLE in Scripting - Shelly BLU Scanner
+ * @description This script will scan aired advertisement data, select Shelly BLU
+ *   devices and will print their name and address (Requires firmware
+ *   version 0.12.0-beta1 or newer)
  */
 
 // Shelly BLU devices:

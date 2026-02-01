@@ -1,21 +1,24 @@
 /**
- * This script lets you use your Gen2 device as a gateway between Shelly BLU button1 and other Shelly devices (no matter Gen1 or Gen2)
- * by sending local requests by their local IP APIs.
- * 
+ * @title Gateway between Shelly BLU button1 and other devices
+ * @description Use your Gen2 device as a gateway between Shelly Blu button1 and other
+ *   Shelly devices (no matter Gen1 or Gen2) by sending local requests by
+ *   their local IP APIs.
+ */
+
+/**
  * What you should change before using it:
  * > bluButtonAddress -> You should put the mac address of your blu button here.
  *                          This script will help you find the mac address: https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble-shelly-scanner.shelly.js
- * 
- * > actions -> You should put the urls here to be executed at the specified event. Urls that shoudl be called on single/short push 
+ *
+ * > actions -> You should put the urls here to be executed at the specified event. Urls that shoudl be called on single/short push
  *              of the button, must be placed in the singlePush object. This applies to the double and triple push as well. Example below.
- * 
+ *
  * Limitations:
  * > At the moment there is a limit of 5 RPC calls at the same time and because of this, the script will execute every 3 urls with a 1 second delay.
  *      Limitations can be check here: https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures#resource-limits
- * 
+ *
  * > The order of the execution of the urls can't be guaranteed
  */
-
 
 /** =============================== CHANGE HERE =============================== */
 const CONFIG = {

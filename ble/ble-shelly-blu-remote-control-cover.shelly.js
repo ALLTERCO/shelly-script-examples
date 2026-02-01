@@ -1,28 +1,36 @@
 /**
- * The following example will show how to handle events from a Shelly BLU remote 
+ * @title Control a cover with a Shelly BLU Remote Control ZB
+ * @description Script that handles bluetooh events from a Shelly BLU Remote Control
+ *   ZB device and controls a cover connected to a Shelly 2PM (gen 2 or
+ *   newer). Requires the "ble-shelly-blu.shelly.js" script to be installed
+ *   and running (Requires firmware version: 1.0.0-beta or newer)
+ */
+
+/**
+ * The following example will show how to handle events from a Shelly BLU remote
  * control to control a cover connected to a Shelly Plus 2 PM (gen 2) device.
  * Gen 2 devices do not support the BTHome components function, but with this script
  * similar functionality can be achieved also on those devices.
  *
- * IMPORTANT: this script CAN'T be used standalone. You need the `ble-shelly-blu.shelly.js` 
+ * IMPORTANT: this script CAN'T be used standalone. You need the `ble-shelly-blu.shelly.js`
  * example running in order to use this example as that script captures the bluetooth
  * events that this script subsequently handles.
- * 
+ *
  * The minimum change you need to make is to change the ADDRESS field below to
  * the mac address of your remote. Also take note of the CHANNEL field, where you
  * can specify which one of the four channels listens to. So if you have multiple
  * covers, install this script on all of them with a different CHANNEL value.
- * 
+ *
  * This script can be further customised similarly to the ble-events-handler.shelly.js
  * script on which it was based. See that script for more examples what you can do
  * and adjust the CONFIG section below.
- * 
+ *
  * The original ble-events-handler.shelly.js script was only adjusted to support array
- * comparisons, which is needed because this remote has two buttons of which the 
+ * comparisons, which is needed because this remote has two buttons of which the
  * state is always sent together: so [1, 0] if the left buttons is pressed and
  * [0, 1] if the right button is pressed. As an added bonus, this script adds a
  * configurable PRESET setting, which specifies a set position the cover goes to
- * when both buttons are pressed at the same time (this takes a value of 0-100 
+ * when both buttons are pressed at the same time (this takes a value of 0-100
  * where the default of 50 is in the middle).
  */
 

@@ -1,3 +1,9 @@
+/**
+ * @title BLE in Scripting - b-parasite example
+ * @description Example how to use a 3rd party BLE sensor, read environment data.
+ *   (Requires firmware version 0.12.0-beta1 or newer)
+ */
+
 //For b-parasite data format see
 //https://github.com/rbaron/b-parasite/blob/main/code/b-parasite/README.md
 

@@ -1,4 +1,12 @@
 /**
+ * @title Shelly BLU devices event handler for scripts
+ * @description Script that handles and parses events from all Shelly BLU devices and
+ *   emits event with the received data. Made to be used with
+ *   "ble-events-handler.shelly.js" script that handles the events
+ *   (Requires firmware version: 1.0.0-beta or newer)
+ */
+
+/**
  * This script will use BLE scanner to listen for advertising data from nearby Shelly BLU devices,
  * decodes the data using a BTHome data structure, and emits the decoded data for further processing.
  *
@@ -7,9 +15,9 @@
  * parsed from the BLE device
  *
  * Represents data provided by each device.
- * Every value illustrating a sensor reading (e.g., button) may be a singular sensor value or 
- * an array of values if the object has multiple instances. 
- * 
+ * Every value illustrating a sensor reading (e.g., button) may be a singular sensor value or
+ * an array of values if the object has multiple instances.
+ *
  * @typedef {Object} DeviceData
  * @property {number} pid - Packet ID.
  * @property {number} battery - The battery level of the device in percentage (%).
@@ -26,7 +34,7 @@
  * @property {number | number[]} [channel] - The channel number if the device has a channel. (Can be an array if has multiple instances)
  * @property {number | number[]} [dimmer] - The direction of rotation if the device has a dimmer. (Can be an array if has multiple instances)
  * @property {number | number[]} [dimmersteps] - The number of steps if the device has a dimmer. (Can be an array if has multiple instances)
- * 
+ *
  * @example
  * {"component":"script:*","name":"script","id":*,"now":*,"info":{"component":"script:*","id":*,"event":"shelly-blu","data":{"encryption":false,"BTHome_version":2,"pid":118,"battery":100,"button":1,"rssi":-76,"address":*},"ts":*}}
  */

@@ -1,8 +1,8 @@
 /**
- * This script uses the BLE scan functionality in scripting
- * Selects Shelly BLU DoorWindow from the aired advertisements, decodes
- * the service data payload and toggles a relay on the device on
- * button push
+ * @title BLE in Scripting - Shelly BLU DoorWindow script actions
+ * @description Example how to use a Shelly BLU DoorWindow, read advertising data,
+ *   decode and turn on switch. (Requires firmware version 0.12.0-beta1 or
+ *   newer)
  */
 
 // Shelly BLU devices:
