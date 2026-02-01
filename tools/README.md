@@ -64,13 +64,14 @@ Output:
 
 ## check-manifest-integrity.py
 
-Validate the integrity of `examples-manifest.json` by checking that all
-referenced script files exist and that required fields are present.
+Validate the integrity of `examples-manifest.json` and maintain script headers.
 
 Usage:
 ```
 python tools/check-manifest-integrity.py
-python tools/check-manifest-integrity.py path/to/examples-manifest.json
+python tools/check-manifest-integrity.py --check-headers
+python tools/check-manifest-integrity.py --update-headers
+python tools/check-manifest-integrity.py --update-headers --dry-run
 ```
 
 Defaults:
@@ -80,9 +81,52 @@ Defaults:
 Options:
 - `--base-dir <path>` — Override the base directory for script file lookups
 - `--check-docs` — Also verify that `doc` files exist (if specified in entries)
+- `--check-index` — Also verify that `SHELLY_MJS.md` is in sync with the manifest
+- `--check-headers` — Check scripts for standard metadata headers
+- `--update-headers` — Update scripts with standard headers from manifest
+- `--check-indent` — Check scripts for proper 2-space indentation (detects tabs and odd spaces)
+- `--fix-indent` — Fix indentation by converting tabs to 2 spaces
+- `--dry-run` — Show what would be done without making changes
+
+Note: Odd indentation (1, 3, 5 spaces) is often intentional alignment in
+multi-line statements and is not automatically fixed. Review manually if needed.
 
 Checks performed:
 - All `fname` script files exist on disk
 - All entries have non-empty `title` field
 - All entries have non-empty `description` field
 - (Optional) All `doc` files exist
+- (Optional) `SHELLY_MJS.md` matches expected content from manifest
+- (Optional) Script files have standard `@title`/`@description` headers
+
+Standard header format:
+```javascript
+/**
+ * @title Script Title Here
+ * @description Description of what the script does.
+ */
+```
+
+## sync-manifest.py
+
+Synchronize `examples-manifest.json` with the actual `.shelly.js` files in the
+repository. Finds new scripts and adds them to the manifest with placeholder
+metadata.
+
+Usage:
+```
+python tools/sync-manifest.py
+python tools/sync-manifest.py --dry-run
+python tools/sync-manifest.py --remove-missing
+```
+
+Options:
+- `--dry-run` — Show what would be done without making changes
+- `--remove-missing` — Remove manifest entries for files that no longer exist
+- `--extract-metadata` — Try to extract title/description from file comments
+
+Workflow:
+1. Run with `--dry-run` to see what changes would be made
+2. Run without flags to update the manifest
+3. Edit the manifest to fill in proper titles and descriptions for new entries
+4. Run `json-to-md.py` to regenerate `SHELLY_MJS.md`
