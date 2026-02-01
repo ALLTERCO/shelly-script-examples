@@ -26,3 +26,5 @@ Timer.set(
   true,
   function () {Shelly.call("HTTP.POST", {"url": tsjsonurl, "body": tsjson, "timeout": 5});}
 );
+
+

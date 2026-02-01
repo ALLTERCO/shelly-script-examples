@@ -4,7 +4,7 @@
  * 
  * What you should change before using it:
  * > bluButtonAddress -> You should put the mac address of your blu button here.
- *                          This script will help you find the mac address: https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble-shelly-scanner.js
+ *                          This script will help you find the mac address: https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble-shelly-scanner.shelly.js
  * 
  * > actions -> You should put the urls here to be executed at the specified event. Urls that shoudl be called on single/short push 
  *              of the button, must be placed in the singlePush object. This applies to the double and triple push as well. Example below.
