@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## 2026-02
 - Add AGENTS.md with coding standards and contribution guidelines
 - Reorganize documentation structure (separate CHANGELOG.md, update README.md)
+- Add The Pill UART peripheral collection (Roomba, MODBUS, RFID, SDS011/018, YS-IRTM)
 
 ## 2025-11
 - Add script that allows to monitor data from Victron's Smartsolar charge controller.
