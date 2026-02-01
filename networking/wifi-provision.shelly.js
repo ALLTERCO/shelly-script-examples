@@ -1,3 +1,10 @@
+/**
+ * @title Provisioning of new Shelly Plus gen 2 devices
+ * @description This scripts periodically scans for access points with SSID matching
+ *   the template for Shelly Plus device APs and if found, will connect to
+ *   that AP and provision WiFi credentials.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

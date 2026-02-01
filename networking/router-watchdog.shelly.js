@@ -1,3 +1,10 @@
+/**
+ * @title Router Watchdog
+ * @description This script tries to execute HTTP GET requests within a set time,
+ *   against a set of endpoints. After certain number of failures the
+ *   script sets the Switch off and after some time turns it back on.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

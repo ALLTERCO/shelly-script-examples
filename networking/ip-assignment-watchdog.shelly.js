@@ -1,3 +1,9 @@
+/**
+ * @title Reboot on DHCP IP assignment issues
+ * @description Monitor for valid IP assignment from DHCP server and reboot if not
+ *   received within a certain time period.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
