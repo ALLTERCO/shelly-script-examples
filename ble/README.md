@@ -10,6 +10,7 @@ Use these examples to connect Shelly devices to nearby BLE/BLU sensors and butto
 - `ble-aranet4.shelly.js`
 - `ble-bparasite.shelly.js`
 - `ble-events-handler.shelly.js`
+- `ble_btn_in_range.shelly.js`
 - `ble-miflora-xiaomi-hhccjcy01.shelly.js`
 - `ble-mopeka.shelly.js`
 - `ble-pasv-mqtt-gw.shelly.js`
