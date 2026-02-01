@@ -478,5 +478,9 @@
     "title": "Backup: corrupted TV IR script (deprecated)",
     "description": "Backup script preserved for reference; not intended for use.",
     "doc": "the_pill/_backup/README.md"
-  }\r\n]
-
+  },
+  {
+    "fname": "http-integrations/http_post_watts_to_thingspeak.js",
+    "title": "Send energy meter watts to ThingSpeak via HTTP POST",
+    "description": "Posts live active power (watts) to a ThingSpeak channel at a fixed interval."
+  }]
