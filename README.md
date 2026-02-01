@@ -35,14 +35,14 @@ This repository is designed for:
 
 ## Repository Layout
 
-- `ble/` - BLE/BLU sensors, buttons, and gateways
-- `lora/` - LoRa send/receive and device control examples
-- `mqtt/` - MQTT and Home Assistant integrations
-- `power-energy/` - Load management, power thresholds, and monitoring
-- `switch-input/` - Input handling, switch behavior, and cover control
-- `weather-env/` - Weather and environmental sensor integrations
-- `http-integrations/` - HTTP endpoints, notifications, and external services
-- `networking/` - Provisioning and watchdog scripts
-- `scheduling/` - Scheduling, scenes, and orchestration
-- `blu-assistant/` - BLU Assistant device management scripts
-- `howto/` - Minimal examples and tutorials
+- [ble/](ble/README.md) - BLE/BLU sensors, buttons, and gateways
+- [lora/](lora/README.md) - LoRa send/receive and device control examples
+- [mqtt/](mqtt/README.md) - MQTT and Home Assistant integrations
+- [power-energy/](power-energy/README.md) - Load management, power thresholds, and monitoring
+- [switch-input/](switch-input/README.md) - Input handling, switch behavior, and cover control
+- [weather-env/](weather-env/README.md) - Weather and environmental sensor integrations
+- [http-integrations/](http-integrations/README.md) - HTTP endpoints, notifications, and external services
+- [networking/](networking/README.md) - Provisioning and watchdog scripts
+- [scheduling/](scheduling/README.md) - Scheduling, scenes, and orchestration
+- [blu-assistant/](blu-assistant/README.md) - BLU Assistant device management scripts
+- [howto/](howto/README.md) - Minimal examples and tutorials
