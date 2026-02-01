@@ -1,3 +1,9 @@
+/**
+ * @title Advanced Load shedding with schedules and notifications
+ * @description Adds schedule, device, and notification templates and functionality to
+ *   the original load shedding script.
+ */
+
 // load-shedding script will keep measured usage between a low (min) and high
 // (max) total power (watts), by controlling power to other devices
 

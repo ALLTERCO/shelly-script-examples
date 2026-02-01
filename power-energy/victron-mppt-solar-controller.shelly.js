@@ -1,3 +1,10 @@
+/**
+ * @title Victron's Smartsolar charge controller data monitoring
+ * @description This script allows the decryption of Victron's Smartsolar charge
+ *   controller data and update the virtual components with live solar
+ *   charger values.
+ */
+
 // 1. Install the VictronConnect app.
 // 2. Open the app and pair with your Victron device.
 // 3. Select the device you want to monitor from the device list.

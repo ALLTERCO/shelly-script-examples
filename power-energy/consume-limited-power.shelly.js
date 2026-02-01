@@ -1,3 +1,11 @@
+/**
+ * @title Shelly Plus 1PM - Stop the output after consuming certain amount of power
+ * @description This script listens for the event when the output is turned on, and
+ *   starts counting the power reported in NotifyStatus every minute. It is
+ *   accumulated in a counter and if the combined consumption is over a
+ *   threshold the output is turned off.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
