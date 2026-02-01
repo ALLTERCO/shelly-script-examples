@@ -1,7 +1,11 @@
 /**
- * Shelly script example of using HTTP handlers
- * Implementing a simple HTTP server with action handlers
- *
+ * @title Shelly HTTP script handling GET requests, query strings
+ * @description This script registers a HTTP handler endpoint and implements simple
+ *   logic for requests and handlers for those requests. Reconfiguration of
+ *   a Switch component as an example is included
+ */
+
+/**
  * Usage:
  * call the setup action on your shelly
  * curl 'http://<SHELLY-IP>/script/<SCRIPT-ID>/api?action=setup'

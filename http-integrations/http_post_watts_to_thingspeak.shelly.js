@@ -1,3 +1,9 @@
+/**
+ * @title Send energy meter watts to ThingSpeak via HTTP POST
+ * @description Posts live active power (watts) to a ThingSpeak channel at a fixed
+ *   interval.
+ */
+
 // Shelly GEN2 script: HTTP POST - Send energy meter watts to Thingspeak cloud
 
 // Settings
@@ -15,8 +21,8 @@ let interval = 5 * 60 * 1000;
 
 // Create JSON
 let tsjson = {
-	"api_key": tsapikey,
-	"field1": watts // Change the field number as needed.
+  "api_key": tsapikey,
+  "field1": watts // Change the field number as needed.
   // "field2": tempe // <- this can be used to send temperature too, just add comma to end of previous line
 };
 

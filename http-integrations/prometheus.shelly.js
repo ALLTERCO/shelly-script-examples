@@ -1,4 +1,10 @@
-/*
+/**
+ * @title Prometheus HTTP Endpoint for a single switch
+ * @description This script exposes a /status endpoint that returns Prometheus metrics
+ *   that can be scraped.
+ */
+
+/**
  * This script exposes a "/status" endpoint that returns Prometheus metrics that can be scraped.
  * It will be reachable under "<ip>/script/<id>/metrics". Id will be 1 if this is your first script.
  *
@@ -17,6 +23,7 @@
  *
  * Note: This script assumes you have one switch, but you can configure that in the Configuration section
  */
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Configuration (you can change / adapt here)
 // ---------------------------------------------------------------------------------------------------------------------

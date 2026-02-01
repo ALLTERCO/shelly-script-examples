@@ -1,7 +1,7 @@
 /**
- * Push notifications using Pushed service, pushed.co
- * You can pair this script with another that emits events, for example
- * readouts from a BLE sensor and push a notification to your phone
+ * @title Push notifications using Pushed service
+ * @description Use a script to notify directly on your mobile phone via a push
+ *   notification service.
  */
 
 let CONFIG = {

@@ -1,3 +1,11 @@
+/**
+ * @title Telegram interaction with Shelly script
+ * @description This script allows the creation of personalized commands for a
+ *   Telegram bot, providing the ability to define handlers for each
+ *   command and support for advanced parameter validation. (Requires
+ *   firmware version: 1.0.0-beta or newer)
+ */
+
 //VERSION: 1
 /**
  * This script provides a framework for creating a basic Telegram bot using the 
