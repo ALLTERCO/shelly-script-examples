@@ -1,3 +1,11 @@
+/**
+ * @title After boot scan schedules and run active one
+ * @description When device boots and there is a schedule that has to be active at the
+ *   moment it won't be executed. This script walks through the configured
+ *   schedules and runs the one that should be active at that moment of
+ *   time.
+ */
+
 // This script will run once after device boot
 // will scan schedules that are set up for every day of the week
 // and will ensure that the scheduled task that was to be run

@@ -1,3 +1,9 @@
+/**
+ * @title Schedule script function for execution into the system schedule
+ * @description When the script is run it will check if it is registered in the
+ *   schedule and if not will register itself
+ */
+
 // This script will register itself to be called by the schedule service
 // on the Shelly it is running on.
 // Change SCHEDULE_TIMESPEC according to your needs

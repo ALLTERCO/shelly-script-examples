@@ -1,3 +1,8 @@
+/**
+ * @title Example of remote calling a Shelly Gen2
+ * @description A remote Shelly abstraction Call an RPC method on the remote Shelly
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

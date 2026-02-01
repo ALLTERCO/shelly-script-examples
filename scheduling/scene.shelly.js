@@ -1,3 +1,13 @@
+/**
+ * @title Scene playing in Shelly Gen2
+ * @description Simple scene abstraction A scene is an array of actions or conditions
+ *   that are played squentially. An action can have a delay property,
+ *   which means after executing the action function wait until proceeding
+ *   to the next one. A condition is an element of a scene that has
+ *   property type:"cond". If the result is true, the scene continues with
+ *   the next item, if it is false it stops.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

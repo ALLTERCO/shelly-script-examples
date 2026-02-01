@@ -1,3 +1,10 @@
+/**
+ * @title Scene Test with multiple Shellies
+ * @description Playing a scene with four Shellies with that have a lamp as a load.
+ *   Demonstration of a "Remote Shelly" wrapper object. object prototyping,
+ *   and simple scene player.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
