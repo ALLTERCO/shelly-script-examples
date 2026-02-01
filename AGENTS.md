@@ -68,47 +68,106 @@ shelly-script-examples/
 
 ### Code Structure Pattern
 
-```javascript
-// Copyright 2021 Allterco Robotics EOOD
-// Licensed under the Apache License, Version 2.0
+Scripts follow a **two-header pattern** for documentation:
 
+1. **Standard Header** - Machine-readable metadata for manifest/index generation
+2. **Detailed Documentation** - Human-readable technical details (hardware, protocol, etc.)
+
+```javascript
 /**
- * Script description and purpose
- * Firmware requirements: X.X+
- * Device compatibility: Gen2/Gen3
+ * @title Human-Readable Title
+ * @description Brief description of what the script does. Keep it concise
+ *   (1-2 sentences). Mention firmware requirements if applicable.
  */
 
-// === CONFIGURATION ===
+/**
+ * Detailed Documentation Block
+ *
+ * Extended explanation of the script's purpose and functionality.
+ *
+ * Hardware Connection: (for hardware-interfacing scripts)
+ * - Device TX -> Shelly RX (GPIO)
+ * - Device RX -> Shelly TX (GPIO)
+ * - VCC -> 3.3V or 5V
+ * - GND -> GND
+ *
+ * Protocol: (for communication scripts)
+ * - Baud rate: 9600
+ * - Frame format: [Header] [Length] [Data] [Checksum]
+ *
+ * Components Created: (for setup scripts)
+ * - Text:200    - Status display
+ * - Number:200  - Value display
+ * - Button:200  - Control button
+ *
+ * @see https://link-to-reference-documentation
+ */
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
 let CONFIG = {
   // User-configurable options at top
   deviceId: 0,
   timeout: 5000,
 };
 
-// === STATE ===
+// ============================================================================
+// STATE
+// ============================================================================
+
 let state = {
   lastUpdate: null,
   isRunning: false,
 };
 
-// === HELPER FUNCTIONS ===
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 function helperFunction(param) {
   // Implementation
 }
 
-// === MAIN LOGIC ===
+// ============================================================================
+// MAIN LOGIC
+// ============================================================================
+
 function main() {
   // Core logic
 }
 
-// === EVENT HANDLERS ===
+// ============================================================================
+// EVENT HANDLERS
+// ============================================================================
+
 Shelly.addEventHandler(function(ev) {
   // Handle events
 });
 
-// === INITIALIZATION ===
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
 main();
 ```
+
+### Header Guidelines
+
+| Header Type | Purpose | Required |
+|-------------|---------|----------|
+| `@title` | Short name for manifest/index | Yes |
+| `@description` | Brief description (1-2 sentences) | Yes |
+| Detailed block | Hardware, protocol, components | For hardware/complex scripts |
+
+**When to include detailed documentation:**
+- Hardware interfacing scripts (UART, SPI, I2C devices)
+- Setup scripts that create virtual components
+- Protocol implementations (MODBUS, IR, RFID)
+- Scripts with complex configuration options
+
+**Simple scripts** (basic examples, utilities) may only need the standard header.
 
 ---
 

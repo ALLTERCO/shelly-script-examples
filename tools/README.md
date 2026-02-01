@@ -99,13 +99,22 @@ Checks performed:
 - (Optional) `SHELLY_MJS.md` matches expected content from manifest
 - (Optional) Script files have standard `@title`/`@description` headers
 
-Standard header format:
+Standard header format (first block in file):
 ```javascript
 /**
  * @title Script Title Here
  * @description Description of what the script does.
  */
 ```
+
+**Important:** The `--update-headers` option only updates/adds the standard
+`@title`/`@description` header. It preserves any existing detailed documentation
+block that follows. Scripts should use a **two-header pattern**:
+
+1. Standard header (`@title`, `@description`) - for manifest/index
+2. Detailed documentation block - hardware connections, protocol info, etc.
+
+See `AGENTS.md` for the complete file structure standard.
 
 ## sync-manifest.py
 
