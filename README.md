@@ -27,3 +27,7 @@ This repository is designed for:
 - [Contributing](CONTRIBUTING.md) - How to contribute to this project
 - [License](LICENSE) - Apache License 2.0
 - [Shelly Script Documentation](https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures) - Official Shelly scripting docs
+
+## Collections
+
+- [The Pill](the_pill/README.md) - UART peripherals and hardware integrations
