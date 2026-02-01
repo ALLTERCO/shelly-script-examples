@@ -1,4 +1,10 @@
 /**
+ * @title SDS011 virtual component UI
+ * @description UI-oriented SDS011 script that updates virtual components with PM and
+ *   AQI data.
+ */
+
+/**
  * SDS011 Air Quality Sensor with Virtual Components UI
  *
  * Reads PM2.5/PM10 from SDS011 sensor and displays values on

@@ -1,4 +1,9 @@
 /**
+ * @title MFRC522 UART RFID read example
+ * @description Basic MFRC522 example that detects cards and prints their UIDs.
+ */
+
+/**
  * MFRC522 RFID Card Reader - Basic Read Example
  *
  * Reads card serial numbers from MFRC522 module via UART.

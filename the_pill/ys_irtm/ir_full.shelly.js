@@ -1,6 +1,7 @@
 /**
- * YS-IRTM Example: Custom Handler
- * Advanced: HTTP calls, scenes, bidirectional control.
+ * @title YS-IRTM advanced IR automation example
+ * @description Bidirectional IR automation with scenes, HTTP calls, and switch
+ *   integration.
  */
 
 // ============================================================================

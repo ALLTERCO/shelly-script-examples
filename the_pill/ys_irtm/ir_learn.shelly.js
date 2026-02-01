@@ -1,6 +1,6 @@
 /**
- * YS-IRTM Example: Learn Mode
- * Capture IR codes from any NEC-compatible remote.
+ * @title YS-IRTM IR learn mode
+ * @description Captures and prints NEC IR codes for reuse in other scripts.
  */
 
 // ============================================================================

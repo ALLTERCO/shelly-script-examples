@@ -1,6 +1,6 @@
 /**
- * YS-IRTM Example: TV Remote Code Library
- * Pre-configured IR codes for common TV brands.
+ * @title YS-IRTM TV remote codes
+ * @description Preconfigured NEC IR codes for common TV brands using YS-IRTM.
  */
 
 // ============================================================================
