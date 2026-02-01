@@ -61,3 +61,28 @@ python tools/json-to-md.py ./examples-manifest.json
 
 Output:
 - Writes `SHELLY_MJS.md` next to the manifest file.
+
+## check-manifest-integrity.py
+
+Validate the integrity of `examples-manifest.json` by checking that all
+referenced script files exist and that required fields are present.
+
+Usage:
+```
+python tools/check-manifest-integrity.py
+python tools/check-manifest-integrity.py path/to/examples-manifest.json
+```
+
+Defaults:
+- Manifest file: `examples-manifest.json` in the repository root
+- Base directory: directory containing the manifest file
+
+Options:
+- `--base-dir <path>` — Override the base directory for script file lookups
+- `--check-docs` — Also verify that `doc` files exist (if specified in entries)
+
+Checks performed:
+- All `fname` script files exist on disk
+- All entries have non-empty `title` field
+- All entries have non-empty `description` field
+- (Optional) All `doc` files exist

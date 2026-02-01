@@ -25,6 +25,7 @@ This repository is designed for:
 - [Script Index](SHELLY_MJS.md) - Full list of all example scripts with descriptions
 - [Changelog](CHANGELOG.md) - See what's new
 - [Contributing](CONTRIBUTING.md) - How to contribute to this project
+- [Tools](tools/README.md) - Helper utilities for uploading scripts and validation
 - [License](LICENSE) - Apache License 2.0
 - [Shelly Script Documentation](https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures) - Official Shelly scripting docs
 
