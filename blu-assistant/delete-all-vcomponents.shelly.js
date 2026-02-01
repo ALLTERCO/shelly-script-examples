@@ -1,5 +1,5 @@
 //
-// delete_all_virtuals_throttled.js
+// delete_all_virtuals_throttled.shelly.js
 //
 (function() {
   // your own script ID, used to stop it when we're done

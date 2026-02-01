@@ -1,5 +1,5 @@
 // monitor-production script, paired with avanced-load-shedding can set the min/max wattage for a schedule, according to production from a PV array.
-//This script is intended for use with advanced-load-shedding.js to incorporate an additional data source - example combine monitoring of grid with PV invertor or collector
+//This script is intended for use with advanced-load-shedding.shelly.js to incorporate an additional data source - example combine monitoring of grid with PV invertor or collector
 
 /**************************   settings   ***************************/
 let poll_time = 300;                       // number of seconds to periodically calculate running average
@@ -83,3 +83,4 @@ function def( o ) {
 }
 
 Shelly.addStatusHandler( check_production );
+

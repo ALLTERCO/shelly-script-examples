@@ -4,7 +4,7 @@
  * Gen 2 devices do not support the BTHome components function, but with this script
  * similar functionality can be achieved also on those devices.
  *
- * IMPORTANT: this script CAN'T be used standalone. You need the `ble-shelly-blu.js` 
+ * IMPORTANT: this script CAN'T be used standalone. You need the `ble-shelly-blu.shelly.js` 
  * example running in order to use this example as that script captures the bluetooth
  * events that this script subsequently handles.
  * 
@@ -13,11 +13,11 @@
  * can specify which one of the four channels listens to. So if you have multiple
  * covers, install this script on all of them with a different CHANNEL value.
  * 
- * This script can be further customised similarly to the ble-events-handler.js
+ * This script can be further customised similarly to the ble-events-handler.shelly.js
  * script on which it was based. See that script for more examples what you can do
  * and adjust the CONFIG section below.
  * 
- * The original ble-events-handler.js script was only adjusted to support array
+ * The original ble-events-handler.shelly.js script was only adjusted to support array
  * comparisons, which is needed because this remote has two buttons of which the 
  * state is always sent together: so [1, 0] if the left buttons is pressed and
  * [0, 1] if the right button is pressed. As an added bonus, this script adds a

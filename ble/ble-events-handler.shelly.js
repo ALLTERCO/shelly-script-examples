@@ -1,6 +1,6 @@
 /**
- * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.js` example.
- * This script CAN'T be used standone for BLE events. You need the `ble-shelly-blu.js` example running in order to use this 
+ * The following example will show how to handle events from Shelly BLU devices what are emited from `ble-shelly-blu.shelly.js` example.
+ * This script CAN'T be used standone for BLE events. You need the `ble-shelly-blu.shelly.js` example running in order to use this 
  * example for automations
  * 
  * The `CONFIG` object contains a scenes property which is an array of scene objects.
@@ -30,7 +30,7 @@
  * 
  * Some examples can be seen bellow.
  *
- * Event name for the `ble-shelly-blu.js` example is `shelly-blu`.
+ * Event name for the `ble-shelly-blu.shelly.js` example is `shelly-blu`.
  */
 
 /****************** START CHANGE ******************/
@@ -319,3 +319,4 @@ function init() {
 }
 
 init();
+
