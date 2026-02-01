@@ -8,14 +8,21 @@ This repository contains JavaScript examples for Shelly smart home devices. Scri
 
 ```
 shelly-script-examples/
-├── *.js                        # Root-level example scripts (87+ files)
-├── examples-manifest.json      # Central registry of all examples (IMPORTANT)
-├── blu-assistant-scripts/      # Shelly BLU Assistant device management
-├── howto/                      # Basic tutorials and minimal examples
-├── lora-*/                     # LoRa communication examples (5 directories)
-├── snippets/                   # Reusable code snippets (JSON format)
-├── tools/                      # Upload utilities (Python/Bash)
-└── .github/                    # CI/CD workflows and issue templates
+|-- ble/                        # BLE/BLU sensor and button examples
+|-- lora/                       # LoRa communication and device control
+|-- mqtt/                       # MQTT and Home Assistant integrations
+|-- power-energy/               # Power monitoring and load management
+|-- switch-input/               # Input, switch, and cover control scripts
+|-- weather-env/                # Weather and environmental integrations
+|-- http-integrations/          # HTTP endpoints and external services
+|-- networking/                 # Provisioning and watchdog scripts
+|-- scheduling/                 # Scheduling, scenes, and orchestration
+|-- blu-assistant/              # Shelly BLU Assistant device management
+|-- examples-manifest.json      # Central registry of all examples (IMPORTANT)
+|-- howto/                      # Basic tutorials and minimal examples
+|-- snippets/                   # Reusable code snippets (JSON format)
+|-- tools/                      # Upload utilities (Python/Bash)
+`-- .github/                    # CI/CD workflows and issue templates
 ```
 
 ## Script Categories
@@ -25,9 +32,9 @@ shelly-script-examples/
 | **BLE/Bluetooth** | aranet4, ruuvi, bparasite, shelly-blu-* | BTHome protocol, sensor reading |
 | **MQTT** | mqtt-discovery, mqtt-announce | Home Assistant integration |
 | **Home Automation** | hue-lights, load-shedding | Scene control, power management |
-| **LoRa** | lora-encrypted-*, lora-unencrypted-* | Long-range communication |
+| **LoRa** | lora/* | Long-range communication |
 | **Utilities** | power-*, scheduler-*, weather-* | Monitoring, scheduling |
-| **Blu Assistant** | blu-assistant-scripts/*.js | Virtual component management |
+| **Blu Assistant** | blu-assistant/*.js | Virtual component management |
 
 ---
 
@@ -480,3 +487,4 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ### Community
 - [Shelly Support Forum](https://www.shelly-support.eu/)
 - [GitHub Issues](https://github.com/ALLTERCO/shelly-script-examples/issues)
+

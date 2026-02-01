@@ -31,3 +31,17 @@ This repository is designed for:
 ## Collections
 
 - [The Pill](the_pill/README.md) - UART peripherals and hardware integrations
+
+## Repository Layout
+
+- `ble/` - BLE/BLU sensors, buttons, and gateways
+- `lora/` - LoRa send/receive and device control examples
+- `mqtt/` - MQTT and Home Assistant integrations
+- `power-energy/` - Load management, power thresholds, and monitoring
+- `switch-input/` - Input handling, switch behavior, and cover control
+- `weather-env/` - Weather and environmental sensor integrations
+- `http-integrations/` - HTTP endpoints, notifications, and external services
+- `networking/` - Provisioning and watchdog scripts
+- `scheduling/` - Scheduling, scenes, and orchestration
+- `blu-assistant/` - BLU Assistant device management scripts
+- `howto/` - Minimal examples and tutorials
