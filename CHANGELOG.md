@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Reorganize documentation structure (separate CHANGELOG.md, update README.md)
 - Add The Pill UART peripheral collection (Roomba, MODBUS, RFID, SDS011/018, YS-IRTM)
 - Reorganize JS examples into capability-based folders
+- Rename all script files to .shelly.js
 
 ## 2025-11
 - Add script that allows to monitor data from Victron's Smartsolar charge controller.
