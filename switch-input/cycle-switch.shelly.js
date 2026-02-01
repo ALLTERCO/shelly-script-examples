@@ -1,3 +1,9 @@
+/**
+ * @title Configurable Cycle switch
+ * @description Replicate Cycle switch feature from Gen1 devices. Allows for custom
+ *   list of operations to cycle through.
+ */
+
 const CONFIG = {
   /**
    * Pick your desired Input to be used for triggering the cycling (note: this input would be changed

@@ -1,3 +1,11 @@
+/**
+ * @title Control a Shelly Plus 2PM (Gen2) by handling events
+ * @description The script, when run, will subscribe to events and handle
+ *   "cover_open_to" and "cover_close_to" events to open or close a cover
+ *   to a certain position. "cover_open_to" also supports a "not_before"
+ *   configuration to prevent opening the cover before a certain time.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
