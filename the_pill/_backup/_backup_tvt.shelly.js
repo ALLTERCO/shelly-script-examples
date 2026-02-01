@@ -1,3 +1,8 @@
+/**
+ * @title Backup: corrupted TV IR script (deprecated)
+ * @description Backup script preserved for reference; not intended for use.
+ */
+
 // The Pill + YS-IRTM (no RegEx) – minimal mapping script + RX printed as JS array
 
 const BAUD = 9600;

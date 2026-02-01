@@ -1,4 +1,9 @@
 /**
+ * @title SDS011 virtual component setup
+ * @description Creates virtual components for displaying SDS011 readings.
+ */
+
+/**
  * SDS011 Air Quality Sensor - Virtual Components Setup Script
  *
  * Creates the virtual components for SDS011 air quality monitoring UI.

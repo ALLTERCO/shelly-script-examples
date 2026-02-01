@@ -1,4 +1,10 @@
 /**
+ * @title SDS018 air quality sensor library
+ * @description UART library for SDS018 PM2.5/PM10 readings with power management and
+ *   AQI.
+ */
+
+/**
  * Nova Fitness SDS018 PM2.5/PM10 Air Quality Sensor for Shelly
  *
  * Reads particulate matter (PM2.5 and PM10) concentrations using the

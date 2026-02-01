@@ -1,4 +1,10 @@
 /**
+ * @title CWT-MB308V MODBUS example
+ * @description Example integration for the ComWinTop MB308V IO module over
+ *   MODBUS-RTU.
+ */
+
+/**
  * CWT-MB308V MODBUS IO Module Example
  *
  * Example script demonstrating communication with ComWinTop CWT-MB308V
