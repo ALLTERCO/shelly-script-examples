@@ -358,5 +358,125 @@
     "fname": "ble-miflora-xiaomi-hhccjcy01.js",
     "title": "MiFlora Parser / xiaomi_hhccjcy01",
     "description": "Scans for BLE events of MiFlora plant sensors and publishes them"
+  },
+  {
+    "fname": "the_pill/iRobotRoomba/roomba.shelly.js",
+    "title": "iRobot Roomba Open Interface library",
+    "description": "UART library implementing the iRobot Open Interface (OI) for Roomba 500 series control.",
+    "doc": "the_pill/iRobotRoomba/README.md"
+  },
+  {
+    "fname": "the_pill/iRobotRoomba/roomba_setup.shelly.js",
+    "title": "iRobot Roomba virtual component setup",
+    "description": "Creates virtual components required by the Roomba library.",
+    "doc": "the_pill/iRobotRoomba/README.md"
+  },
+  {
+    "fname": "the_pill/iRobotRoomba/roomba_ctrl.shelly.js",
+    "title": "iRobot Roomba button controller",
+    "description": "Controls Roomba via virtual buttons and physical inputs over UART.",
+    "doc": "the_pill/iRobotRoomba/README.md"
+  },
+  {
+    "fname": "the_pill/iRobotRoomba/roomba_ctrl_setup.shelly.js",
+    "title": "iRobot Roomba controller component setup",
+    "description": "Creates virtual components for the Roomba button controller.",
+    "doc": "the_pill/iRobotRoomba/README.md"
+  },
+  {
+    "fname": "the_pill/MODBUS/modbus_rtu.shelly.js",
+    "title": "MODBUS-RTU master library",
+    "description": "UART MODBUS-RTU master implementation for reading and writing slave registers.",
+    "doc": "the_pill/MODBUS/README.md"
+  },
+  {
+    "fname": "the_pill/MODBUS/mb308v.shelly.js",
+    "title": "CWT-MB308V MODBUS example",
+    "description": "Example integration for the ComWinTop MB308V IO module over MODBUS-RTU.",
+    "doc": "the_pill/MODBUS/README.md"
+  },
+  {
+    "fname": "the_pill/RFID-RC522/mfrc522.shelly.js",
+    "title": "MFRC522 UART RFID library",
+    "description": "UART protocol implementation for MFRC522 RFID readers with read/write support.",
+    "doc": "the_pill/RFID-RC522/README.md"
+  },
+  {
+    "fname": "the_pill/RFID-RC522/mfrc522_read.shelly.js",
+    "title": "MFRC522 UART RFID read example",
+    "description": "Basic MFRC522 example that detects cards and prints their UIDs.",
+    "doc": "the_pill/RFID-RC522/README.md"
+  },
+  {
+    "fname": "the_pill/SDS011/sds011.shelly.js",
+    "title": "SDS011 air quality sensor library",
+    "description": "UART library for SDS011 PM2.5/PM10 readings with power management and AQI.",
+    "doc": "the_pill/SDS011/README.md"
+  },
+  {
+    "fname": "the_pill/SDS011/sds011_setup.shelly.js",
+    "title": "SDS011 virtual component setup",
+    "description": "Creates virtual components for displaying SDS011 readings.",
+    "doc": "the_pill/SDS011/README.md"
+  },
+  {
+    "fname": "the_pill/SDS011/sds011_vc.shelly.js",
+    "title": "SDS011 virtual component UI",
+    "description": "UI-oriented SDS011 script that updates virtual components with PM and AQI data.",
+    "doc": "the_pill/SDS011/README.md"
+  },
+  {
+    "fname": "the_pill/SDS018/sds018.shelly.js",
+    "title": "SDS018 air quality sensor library",
+    "description": "UART library for SDS018 PM2.5/PM10 readings with power management and AQI.",
+    "doc": "the_pill/SDS018/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/ysirtm.shelly.js",
+    "title": "YS-IRTM infrared UART library",
+    "description": "UART protocol implementation for YS-IRTM to send and receive NEC IR codes.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/btn2ir.shelly.js",
+    "title": "YS-IRTM button-to-IR example",
+    "description": "Maps Shelly buttons and inputs to IR codes using YS-IRTM.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/ir2sw.shelly.js",
+    "title": "YS-IRTM IR-to-switch example",
+    "description": "Maps received IR codes to Shelly switch actions.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/ir_full.shelly.js",
+    "title": "YS-IRTM advanced IR automation example",
+    "description": "Bidirectional IR automation with scenes, HTTP calls, and switch integration.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/ir_learn.shelly.js",
+    "title": "YS-IRTM IR learn mode",
+    "description": "Captures and prints NEC IR codes for reuse in other scripts.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/ys_irtm/tv_ir.shelly.js",
+    "title": "YS-IRTM TV remote codes",
+    "description": "Preconfigured NEC IR codes for common TV brands using YS-IRTM.",
+    "doc": "the_pill/ys_irtm/README.md"
+  },
+  {
+    "fname": "the_pill/_backup/_backup_uart.shelly.js",
+    "title": "Backup: early YS-IRTM UART script (deprecated)",
+    "description": "Deprecated backup script with basic YS-IRTM UART handling and known issues.",
+    "doc": "the_pill/_backup/README.md"
+  },
+  {
+    "fname": "the_pill/_backup/_backup_tvt.shelly.js",
+    "title": "Backup: corrupted TV IR script (deprecated)",
+    "description": "Backup script preserved for reference; not intended for use.",
+    "doc": "the_pill/_backup/README.md"
   }
 ]
