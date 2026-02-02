@@ -1,3 +1,8 @@
+/**
+ * @title BLU Assistant MQTT configuration
+ * @description Configures MQTT settings on Shelly BLU devices via BLE scanning and RPC.
+ */
+
 /************************************************
 * CONFIGURATION
 ************************************************/

@@ -1,3 +1,8 @@
+/**
+ * @title BLU Assistant factory reset
+ * @description Factory resets Shelly BLU devices via BLE scanning and RPC commands.
+ */
+
 /************************************************
  * CONFIGURATION & CONSTANTS
  ************************************************/
