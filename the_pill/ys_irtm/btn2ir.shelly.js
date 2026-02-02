@@ -1,6 +1,6 @@
 /**
- * YS-IRTM Example: Button Trigger
- * Send IR codes when Shelly buttons/inputs are pressed.
+ * @title YS-IRTM button-to-IR example
+ * @description Maps Shelly buttons and inputs to IR codes using YS-IRTM.
  */
 
 // ============================================================================

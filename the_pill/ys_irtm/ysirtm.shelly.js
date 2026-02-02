@@ -1,4 +1,10 @@
 /**
+ * @title YS-IRTM infrared UART library
+ * @description UART protocol implementation for YS-IRTM to send and receive NEC IR
+ *   codes.
+ */
+
+/**
  * YS-IRTM Infrared TX/RX Module - Core API Library
  *
  * Full implementation of the YS-IRTM UART protocol for NEC IR codes.

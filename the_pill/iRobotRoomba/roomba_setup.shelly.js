@@ -1,4 +1,9 @@
 /**
+ * @title iRobot Roomba virtual component setup
+ * @description Creates virtual components required by the Roomba library.
+ */
+
+/**
  * iRobot Roomba - Virtual Components Setup Script
  *
  * Creates the virtual components required by roomba.shelly.js

@@ -1,3 +1,9 @@
+/**
+ * @title Backup: early YS-IRTM UART script (deprecated)
+ * @description Deprecated backup script with basic YS-IRTM UART handling and known
+ *   issues.
+ */
+
 // The Pill + YS-IRTM (no RegEx) – minimal mapping script + RX printed as JS array
 
 const BAUD = 9600;

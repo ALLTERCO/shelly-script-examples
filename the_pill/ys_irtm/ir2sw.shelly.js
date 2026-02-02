@@ -1,6 +1,6 @@
 /**
- * YS-IRTM Example: Switch Control via IR
- * Control Shelly switches using IR remote commands.
+ * @title YS-IRTM IR-to-switch example
+ * @description Maps received IR codes to Shelly switch actions.
  */
 
 // ============================================================================

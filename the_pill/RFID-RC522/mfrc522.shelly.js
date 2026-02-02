@@ -1,4 +1,10 @@
 /**
+ * @title MFRC522 UART RFID library
+ * @description UART protocol implementation for MFRC522 RFID readers with read/write
+ *   support.
+ */
+
+/**
  * MFRC522 UART RFID Card Reader for Shelly
  *
  * Reads RFID card UIDs using the MFRC522-UART module.

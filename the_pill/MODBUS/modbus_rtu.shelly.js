@@ -1,4 +1,10 @@
 /**
+ * @title MODBUS-RTU master library
+ * @description UART MODBUS-RTU master implementation for reading and writing slave
+ *   registers.
+ */
+
+/**
  * MODBUS-RTU Master Library for Shelly
  *
  * Implements MODBUS-RTU protocol over UART for communicating with

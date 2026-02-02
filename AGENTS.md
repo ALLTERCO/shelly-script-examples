@@ -8,14 +8,21 @@ This repository contains JavaScript examples for Shelly smart home devices. Scri
 
 ```
 shelly-script-examples/
-├── *.js                        # Root-level example scripts (87+ files)
-├── examples-manifest.json      # Central registry of all examples (IMPORTANT)
-├── blu-assistant-scripts/      # Shelly BLU Assistant device management
-├── howto/                      # Basic tutorials and minimal examples
-├── lora-*/                     # LoRa communication examples (5 directories)
-├── snippets/                   # Reusable code snippets (JSON format)
-├── tools/                      # Upload utilities (Python/Bash)
-└── .github/                    # CI/CD workflows and issue templates
+|-- ble/                        # BLE/BLU sensor and button examples
+|-- lora/                       # LoRa communication and device control
+|-- mqtt/                       # MQTT and Home Assistant integrations
+|-- power-energy/               # Power monitoring and load management
+|-- switch-input/               # Input, switch, and cover control scripts
+|-- weather-env/                # Weather and environmental integrations
+|-- http-integrations/          # HTTP endpoints and external services
+|-- networking/                 # Provisioning and watchdog scripts
+|-- scheduling/                 # Scheduling, scenes, and orchestration
+|-- blu-assistant/              # Shelly BLU Assistant device management
+|-- examples-manifest.json      # Central registry of all examples (IMPORTANT)
+|-- howto/                      # Basic tutorials and minimal examples
+|-- snippets/                   # Reusable code snippets (JSON format)
+|-- tools/                      # Upload utilities (Python/Bash)
+`-- .github/                    # CI/CD workflows and issue templates
 ```
 
 ## Script Categories
@@ -25,21 +32,21 @@ shelly-script-examples/
 | **BLE/Bluetooth** | aranet4, ruuvi, bparasite, shelly-blu-* | BTHome protocol, sensor reading |
 | **MQTT** | mqtt-discovery, mqtt-announce | Home Assistant integration |
 | **Home Automation** | hue-lights, load-shedding | Scene control, power management |
-| **LoRa** | lora-encrypted-*, lora-unencrypted-* | Long-range communication |
+| **LoRa** | lora/* | Long-range communication |
 | **Utilities** | power-*, scheduler-*, weather-* | Monitoring, scheduling |
-| **Blu Assistant** | blu-assistant-scripts/*.js | Virtual component management |
+| **Blu Assistant** | blu-assistant/*.shelly.js | Virtual component management |
 
 ---
 
 ## Coding Standards
 
 ### Single File Application
-- **Each script is standalone**: Every `.js` file is a complete, self-contained application
+- **Each script is standalone**: Every `.shelly.js` file is a complete, self-contained application
 - **No imports or includes**: Shelly mJS does not support importing code from other files
 - **No shared dependencies**: Each script must contain all the code it needs
 
 ### File Naming
-- Use descriptive kebab-case names: `ble-shelly-motion.js`, `mqtt-discovery.js`
+- Use descriptive kebab-case names: `ble-shelly-motion.shelly.js`, `mqtt-discovery.shelly.js`
 - Reflect the script's purpose in the filename
 
 ### Code Style (Enforced via .editorconfig/.prettierrc)
@@ -61,47 +68,106 @@ shelly-script-examples/
 
 ### Code Structure Pattern
 
-```javascript
-// Copyright 2021 Allterco Robotics EOOD
-// Licensed under the Apache License, Version 2.0
+Scripts follow a **two-header pattern** for documentation:
 
+1. **Standard Header** - Machine-readable metadata for manifest/index generation
+2. **Detailed Documentation** - Human-readable technical details (hardware, protocol, etc.)
+
+```javascript
 /**
- * Script description and purpose
- * Firmware requirements: X.X+
- * Device compatibility: Gen2/Gen3
+ * @title Human-Readable Title
+ * @description Brief description of what the script does. Keep it concise
+ *   (1-2 sentences). Mention firmware requirements if applicable.
  */
 
-// === CONFIGURATION ===
+/**
+ * Detailed Documentation Block
+ *
+ * Extended explanation of the script's purpose and functionality.
+ *
+ * Hardware Connection: (for hardware-interfacing scripts)
+ * - Device TX -> Shelly RX (GPIO)
+ * - Device RX -> Shelly TX (GPIO)
+ * - VCC -> 3.3V or 5V
+ * - GND -> GND
+ *
+ * Protocol: (for communication scripts)
+ * - Baud rate: 9600
+ * - Frame format: [Header] [Length] [Data] [Checksum]
+ *
+ * Components Created: (for setup scripts)
+ * - Text:200    - Status display
+ * - Number:200  - Value display
+ * - Button:200  - Control button
+ *
+ * @see https://link-to-reference-documentation
+ */
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
 let CONFIG = {
   // User-configurable options at top
   deviceId: 0,
   timeout: 5000,
 };
 
-// === STATE ===
+// ============================================================================
+// STATE
+// ============================================================================
+
 let state = {
   lastUpdate: null,
   isRunning: false,
 };
 
-// === HELPER FUNCTIONS ===
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 function helperFunction(param) {
   // Implementation
 }
 
-// === MAIN LOGIC ===
+// ============================================================================
+// MAIN LOGIC
+// ============================================================================
+
 function main() {
   // Core logic
 }
 
-// === EVENT HANDLERS ===
+// ============================================================================
+// EVENT HANDLERS
+// ============================================================================
+
 Shelly.addEventHandler(function(ev) {
   // Handle events
 });
 
-// === INITIALIZATION ===
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
 main();
 ```
+
+### Header Guidelines
+
+| Header Type | Purpose | Required |
+|-------------|---------|----------|
+| `@title` | Short name for manifest/index | Yes |
+| `@description` | Brief description (1-2 sentences) | Yes |
+| Detailed block | Hardware, protocol, components | For hardware/complex scripts |
+
+**When to include detailed documentation:**
+- Hardware interfacing scripts (UART, SPI, I2C devices)
+- Setup scripts that create virtual components
+- Protocol implementations (MODBUS, IR, RFID)
+- Scripts with complex configuration options
+
+**Simple scripts** (basic examples, utilities) may only need the standard header.
 
 ---
 
@@ -205,7 +271,7 @@ The `examples-manifest.json` is the central registry for all scripts. **Every ne
 ### Manifest Entry Format
 ```json
 {
-  "fname": "script-name.js",
+  "fname": "script-name.shelly.js",
   "title": "Human-Readable Title",
   "description": "What the script does and its requirements",
   "doc": "subdirectory/README.md"  // Optional: path to additional docs
@@ -480,3 +546,5 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ### Community
 - [Shelly Support Forum](https://www.shelly-support.eu/)
 - [GitHub Issues](https://github.com/ALLTERCO/shelly-script-examples/issues)
+
+

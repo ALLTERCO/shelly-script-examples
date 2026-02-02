@@ -1,361 +1,366 @@
 [
    {
-    "fname": "victron-mppt-solar-controller.shelly.js",
+    "fname": "power-energy/victron-mppt-solar-controller.shelly.js",
     "title": "Victron's Smartsolar charge controller data monitoring",
     "description": "This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values."
   },
   {
-    "fname": "lora-send-no-encryption.js",
+    "fname": "lora/lora-send-no-encryption.shelly.js",
     "title": "Send message over lora without encryption",
     "description": "This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)"
   },
     {
-    "fname": "lora-receive-no-encryption.js",
+    "fname": "lora/lora-receive-no-encryption.shelly.js",
     "title": "Receive message over lora without encryption",
     "description": "This script demonstrates how to receive unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)"
   },
   {
-    "fname": "lora-encrypted-communication/lora-send-encrypted-msg.js",
+    "fname": "lora/lora-encrypted-communication/lora-send-encrypted-msg.shelly.js",
     "title": "LoRa Message Sender with AES Encryption and Checksum",
     "description": "This script demonstrates how to send secure LoRa messages using Shelly scripting. It encrypts the message with AES-256-ECB and prepends a checksum to ensure message integrity. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-encrypted-communication/README.md"
   },
   {
-    "fname": "lora-encrypted-communication/lora-receive-encrypted-msg.js",
+    "fname": "lora/lora-encrypted-communication/lora-receive-encrypted-msg.shelly.js",
     "title": "LoRa Message Receiver with AES Decryption and Checksum Verification",
     "description": "This script shows how to receive and validate LoRa messages using Shelly scripting. It decrypts incoming messages with AES-256-ECB and verifies their integrity using a prepended checksum. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-encrypted-communication/README.md"
   },
 
   {
-    "fname": "lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.js",
+    "fname": "lora/lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.shelly.js",
     "title": "Receive cover control commands over LoRa and send BTHome sensor data",
     "description": "Example how to handle commands over LoRa to control Cover device and data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-covercontrol-receiver/README.md"
   },
   {
-    "fname": "lora-covercontrol-receiver/lora-covercontrol-receiver.js",
+    "fname": "lora/lora-covercontrol-receiver/lora-covercontrol-receiver.shelly.js",
     "title": "Remote Cover control over LoRa and receive BTHome sensor data",
     "description": "Example how to send commands over LoRa to control Cover device and receive data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-covercontrol-receiver/README.md"
   },
   {
-    "fname": "lora-covercontrol-sender/lora-covercontrol-sender.js",
+    "fname": "lora/lora-covercontrol-sender/lora-covercontrol-sender.shelly.js",
     "title": "Remote Cover control over LoRa",
     "description": "Example how to send commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-covercontrol-sender/README.md"
   },
   {
-    "fname": "lora-covercontrol-sender/lora-covercontrol-listener.js",
+    "fname": "lora/lora-covercontrol-sender/lora-covercontrol-listener.shelly.js",
     "title": "Receive cover control commands over LoRa",
     "description": "Example how to handle commands over LoRa to control Cover device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-covercontrol-sender/README.md"
   },
   {
-    "fname": "lora-lightcontrol-receiver/lora-lightcontrol-receiver.js",
+    "fname": "lora/lora-lightcontrol-receiver/lora-lightcontrol-receiver.shelly.js",
     "title": "Receive light control commands over LoRa",
     "description": "Example how to handle commands over LoRa to control Light device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-lightcontrol-receiver/README.md"
   },
   {
-    "fname": "lora-lightcontrol-sender/lora-lightcontrol-sender.js",
+    "fname": "lora/lora-lightcontrol-sender/lora-lightcontrol-sender.shelly.js",
     "title": "Remote Light control over LoRa",
     "description": "Example how to control remote light device over LoRa with Shelly Scripting. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
-    "doc": "README.md"
+    "doc": "lora/lora-lightcontrol-sender/README.md"
   },
   {
-    "fname": "hue-lights-control.js",
+    "fname": "ble/hue-lights-control.shelly.js",
     "title": "Controlling hue lights with Shelly BLU Button or virtual buttons",
     "description": "This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)"
   },
   {
-    "fname": "control-ha-light-entity-with-boolean.js",
+    "fname": "mqtt/control-ha-light-entity-with-boolean.shelly.js",
     "title": "Control Light entity from HA via virtual boolean component",
     "description": "This script will control a light entity in Home Assistant via a virtual boolean component in Shelly. The script will listen for changes in the boolean component and will turn on or off the light entity in Home Assistant accordingly."
   },
   {
-    "fname": "load-shedding.js",
+    "fname": "power-energy/load-shedding.shelly.js",
     "title": "Load shedding with Shelly Pro4PM and Pro3EM",
     "description": "Keeps measured usage between a low (min_before_re_adding) and high (max_before_shedding) total power (watts), by controlling power to other devices"
   },
   {
-    "fname": "advanced-load-shedding.js",
+    "fname": "power-energy/advanced-load-shedding.shelly.js",
     "title": "Advanced Load shedding with schedules and notifications",
     "description": "Adds schedule, device, and notification templates and functionality to the original load shedding script."
   },
   {
-    "fname": "monitor-production.js",
+    "fname": "power-energy/monitor-production.shelly.js",
     "title": "Add Additional Meter to the Advanced Load Shedding script",
-    "description": "Use this script paired with advanced-load-shedding.js to add a second source - example, grid, PV, generator, etc."
+    "description": "Use this script paired with advanced-load-shedding.shelly.js to add a second source - example, grid, PV, generator, etc."
   },
   {
-    "fname": "ntc-conversion.js",
+    "fname": "weather-env/ntc-conversion.shelly.js",
     "title": "Converts NTC thermal resistor output to temperature and execute actions",
     "description": "Reads voltage data from the Shelly Plus Add-on, calculate the corresponding temperature using the Steinhart-Hart equation, and take action based on the temperature reading"
   },
   {
-    "fname": "ble-shelly-motion.js",
+    "fname": "ble/ble-shelly-motion.shelly.js",
     "title": "BLE in Scripting - Shelly BLU Motion script actions",
     "description": "Example how to use a Shelly BLU Motion, read advertising data, decode and turn on switch. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "telegram-interaction.js",
+    "fname": "ble/ble_btn_in_range.shelly.js",
+    "title": "BLU presence watcher with auto-off",
+    "description": "Tracks BLU device presence via BTHome, logs absence, and turns off a local switch after a timeout."
+  },
+  {
+    "fname": "http-integrations/telegram-interaction.shelly.js",
     "title": "Telegram interaction with Shelly script",
     "description": "This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. \n(Requires firmware version: 1.0.0-beta or newer)",
-    "doc": "TELEGRAM-BOT.md"
+    "doc": "http-integrations/TELEGRAM-BOT.md"
   },
   {
-    "fname": "ble-shelly-blu.js",
+    "fname": "ble/ble-shelly-blu.shelly.js",
     "title": "Shelly BLU devices event handler for scripts",
-    "description": "Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with \"ble-events-handler.js\" script that handles the events \n(Requires firmware version: 1.0.0-beta or newer)"
+    "description": "Script that handles and parses events from all Shelly BLU devices and emits event with the received data. Made to be used with \"ble-events-handler.shelly.js\" script that handles the events \n(Requires firmware version: 1.0.0-beta or newer)"
   },
   {
-    "fname": "ble-shelly-blu-remote-control-cover.js",
+    "fname": "ble/ble-shelly-blu-remote-control-cover.shelly.js",
     "title": "Control a cover with a Shelly BLU Remote Control ZB",
-    "description": "Script that handles bluetooh events from a Shelly BLU Remote Control ZB device and controls a cover connected to a Shelly 2PM (gen 2 or newer). Requires the \"ble-shelly-blu.js\" script to be installed and running \n(Requires firmware version: 1.0.0-beta or newer)"
+    "description": "Script that handles bluetooh events from a Shelly BLU Remote Control ZB device and controls a cover connected to a Shelly 2PM (gen 2 or newer). Requires the \"ble-shelly-blu.shelly.js\" script to be installed and running \n(Requires firmware version: 1.0.0-beta or newer)"
   },
   {
-    "fname": "ble-events-handler.js",
-    "title": "Handles event from the device (at the moment tested only with BLU events from \"ble-shelly-blu.js\" example",
-    "description": "Do automations based on events and easy conditioning. This script must be used with another script that emits events for example \"ble-shelly-blu.js\" script. \n(Requires firmware version: 1.0.0-beta or newer)"
+    "fname": "ble/ble-events-handler.shelly.js",
+    "title": "Handles event from the device (at the moment tested only with BLU events from \"ble-shelly-blu.shelly.js\" example",
+    "description": "Do automations based on events and easy conditioning. This script must be used with another script that emits events for example \"ble-shelly-blu.shelly.js\" script. \n(Requires firmware version: 1.0.0-beta or newer)"
   },
   {
-    "fname": "ble-aranet4.js",
+    "fname": "ble/ble-aranet4.shelly.js",
     "title": "Aranet4 example with BLE scripting",
     "description": "Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-aranet2.js",
+    "fname": "ble/ble-aranet2.shelly.js",
     "title": "Aranet2 example with BLE scripting",
     "description": "Example how to use a 3rd party BLE sensor and execute actions based on conditions. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-shelly-btn-gateway-for-other-devices.js",
+    "fname": "ble/ble-shelly-btn-gateway-for-other-devices.shelly.js",
     "title": "Gateway between Shelly BLU button1 and other devices",
     "description": "Use your Gen2 device as a gateway between Shelly Blu button1 and other Shelly devices (no matter Gen1 or Gen2) by sending local requests by their local IP APIs."
   },
   {
-    "fname": "activation-switch.js",
+    "fname": "switch-input/activation-switch.shelly.js",
     "title": "Activation switch",
     "description": "Replicate activation_switch profile from Gen1 devices."
   },
   {
-    "fname": "ble-pasv-mqtt-gw.js",
+    "fname": "ble/ble-pasv-mqtt-gw.shelly.js",
     "title": "BLE Thermometer passive data collector for MQTT Autodiscovery",
     "description": "BLE passive mode scanner for non-battery operated Gen2 devices.\nDecoding protocols Mijia/ATC/pvvx/BTHome2, forwards data to the MQTT broker with Autodiscovery objects. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-shelly-btn.js",
+    "fname": "ble/ble-shelly-btn.shelly.js",
     "title": "BLE in Scripting - Shelly BLU Button script actions",
     "description": "Example how to use a Shelly BLU Button, read advertising data, decode and turn on switch. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-shelly-dw.js",
+    "fname": "ble/ble-shelly-dw.shelly.js",
     "title": "BLE in Scripting - Shelly BLU DoorWindow script actions",
     "description": "Example how to use a Shelly BLU DoorWindow, read advertising data, decode and turn on switch. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-shelly-scanner.js",
+    "fname": "ble/ble-shelly-scanner.shelly.js",
     "title": "BLE in Scripting - Shelly BLU Scanner",
     "description": "This script will scan aired advertisement data, select Shelly BLU devices and will print their name and address (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-ruuvi.js",
+    "fname": "ble/ble-ruuvi.shelly.js",
     "title": "BLE in Scripting - Ruuvi example",
     "description": "Example how to use a 3rd party BLE sensor, read data and turn on switch based on the data. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "ble-bparasite.js",
+    "fname": "ble/ble-bparasite.shelly.js",
     "title": "BLE in Scripting - b-parasite example",
     "description": "Example how to use a 3rd party BLE sensor, read environment data. (Requires firmware version\n0.12.0-beta1 or newer)"
   },
   {
-    "fname": "cycle-switch.js",
+    "fname": "switch-input/cycle-switch.shelly.js",
     "title": "Configurable Cycle switch",
     "description": "Replicate Cycle switch feature from Gen1 devices. Allows for custom list of operations to cycle through."
   },
   {
-    "fname": "http-notify-on-power-threshold.js",
+    "fname": "http-integrations/http-notify-on-power-threshold.shelly.js",
     "title": "Shelly XPM - Send HTTP notification if power goes above threshold",
     "description": "This script subscribes for notifications, monitors the instanteneous power of the output switch and if that\ngoes above a threshold value and if current time is within the active time window will send an HTTP notification"
   },
   {
-    "fname": "http-handlers.js",
+    "fname": "http-integrations/http-handlers.shelly.js",
     "title": "Shelly HTTP script handling GET requests, query strings",
     "description": "This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for\nthose requests. Reconfiguration of a Switch component as an example is included"
   },
   {
-    "fname": "prometheus.js",
+    "fname": "http-integrations/prometheus.shelly.js",
     "title": "Prometheus HTTP Endpoint for a single switch",
     "description": "This script exposes a /status endpoint that returns Prometheus metrics that can be scraped."
   },
   {
-    "fname": "consume-limited-power.js",
+    "fname": "power-energy/consume-limited-power.shelly.js",
     "title": "Shelly Plus 1PM - Stop the output after consuming certain amount of power",
     "description": "This script listens for the event when the output is turned on, and starts counting the power reported in NotifyStatus\nevery minute.\nIt is accumulated in a counter and if the combined consumption is over a threshold the output is turned off."
   },
   {
-    "fname": "cover-control-weather.js",
+    "fname": "weather-env/cover-control-weather.shelly.js",
     "title": "Control a Shelly 2.5 (Gen1) depending on current cloud conditions",
     "description": "The script, when run, will fetch via REST api from a weather service the current conditions for a location check if\ncloud coverage is above or below certain percentage and respectively open or close window shades by calling a Shelly\n2.5 (Gen1) endpoint."
   },
   {
-    "fname": "cover-scheduled-event-handlers.js",
+    "fname": "switch-input/cover-scheduled-event-handlers.shelly.js",
     "title": "Control a Shelly Plus 2PM (Gen2) by handling events",
     "description": "The script, when run, will subscribe to events and handle \"cover_open_to\" and \"cover_close_to\" events to open or close a cover to a certain position. \"cover_open_to\" also supports a \"not_before\" configuration to prevent opening the cover before a certain time."
   },
   {
-    "fname": "precipitation-irrigation.js",
+    "fname": "weather-env/precipitation-irrigation.shelly.js",
     "title": "Turn on/off watering based on precipitation in last 24 hours (based on AccuWeather data)",
     "description": "If there was precipitation in the past period (24h) skip an irrigation cycle. Data is retrieved from a public wather API service for the location.\nYou can use any Shelly Plus 1/Pro 1 ot Pro 2 to control your irrigation system.\nDon't forger to add AutoOFF for max Irrigation time and set a Schedule which start irrigation in device webUI.\nNote: Configure your Accuweather APIKEY and end points in the script once you add it."
   },
   {
-    "fname": "failure-monitor.js",
+    "fname": "power-energy/failure-monitor.shelly.js",
     "title": "Load monitoring and alerting in Shelly Gen2",
     "description": "This script listens for events when power changes to 0 and if the switch is still on then it alerts that something\nmight have happened to the load."
   },
   {
-    "fname": "idle-alert.js",
+    "fname": "switch-input/idle-alert.shelly.js",
     "title": "Alert on inactivity",
     "description": "Script that will monitor the inputs of a Shelly and if there was no user interaction with the input(s) It will call an\nURL with a predefined message"
   },
   {
-    "fname": "mqtt-announce.js",
+    "fname": "mqtt/mqtt-announce.shelly.js",
     "title": "Backward compatibility with Gen1 MQTT format (announce only)",
     "description": "Use MQTT in scripting to provide backwards compatibility with Gen1 MQTT topics shellies/announce and shellies/command"
   },
   {
-    "fname": "mqtt-announce-control.js",
+    "fname": "mqtt/mqtt-announce-control.shelly.js",
     "title": "Backward compatibility with Gen1 MQTT format (extended)",
     "description": "Use MQTT in scripting to provide backwards compatibility with Gen1 MQTT topics shellies/announce, shellies/command, <device-id>/command,\n/command/switch:0/output.\n\nPublish device status, input and switch status"
   },
   {
-    "fname": "mqtt-discovery.js",
+    "fname": "mqtt/mqtt-discovery.shelly.js",
     "title": "MQTT Auto Discovery in Home Assistant",
     "description": "This script is registering a virtual switch device in HA.\n\nThe implementation is banal and directly reports switch state and controls a switch, but you can have a totally different virtual device: valve, light, scene.\n\nNote: Requires configuration.yaml change in HA, please refer to the comments in the code of this file."
   },
   {
-    "fname": "mqtt-discovery-sensors.js",
+    "fname": "mqtt/mqtt-discovery-sensors.shelly.js",
     "title": "MQTT Auto Discovery in Home Assistant - Sensors",
     "description": "This script is registering a virtual switch device in HA.\n\nSwitch sensors are also registered as entities.\n\nNote: Requires configuration.yaml change in HA, please refer to the comments in the code of this file."
   },
   {
-    "fname": "mqtt-switch-status.js",
+    "fname": "mqtt/mqtt-switch-status.shelly.js",
     "title": "Send Switch status to a custom MQTT topic",
     "description": "Use MQTT in scripting to provide switch status updates on a custom topic"
   },
   {
-    "fname": "n-way-dimmer.js",
-    "title": "n-way-dimmer.js",
+    "fname": "switch-input/n-way-dimmer.shelly.js",
+    "title": "n-way-dimmer.shelly.js",
     "description": "Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group."
   },
   {
-    "fname": "objects.js",
+    "fname": "scheduling/objects.shelly.js",
     "title": "mJS example of how to create custom Objects that interact with components (Switch in this case)",
     "description": "Example of how to create wrappers around RPC calls and using Object.create."
   },
   {
-    "fname": "push-pushed.js",
+    "fname": "http-integrations/push-pushed.shelly.js",
     "title": "Push notifications using Pushed service",
     "description": "Use a script to notify directly on your mobile phone via a push notification service."
   },
   {
-    "fname": "remoterpc.js",
+    "fname": "scheduling/remoterpc.shelly.js",
     "title": "Example of remote calling a Shelly Gen2",
     "description": "A remote Shelly abstraction Call an RPC method on the remote Shelly"
   },
   {
-    "fname": "register-scheduled-script.js",
+    "fname": "scheduling/register-scheduled-script.shelly.js",
     "title": "Schedule script function for execution into the system schedule",
     "description": "When the script is run it will check if it is registered in the schedule and if not will register itself"
   },
   {
-    "fname": "restore-schedule.js",
+    "fname": "scheduling/restore-schedule.shelly.js",
     "title": "After boot scan schedules and run active one",
     "description": "When device boots and there is a schedule that has to be active at the moment it won't be executed. This script\nwalks through the configured schedules and runs the one that should be active at that moment of time."
   },
   {
-    "fname": "router-watchdog.js",
+    "fname": "networking/router-watchdog.shelly.js",
     "title": "Router Watchdog",
     "description": "This script tries to execute HTTP GET requests within a set time, against a set of endpoints.\n\nAfter certain number of failures the script sets the Switch off and after some time turns it back on."
   },
   {
-    "fname": "power-outages.js",
+    "fname": "power-energy/power-outages.shelly.js",
     "title": "Monitor Power Outages or Crashed Services",
     "description": "Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics."
   },
   {
-    "fname": "scene.js",
+    "fname": "scheduling/scene.shelly.js",
     "title": "Scene playing in Shelly Gen2",
     "description": "Simple scene abstraction A scene is an array of actions or conditions that\nare played squentially.\n\nAn action can have a delay property, which means after executing the action function wait until proceeding to the next one.\n\nA condition is an element of a scene that has property type:\"cond\".\nIf the result is true, the scene continues with the next item, if it is false it\nstops."
   },
   {
-    "fname": "shelly2p-domo-coverfix.js",
+    "fname": "switch-input/shelly2p-domo-coverfix.shelly.js",
     "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v1",
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
   },
   {
-    "fname": "shelly2p-domo-coverfix-v2.js",
+    "fname": "switch-input/shelly2p-domo-coverfix-v2.shelly.js",
     "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v2",
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Only Shelly firmware >= 1.x supported. Developed for ShellyTeacher4Domo."
   },
   {
-    "fname": "test-scene.js",
+    "fname": "scheduling/test-scene.shelly.js",
     "title": "Scene Test with multiple Shellies",
     "description": "Playing a scene with four Shellies with that have a lamp as a load.\n\nDemonstration of a \"Remote Shelly\" wrapper object. object prototyping, and simple scene player."
   },
   {
-    "fname": "turn-on-weather.js",
-    "title": "turn-on-weather.js",
+    "fname": "weather-env/turn-on-weather.shelly.js",
+    "title": "turn-on-weather.shelly.js",
     "description": "Turn on when temperature is below CONFIG.tempBelowTurnOn.\n\nTurn off when temperature is above CONFIG.tempAboveTurnOff.\n\nFor getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy\nthe key and paste it here."
   },
   {
-    "fname": "wifi-provision.js",
+    "fname": "networking/wifi-provision.shelly.js",
     "title": "Provisioning of new Shelly Plus gen 2 devices",
     "description": "This scripts periodically scans for access points with SSID matching the template for Shelly Plus device APs and if\nfound, will connect to that AP and provision WiFi credentials."
   },
   {
-    "fname": "mqtt-switch-status-announce.js",
+    "fname": "mqtt/mqtt-switch-status-announce.shelly.js",
     "title": "Periodically send Switch status to MQTT topic",
     "description": "Use MQTT in scripting to periodically provide switch status updates on the mentioned topic \"<topic_prefix>/status/switch:0\""
   },
   {
-    "fname": "howto/input-event.js",
+    "fname": "howto/input-event.shelly.js",
     "title": "Example - Input events",
     "description": "Example showing how to work with Input component's events."
   },
   {
-    "fname": "howto/input-read.js",
+    "fname": "howto/input-read.shelly.js",
     "title": "Example - Reading Input status",
     "description": "Example showing how to read Input component's status."
   },
   {
-    "fname": "howto/switch-event.js",
+    "fname": "howto/switch-event.shelly.js",
     "title": "Example - Switch events",
     "description": "Example showing how to work with Switch component's events."
   },
   {
-    "fname": "howto/switch-notifications.js",
+    "fname": "howto/switch-notifications.shelly.js",
     "title": "Example - Switch notifications - reading consumption active power",
     "description": "Example how to read Switch notifications and listen for when active power is more than 4W."
   },
   {
-    "fname": "howto/switch-read.js",
+    "fname": "howto/switch-read.shelly.js",
     "title": "Example - Reading Switch status",
     "description": "Example of reading Switch component's status."
   },
   {
-    "fname": "ip-assignment-watchdog.js",
+    "fname": "networking/ip-assignment-watchdog.shelly.js",
     "title": "Reboot on DHCP IP assignment issues",
     "description": "Monitor for valid IP assignment from DHCP server and reboot if not received within a certain time period."
   },
   {
-    "fname": "universal-blu-to-mqtt.js",
+    "fname": "ble/universal-blu-to-mqtt.shelly.js",
     "title": "Example - Universal BLU to MQTT Script",
     "description": "This script is about shares any BLU product's complete payload to MQTT.."
   },
   {
-    "fname": "ble-miflora-xiaomi-hhccjcy01.js",
+    "fname": "ble/ble-miflora-xiaomi-hhccjcy01.shelly.js",
     "title": "MiFlora Parser / xiaomi_hhccjcy01",
     "description": "Scans for BLE events of MiFlora plant sensors and publishes them"
   },
@@ -478,5 +483,11 @@
     "title": "Backup: corrupted TV IR script (deprecated)",
     "description": "Backup script preserved for reference; not intended for use.",
     "doc": "the_pill/_backup/README.md"
-  }
-]
+  },
+  {
+    "fname": "http-integrations/http_post_watts_to_thingspeak.shelly.js",
+    "title": "Send energy meter watts to ThingSpeak via HTTP POST",
+    "description": "Posts live active power (watts) to a ThingSpeak channel at a fixed interval."
+  }]
+
+

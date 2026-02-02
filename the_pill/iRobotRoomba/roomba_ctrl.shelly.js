@@ -1,4 +1,9 @@
 /**
+ * @title iRobot Roomba button controller
+ * @description Controls Roomba via virtual buttons and physical inputs over UART.
+ */
+
+/**
  * iRobot Roomba 560 - Button Control Script
  *
  * Controls Roomba 560 via virtual buttons and physical inputs.

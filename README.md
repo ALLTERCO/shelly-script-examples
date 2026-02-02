@@ -25,9 +25,24 @@ This repository is designed for:
 - [Script Index](SHELLY_MJS.md) - Full list of all example scripts with descriptions
 - [Changelog](CHANGELOG.md) - See what's new
 - [Contributing](CONTRIBUTING.md) - How to contribute to this project
+- [Tools](tools/README.md) - Helper utilities for uploading scripts and validation
 - [License](LICENSE) - Apache License 2.0
 - [Shelly Script Documentation](https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures) - Official Shelly scripting docs
 
 ## Collections
 
 - [The Pill](the_pill/README.md) - UART peripherals and hardware integrations
+
+## Repository Layout
+
+- [ble/](ble/README.md) - BLE/BLU sensors, buttons, and gateways
+- [blu-assistant/](blu-assistant/README.md) - BLU Assistant device management scripts
+- [howto/](howto/README.md) - Minimal examples and tutorials
+- [http-integrations/](http-integrations/README.md) - HTTP endpoints, notifications, and external services
+- [lora/](lora/README.md) - LoRa send/receive and device control examples
+- [mqtt/](mqtt/README.md) - MQTT and Home Assistant integrations
+- [networking/](networking/README.md) - Provisioning and watchdog scripts
+- [power-energy/](power-energy/README.md) - Load management, power thresholds, and monitoring
+- [scheduling/](scheduling/README.md) - Scheduling, scenes, and orchestration
+- [switch-input/](switch-input/README.md) - Input handling, switch behavior, and cover control
+- [weather-env/](weather-env/README.md) - Weather and environmental sensor integrations

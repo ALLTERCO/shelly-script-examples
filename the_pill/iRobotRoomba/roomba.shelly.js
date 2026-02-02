@@ -1,4 +1,10 @@
 /**
+ * @title iRobot Roomba Open Interface library
+ * @description UART library implementing the iRobot Open Interface (OI) for Roomba
+ *   500 series control.
+ */
+
+/**
  * iRobot Roomba 500 Series - Core API Library
  *
  * Full implementation of the iRobot Open Interface (OI) protocol for
