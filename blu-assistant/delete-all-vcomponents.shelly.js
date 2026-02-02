@@ -1,3 +1,8 @@
+/**
+ * @title Delete all virtual components
+ * @description Removes all dynamic virtual components and groups with throttled RPC calls.
+ */
+
 //
 // delete_all_virtuals_throttled.shelly.js
 //

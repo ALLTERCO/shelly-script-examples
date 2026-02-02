@@ -1,3 +1,8 @@
+/**
+ * @title Power threshold load shedding
+ * @description Turns off configured channels when total power consumption exceeds a threshold.
+ */
+
 // Shelly Script example: Shelly Pro 4PM - If total power consumption goes above certain
 // value turn off some channels
 let CONFIG = {

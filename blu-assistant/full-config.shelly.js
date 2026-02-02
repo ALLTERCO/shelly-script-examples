@@ -1,3 +1,8 @@
+/**
+ * @title BLU Assistant full device configuration
+ * @description Configures Shelly BLU devices with WiFi, name, and timezone via BLE RPC.
+ */
+
 /************************************************
  * CONFIGURATION & CONSTANTS
  ************************************************/

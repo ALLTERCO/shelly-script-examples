@@ -55,16 +55,27 @@ def extract_metadata_from_file(file_path):
             content = f.read(2000)  # Read first 2000 chars
 
         # Look for common comment patterns
-        # Pattern 1: // Title: ... or // Description: ...
-        title_match = re.search(r"//\s*(?:Title|Name):\s*(.+)", content, re.IGNORECASE)
+        # Pattern 1: JSDoc-style @title and @description (preferred)
+        title_match = re.search(r"@title\s+(.+)", content)
         if title_match:
             title = title_match.group(1).strip()
 
-        desc_match = re.search(r"//\s*Description:\s*(.+)", content, re.IGNORECASE)
+        desc_match = re.search(r"@description\s+(.+)", content)
         if desc_match:
             description = desc_match.group(1).strip()
 
-        # Pattern 2: First comment block
+        # Pattern 2: // Title: ... or // Description: ...
+        if not title:
+            title_match = re.search(r"//\s*(?:Title|Name):\s*(.+)", content, re.IGNORECASE)
+            if title_match:
+                title = title_match.group(1).strip()
+
+        if not description:
+            desc_match = re.search(r"//\s*Description:\s*(.+)", content, re.IGNORECASE)
+            if desc_match:
+                description = desc_match.group(1).strip()
+
+        # Pattern 3: First comment block as fallback for title
         if not title:
             first_comment = re.search(r"^//\s*(.+?)$", content, re.MULTILINE)
             if first_comment:

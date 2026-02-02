@@ -1,4 +1,9 @@
- //This script handle the PTM215B BLE button from the enocean alliance
+/**
+ * @title PTM215B EnOcean BLE button handler
+ * @description Handles PTM215B energy-harvesting BLE button events to control up to 4 relays.
+ */
+
+//This script handle the PTM215B BLE button from the enocean alliance
 //It can be found in many third party seller like Feller in Switzerland and allow very nice use case
 //That button can be used to drive up to 4 relay without any battery or wire as it harvest some energy from the push on it
 //There is 4 switch on that button with distinct press and release action,

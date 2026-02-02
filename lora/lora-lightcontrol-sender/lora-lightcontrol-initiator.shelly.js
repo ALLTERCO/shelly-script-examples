@@ -1,6 +1,11 @@
+/**
+ * @title LoRa light control scheduler
+ * @description Schedules LoRa light control commands based on time-of-day brightness settings.
+ */
+
 const SCRIPT_ID = Shelly.getCurrentScriptId();
 
-//key is time, value is device number, 
+//key is time, value is device number,
 const TIME_ENUM = {
   "05:00": { enable: true, brightness: 50 },
   "07:00": { enable: false, brightness: 0 },

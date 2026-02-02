@@ -1,3 +1,8 @@
+/**
+ * @title BLU device label printer
+ * @description Scans for Shelly BLU devices and sends device info to an online label printer.
+ */
+
 /************************************************
  * CONFIGURATION & CONSTANTS
  ************************************************/
