@@ -1,3 +1,8 @@
+/**
+ * @title BTHome sensor webhook trigger
+ * @description Sends HTTP webhooks when BTHome sensor state changes (e.g. window open/close).
+ */
+
 // === CONFIGURATION ===
 const WINDOW_SENSOR_ID       = 200;
 // explicit On/Off URLs

@@ -1,3 +1,8 @@
+/**
+ * @title Gen3 Matter firmware updater
+ * @description Updates Shelly Gen3 devices to Matter firmware via BLE provisioning and OTA.
+ */
+
 /************************************************
  * CONFIGURATION & CONSTANTS
  ************************************************/

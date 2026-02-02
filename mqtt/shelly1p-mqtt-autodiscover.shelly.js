@@ -1,3 +1,8 @@
+/**
+ * @title Shelly 1 Plus MQTT Auto Discovery
+ * @description Registers Shelly 1 Plus as switch, binary sensor, and temperature sensor in Home Assistant via MQTT.
+ */
+
 // Copyright 2021 Allterco Robotics EOOD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
