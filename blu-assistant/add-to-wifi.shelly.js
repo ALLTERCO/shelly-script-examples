@@ -1,3 +1,8 @@
+/**
+ * @title BLU Assistant WiFi provisioning
+ * @description Provisions Shelly BLU devices with WiFi credentials via BLE scanning and RPC.
+ */
+
 /************************************************
 * CONFIGURATION & CONSTANTS
 ************************************************/

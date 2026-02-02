@@ -1,3 +1,8 @@
+/**
+ * @title Double-press handler for dual switches
+ * @description Detects single and double press on two toggle switches with full-off combo action.
+ */
+
 // the script show how perform mutliple action with a double classic switch used to toggle light.
 // They keep their state once pressed, it usefull when the switch directly control the light.
 // However it complicate double press actions when paired with a shelly. This script aim to solve this issue

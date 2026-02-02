@@ -1,3 +1,8 @@
+/**
+ * @title DHT22 temperature adjustment for Wall Display
+ * @description Reads DHT22 sensor and applies temperature/humidity delta to Shelly Wall Display.
+ */
+
 // ---------------------------------------------------------------------------------------------------------------------
 // SCRIPT FOR READING EXTERNAL DHT22 SENSOR WITH SHELLY WALL DISPLAY
 // Luca Bartolini - Larciano (PT) Italy - luca@bitcon.it

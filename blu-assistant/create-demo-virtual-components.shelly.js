@@ -1,3 +1,8 @@
+/**
+ * @title Virtual component auto-setup from manifest
+ * @description Creates virtual components and groups on boot based on a manifest definition.
+ */
+
 // =============================================================================
 // Shelly Virtual Components & Groups Auto-Setup Script (Manifest-based)
 // =============================================================================
