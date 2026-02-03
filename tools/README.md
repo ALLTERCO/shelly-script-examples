@@ -84,7 +84,7 @@ Options:
 - `--check-index` — Verify that `SHELLY_MJS.md` is in sync with the manifest
 - `--check-headers` — Check scripts for standard headers (`@title`, `@description`, `@status`, `@link`)
 - `--check-indent` — Check scripts for proper 2-space indentation (detects tabs and odd spaces)
-- `--check-sync` — Check that all `.shelly.js` files on disk are in the manifest and vice versa
+- `--check-sync` — Check that all production `.shelly.js` files are in the manifest and no non-production files are listed
 
 Checks performed:
 - All `fname` script files exist on disk
@@ -108,9 +108,9 @@ Standard header format (first block in file):
 
 ## sync-manifest-md.py
 
-Synchronize `examples-manifest.json` with the actual `.shelly.js` files in the
-repository. Finds new scripts and adds them to the manifest with placeholder
-metadata.
+Synchronize `examples-manifest.json` with `.shelly.js` files in the repository.
+Only includes files with `@status production` in their JSDoc header. Files with
+other statuses are skipped and removed from the manifest if previously included.
 
 Usage:
 ```

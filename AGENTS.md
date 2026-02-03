@@ -78,6 +78,8 @@ Scripts follow a **two-header pattern** for documentation:
  * @title Human-Readable Title
  * @description Brief description of what the script does. Keep it concise
  *   (1-2 sentences). Mention firmware requirements if applicable.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/path/to/file.shelly.js
  */
 
 /**
@@ -159,7 +161,13 @@ main();
 |-------------|---------|----------|
 | `@title` | Short name for manifest/index | Yes |
 | `@description` | Brief description (1-2 sentences) | Yes |
+| `@status` | `production` or `under development` | Yes |
+| `@link` | URL to file on ALLTERCO GitHub repo | Yes |
 | Detailed block | Hardware, protocol, components | For hardware/complex scripts |
+
+**Note:** Only files with `@status production` are included in the manifest
+(`examples-manifest.json`) and the index (`SHELLY_MJS.md`). Files with
+`@status under development` are excluded from both.
 
 **When to include detailed documentation:**
 - Hardware interfacing scripts (UART, SPI, I2C devices)
@@ -266,7 +274,7 @@ BLE.Scanner.Subscribe(function(ev, result) {
 
 ## Manifest File (CRITICAL)
 
-The `examples-manifest.json` is the central registry for all scripts. **Every new script MUST be added here.**
+The `examples-manifest.json` is the central registry for all production scripts. Only files with `@status production` in their JSDoc header are included.
 
 ### Manifest Entry Format
 ```json
@@ -279,8 +287,9 @@ The `examples-manifest.json` is the central registry for all scripts. **Every ne
 ```
 
 ### After Adding a Script
-1. Add entry to `examples-manifest.json`
-2. CI/CD automatically regenerates `SHELLY_MJS.md` on merge
+1. Add the standard JSDoc header with `@status production`
+2. CI/CD checks run on PR: headers, sync, and status validation
+3. After merge: `sync-manifest-md.py` syncs the manifest, `sync-manifest-json.py` regenerates `SHELLY_MJS.md`
 
 ---
 
@@ -527,7 +536,9 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 - `tools/put_script.py` - Python uploader with chunked transfer
 - `tools/upload-script.sh` - Bash uploader for Linux/Mac
 
-### Documentation
+### CI/CD & Manifest
+- `tools/check-manifest-integrity.py` - Check-only integrity validation (CI gate)
+- `tools/sync-manifest-md.py` - Syncs manifest JSON with production files on disk
 - `tools/sync-manifest-json.py` - Generates SHELLY_MJS.md from manifest
 
 ---
