@@ -1,6 +1,8 @@
 /**
  * @title Example - Reading Switch status
  * @description Example of reading Switch component's status.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/howto/switch-read.shelly.js
  */
 
 // report for switch status

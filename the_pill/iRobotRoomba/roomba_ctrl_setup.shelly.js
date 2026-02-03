@@ -1,6 +1,8 @@
 /**
  * @title iRobot Roomba controller component setup
  * @description Creates virtual components for the Roomba button controller.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/iRobotRoomba/roomba_ctrl_setup.shelly.js
  */
 
 /**

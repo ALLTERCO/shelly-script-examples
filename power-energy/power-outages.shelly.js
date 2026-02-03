@@ -2,6 +2,8 @@
  * @title Monitor Power Outages or Crashed Services
  * @description Monitors any device or service that returns data from HTTP/HTTPS
  *   requests. Executes webhooks and/or updates MQTT topics.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/power-outages.shelly.js
  */
 
 /************************   settings  ************************/

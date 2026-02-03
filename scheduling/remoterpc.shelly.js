@@ -1,6 +1,8 @@
 /**
  * @title Example of remote calling a Shelly Gen2
  * @description A remote Shelly abstraction Call an RPC method on the remote Shelly
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/remoterpc.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

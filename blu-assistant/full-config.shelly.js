@@ -1,6 +1,8 @@
 /**
  * @title BLU Assistant full device configuration
  * @description Configures Shelly BLU devices with WiFi, name, and timezone via BLE RPC.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/full-config.shelly.js
  */
 
 /************************************************

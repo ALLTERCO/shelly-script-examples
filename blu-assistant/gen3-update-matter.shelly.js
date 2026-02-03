@@ -1,6 +1,8 @@
 /**
  * @title Gen3 Matter firmware updater
  * @description Updates Shelly Gen3 devices to Matter firmware via BLE provisioning and OTA.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/gen3-update-matter.shelly.js
  */
 
 /************************************************

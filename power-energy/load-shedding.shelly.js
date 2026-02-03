@@ -3,6 +3,8 @@
  * @description Keeps measured usage between a low (min_before_re_adding) and high
  *   (max_before_shedding) total power (watts), by controlling power to
  *   other devices
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/load-shedding.shelly.js
  */
 
 // load-shedding script will keep measured usage between a low (min_before_re_adding) and high

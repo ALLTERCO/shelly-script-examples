@@ -1,6 +1,8 @@
 /**
  * @title Example - Reading Input status
  * @description Example showing how to read Input component's status.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/howto/input-read.shelly.js
  */
 
 const result = Shelly.getComponentStatus("Input:0");

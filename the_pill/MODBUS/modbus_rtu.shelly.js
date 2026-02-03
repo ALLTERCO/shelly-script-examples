@@ -2,6 +2,8 @@
  * @title MODBUS-RTU master library
  * @description UART MODBUS-RTU master implementation for reading and writing slave
  *   registers.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/modbus_rtu.shelly.js
  */
 
 /**

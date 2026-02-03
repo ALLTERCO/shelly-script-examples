@@ -2,6 +2,8 @@
  * @title Configurable Cycle switch
  * @description Replicate Cycle switch feature from Gen1 devices. Allows for custom
  *   list of operations to cycle through.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/cycle-switch.shelly.js
  */
 
 const CONFIG = {

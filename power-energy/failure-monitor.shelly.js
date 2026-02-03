@@ -3,6 +3,8 @@
  * @description This script listens for events when power changes to 0 and if the
  *   switch is still on then it alerts that something might have happened
  *   to the load.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/failure-monitor.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

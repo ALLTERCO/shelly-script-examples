@@ -6,6 +6,8 @@
  *   to the next one. A condition is an element of a scene that has
  *   property type:"cond". If the result is true, the scene continues with
  *   the next item, if it is false it stops.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/scene.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

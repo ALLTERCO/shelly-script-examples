@@ -4,6 +4,8 @@
  *   power of the output switch and if that goes above a threshold value
  *   and if current time is within the active time window will send an HTTP
  *   notification
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/http-notify-on-power-threshold.shelly.js
  */
 
 // Shelly Script example: Shelly Plus 1PM - Notify within active hours when power

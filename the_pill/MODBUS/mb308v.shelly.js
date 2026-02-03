@@ -2,6 +2,8 @@
  * @title CWT-MB308V MODBUS example
  * @description Example integration for the ComWinTop MB308V IO module over
  *   MODBUS-RTU.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/mb308v.shelly.js
  */
 
 /**

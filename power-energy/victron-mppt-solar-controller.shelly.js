@@ -3,6 +3,8 @@
  * @description This script allows the decryption of Victron's Smartsolar charge
  *   controller data and update the virtual components with live solar
  *   charger values.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/victron-mppt-solar-controller.shelly.js
  */
 
 // 1. Install the VictronConnect app.

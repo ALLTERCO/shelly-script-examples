@@ -4,6 +4,8 @@
  *   emits event with the received data. Made to be used with
  *   "ble-events-handler.shelly.js" script that handles the events
  *   (Requires firmware version: 1.0.0-beta or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-shelly-blu.shelly.js
  */
 
 /**

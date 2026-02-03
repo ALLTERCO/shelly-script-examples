@@ -2,6 +2,8 @@
  * @title BLU presence watcher with auto-off
  * @description Tracks BLU device presence via BTHome, logs absence, and turns off a
  *   local switch after a timeout.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble_btn_in_range.shelly.js
  */
 
 /* === CONFIG === */
