@@ -528,7 +528,7 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 - `tools/upload-script.sh` - Bash uploader for Linux/Mac
 
 ### Documentation
-- `tools/json-to-md.py` - Generates SHELLY_MJS.md from manifest
+- `tools/sync-manifest-json.py` - Generates SHELLY_MJS.md from manifest
 
 ---
 
