@@ -5,11 +5,11 @@ script index.
 
 ## put_script.py
 
-Upload a script to a Shelly device using chunked RPC calls.
+Upload a script to a Shelly device. Performs a full lifecycle: stop the running
+script, upload new code in chunks, then start it.
 
 Requirements:
-- Python 3
-- `requests` (`pip install requests`)
+- Python 3 (no external dependencies)
 
 Usage:
 ```
@@ -21,9 +21,14 @@ Example:
 python tools/put_script.py 192.168.33.1 1 ble/ble-shelly-motion.shelly.js
 ```
 
+Workflow:
+1. Stops the script in the given slot (`Script.Stop`)
+2. Uploads the file in 1024-byte chunks (`Script.PutCode`)
+3. Starts the script (`Script.Start`)
+
 Notes:
 - The script slot (`script-id`) must already exist on the device.
-- The script is uploaded in 1024-byte chunks.
+- Exits with error on HTTP or RPC failures.
 
 ## upload-script.sh
 
