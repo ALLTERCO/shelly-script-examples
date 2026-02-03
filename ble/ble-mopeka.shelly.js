@@ -1,6 +1,8 @@
 /**
  * @title Mopeka propane tank gauge BLE reader
  * @description Reads Mopeka ultrasonic tank sensor via BLE and publishes level data to MQTT.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-mopeka.shelly.js
  */
 
 // Mopeka Ultrasonic Propane Tank Guage - reads BLE, decodes and publishes to MQTT

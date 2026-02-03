@@ -2,6 +2,8 @@
  * @title mJS example of how to create custom Objects that interact with components (Switch in this case)
  * @description Example of how to create wrappers around RPC calls and using
  *   Object.create.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/objects.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

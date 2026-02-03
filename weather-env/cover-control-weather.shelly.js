@@ -4,6 +4,8 @@
  *   the current conditions for a location check if cloud coverage is above
  *   or below certain percentage and respectively open or close window
  *   shades by calling a Shelly 2.5 (Gen1) endpoint.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/weather-env/cover-control-weather.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

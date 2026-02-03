@@ -4,6 +4,8 @@
  *   "cover_open_to" and "cover_close_to" events to open or close a cover
  *   to a certain position. "cover_open_to" also supports a "not_before"
  *   configuration to prevent opening the cover before a certain time.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/cover-scheduled-event-handlers.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

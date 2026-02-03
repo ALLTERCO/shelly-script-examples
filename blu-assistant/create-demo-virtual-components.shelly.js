@@ -1,6 +1,8 @@
 /**
  * @title Virtual component auto-setup from manifest
  * @description Creates virtual components and groups on boot based on a manifest definition.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/create-demo-virtual-components.shelly.js
  */
 
 // =============================================================================

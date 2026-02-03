@@ -1,6 +1,8 @@
 /**
  * @title Backup: corrupted TV IR script (deprecated)
  * @description Backup script preserved for reference; not intended for use.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/_backup/_backup_tvt.shelly.js
  */
 
 // The Pill + YS-IRTM (no RegEx) – minimal mapping script + RX printed as JS array

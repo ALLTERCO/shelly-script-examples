@@ -1,6 +1,8 @@
 /**
  * @title Example - Switch events
  * @description Example showing how to work with Switch component's events.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/howto/switch-event.shelly.js
  */
 
 Shelly.addEventHandler(function (event) {

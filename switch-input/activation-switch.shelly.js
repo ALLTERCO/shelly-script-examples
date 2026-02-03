@@ -1,6 +1,8 @@
 /**
  * @title Activation switch
  * @description Replicate activation_switch profile from Gen1 devices.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/activation-switch.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

@@ -2,6 +2,8 @@
  * @title Aranet4 example with BLE scripting
  * @description Example how to use a 3rd party BLE sensor and execute actions based on
  *   conditions. (Requires firmware version 0.12.0-beta1 or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-aranet4.shelly.js
  */
 
 /** =============================== CHANGE HERE =============================== */

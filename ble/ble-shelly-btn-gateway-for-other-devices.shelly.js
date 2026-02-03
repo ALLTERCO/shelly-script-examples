@@ -3,6 +3,8 @@
  * @description Use your Gen2 device as a gateway between Shelly Blu button1 and other
  *   Shelly devices (no matter Gen1 or Gen2) by sending local requests by
  *   their local IP APIs.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-shelly-btn-gateway-for-other-devices.shelly.js
  */
 
 /**

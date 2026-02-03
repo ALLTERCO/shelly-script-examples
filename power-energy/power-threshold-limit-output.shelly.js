@@ -1,6 +1,8 @@
 /**
  * @title Power threshold load shedding
  * @description Turns off configured channels when total power consumption exceeds a threshold.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/power-threshold-limit-output.shelly.js
  */
 
 // Shelly Script example: Shelly Pro 4PM - If total power consumption goes above certain

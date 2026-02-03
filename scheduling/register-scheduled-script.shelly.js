@@ -2,6 +2,8 @@
  * @title Schedule script function for execution into the system schedule
  * @description When the script is run it will check if it is registered in the
  *   schedule and if not will register itself
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/register-scheduled-script.shelly.js
  */
 
 // This script will register itself to be called by the schedule service

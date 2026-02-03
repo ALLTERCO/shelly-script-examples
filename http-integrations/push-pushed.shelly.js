@@ -2,6 +2,8 @@
  * @title Push notifications using Pushed service
  * @description Use a script to notify directly on your mobile phone via a push
  *   notification service.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/push-pushed.shelly.js
  */
 
 let CONFIG = {

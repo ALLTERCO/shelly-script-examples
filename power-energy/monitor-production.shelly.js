@@ -2,6 +2,8 @@
  * @title Add Additional Meter to the Advanced Load Shedding script
  * @description Use this script paired with advanced-load-shedding.shelly.js to add a
  *   second source - example, grid, PV, generator, etc.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/monitor-production.shelly.js
  */
 
 // monitor-production script, paired with avanced-load-shedding can set the min/max wattage for a schedule, according to production from a PV array.

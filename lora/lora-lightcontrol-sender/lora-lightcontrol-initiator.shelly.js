@@ -1,6 +1,8 @@
 /**
  * @title LoRa light control scheduler
  * @description Schedules LoRa light control commands based on time-of-day brightness settings.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-lightcontrol-sender/lora-lightcontrol-initiator.shelly.js
  */
 
 const SCRIPT_ID = Shelly.getCurrentScriptId();

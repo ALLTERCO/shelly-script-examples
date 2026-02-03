@@ -1,6 +1,8 @@
 /**
  * @title YS-IRTM IR-to-switch example
  * @description Maps received IR codes to Shelly switch actions.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/ir2sw.shelly.js
  */
 
 // ============================================================================

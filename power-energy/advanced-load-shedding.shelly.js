@@ -2,6 +2,8 @@
  * @title Advanced Load shedding with schedules and notifications
  * @description Adds schedule, device, and notification templates and functionality to
  *   the original load shedding script.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/advanced-load-shedding.shelly.js
  */
 
 // load-shedding script will keep measured usage between a low (min) and high

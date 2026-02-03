@@ -1,6 +1,8 @@
 /**
  * @title Example - Input events
  * @description Example showing how to work with Input component's events.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/howto/input-event.shelly.js
  */
 
 Shelly.addEventHandler(function (event) {

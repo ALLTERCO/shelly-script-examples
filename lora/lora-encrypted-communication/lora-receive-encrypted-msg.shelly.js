@@ -4,6 +4,8 @@
  *   Shelly scripting. It decrypts incoming messages with AES-256-ECB and
  *   verifies their integrity using a prepended checksum. (Requires
  *   firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-encrypted-communication/lora-receive-encrypted-msg.shelly.js
  */
 
 //AES key is only for example, generate unique key!!

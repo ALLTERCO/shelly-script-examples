@@ -7,6 +7,8 @@
  *   and set a Schedule which start irrigation in device webUI. Note:
  *   Configure your Accuweather APIKEY and end points in the script once
  *   you add it.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/weather-env/precipitation-irrigation.shelly.js
  */
 
 // With this script you can stop or limit watering your garden according to the rain

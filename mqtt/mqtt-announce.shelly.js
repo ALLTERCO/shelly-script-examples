@@ -2,6 +2,8 @@
  * @title Backward compatibility with Gen1 MQTT format (announce only)
  * @description Use MQTT in scripting to provide backwards compatibility with Gen1
  *   MQTT topics shellies/announce and shellies/command
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/mqtt-announce.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

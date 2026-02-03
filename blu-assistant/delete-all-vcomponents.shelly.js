@@ -1,6 +1,8 @@
 /**
  * @title Delete all virtual components
  * @description Removes all dynamic virtual components and groups with throttled RPC calls.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/delete-all-vcomponents.shelly.js
  */
 
 //

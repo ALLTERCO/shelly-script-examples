@@ -2,6 +2,8 @@
  * @title Backup: early YS-IRTM UART script (deprecated)
  * @description Deprecated backup script with basic YS-IRTM UART handling and known
  *   issues.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/_backup/_backup_uart.shelly.js
  */
 
 // The Pill + YS-IRTM (no RegEx) – minimal mapping script + RX printed as JS array

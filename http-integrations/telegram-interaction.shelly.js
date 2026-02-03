@@ -4,6 +4,8 @@
  *   Telegram bot, providing the ability to define handlers for each
  *   command and support for advanced parameter validation. (Requires
  *   firmware version: 1.0.0-beta or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/telegram-interaction.shelly.js
  */
 
 //VERSION: 1

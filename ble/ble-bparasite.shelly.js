@@ -2,6 +2,8 @@
  * @title BLE in Scripting - b-parasite example
  * @description Example how to use a 3rd party BLE sensor, read environment data.
  *   (Requires firmware version 0.12.0-beta1 or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-bparasite.shelly.js
  */
 
 //For b-parasite data format see

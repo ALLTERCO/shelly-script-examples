@@ -4,6 +4,8 @@
  *   when temperature is above CONFIG.tempAboveTurnOff. For getting an
  *   API-KEY from Accuweather follow the instructions on their site for
  *   registering a new application, copy the key and paste it here.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/weather-env/turn-on-weather.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

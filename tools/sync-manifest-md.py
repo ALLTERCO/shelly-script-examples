@@ -1,16 +1,17 @@
 # What it does?
 # > This script synchronizes examples-manifest.json with the actual .shelly.js files:
 # >   1. Finds all .shelly.js files in the repository
-# >   2. Adds new files to the manifest with placeholder title/description
-# >   3. Optionally removes entries for deleted files
-# >   4. Preserves existing metadata for known files
+# >   2. Only includes files with @status production in their JSDoc header
+# >   3. Adds new production files to the manifest with extracted title/description
+# >   4. Optionally removes entries for deleted or non-production files
+# >   5. Preserves existing metadata for known files
 
 # How to run it?
 # > Run from anywhere (uses default paths):
-# > python tools/sync-manifest.py
+# > python tools/sync-manifest-md.py
 # > Or specify options:
-# > python tools/sync-manifest.py --dry-run
-# > python tools/sync-manifest.py --remove-missing
+# > python tools/sync-manifest-md.py --dry-run
+# > python tools/sync-manifest-md.py --remove-missing
 
 from argparse import ArgumentParser
 import os
@@ -43,6 +44,19 @@ def find_shelly_scripts(repo_root):
                 scripts.append(rel_path)
 
     return sorted(scripts)
+
+
+def extract_status_from_file(file_path):
+    """Extract the @status value from the JSDoc header."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read(2000)
+        status_match = re.search(r"@status\s+(.+)", content)
+        if status_match:
+            return status_match.group(1).strip()
+    except Exception:
+        pass
+    return None
 
 
 def extract_metadata_from_file(file_path):
@@ -139,25 +153,35 @@ def main():
     added = []
     removed = []
     unchanged = []
+    skipped_status = []
 
     # Build new manifest
     new_entries = []
     existing_fnames = set(existing_entries.keys())
     found_fnames = set(scripts)
 
-    # Process found scripts
+    # Process found scripts (only include @status production)
     for fname in scripts:
+        file_path = os.path.join(base_dir, fname)
+        status = extract_status_from_file(file_path)
+
+        if status != "production":
+            skipped_status.append(fname)
+            # Remove from manifest if it was previously included
+            if fname in existing_entries:
+                removed.append(fname)
+            continue
+
         if fname in existing_entries:
             # Keep existing entry
             new_entries.append(existing_entries[fname])
             unchanged.append(fname)
         else:
-            # New file - create placeholder entry
+            # New production file - create entry
             title = "TODO: Add title"
             description = "TODO: Add description"
 
             if args.extract_metadata:
-                file_path = os.path.join(base_dir, fname)
                 extracted_title, extracted_desc = extract_metadata_from_file(file_path)
                 if extracted_title:
                     title = extracted_title
@@ -176,7 +200,7 @@ def main():
     missing = existing_fnames - found_fnames
     if missing:
         if args.remove_missing:
-            removed = list(missing)
+            removed.extend(list(missing))
         else:
             # Keep entries for missing files
             for fname in missing:
@@ -189,6 +213,8 @@ def main():
     print(f"\nManifest Sync: {args.file}")
     print("=" * 60)
     print(f"Scripts found: {len(scripts)}")
+    print(f"Production scripts: {len(scripts) - len(skipped_status)}")
+    print(f"Skipped (not production): {len(skipped_status)}")
     print(f"Existing entries: {len(existing_entries)}")
 
     if added:
@@ -200,6 +226,11 @@ def main():
         print(f"\nREMOVED ({len(removed)}):")
         for fname in removed:
             print(f"  [-] {fname}")
+
+    if skipped_status:
+        print(f"\nSKIPPED - not production ({len(skipped_status)}):")
+        for fname in sorted(skipped_status):
+            print(f"  [~] {fname}")
 
     if missing and not args.remove_missing:
         print(f"\nMISSING FILES ({len(missing)}) - kept in manifest:")
