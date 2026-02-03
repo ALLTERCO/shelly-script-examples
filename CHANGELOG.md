@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Enhance put_script.py with full lifecycle (stop, upload, start) and error handling
 - Move BLU Assistant and Cury to Collections section in README
 - Add AGENTS.md with coding standards and contribution guidelines
 - Reorganize documentation structure (separate CHANGELOG.md, update README.md)
