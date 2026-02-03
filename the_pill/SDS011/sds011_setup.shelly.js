@@ -1,6 +1,8 @@
 /**
  * @title SDS011 virtual component setup
  * @description Creates virtual components for displaying SDS011 readings.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/SDS011/sds011_setup.shelly.js
  */
 
 /**

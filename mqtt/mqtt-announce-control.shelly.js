@@ -4,6 +4,8 @@
  *   MQTT topics shellies/announce, shellies/command, <device-id>/command,
  *   /command/switch:0/output. Publish device status, input and switch
  *   status
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/mqtt-announce-control.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

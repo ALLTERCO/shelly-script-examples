@@ -3,6 +3,8 @@
  * @description This script tries to execute HTTP GET requests within a set time,
  *   against a set of endpoints. After certain number of failures the
  *   script sets the Switch off and after some time turns it back on.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/networking/router-watchdog.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

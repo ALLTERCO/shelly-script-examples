@@ -4,6 +4,8 @@
  *   Button or virtual buttons. You can turn on/off lights, change
  *   brightness and color temperature. (Requires firmware version: 1.3 or
  *   newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/hue-lights-control.shelly.js
  */
 
 const CONFIG = {

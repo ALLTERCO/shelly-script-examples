@@ -3,6 +3,8 @@
  * @description Example how to handle commands over LoRa to control Cover device and
  *   data from BTHome sensors. Check README.md before use. (Requires
  *   firmware version: 1.6 or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.shelly.js
  */
 
 //AES key is only for example, generate unique key!!

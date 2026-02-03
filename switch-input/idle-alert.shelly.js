@@ -3,6 +3,8 @@
  * @description Script that will monitor the inputs of a Shelly and if there was no
  *   user interaction with the input(s) It will call an URL with a
  *   predefined message
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/idle-alert.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

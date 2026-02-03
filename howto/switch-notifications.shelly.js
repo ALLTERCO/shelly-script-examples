@@ -2,6 +2,8 @@
  * @title Example - Switch notifications - reading consumption active power
  * @description Example how to read Switch notifications and listen for when active
  *   power is more than 4W.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/howto/switch-notifications.shelly.js
  */
 
 // status of switch can be power consumption change, apower is watts

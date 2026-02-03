@@ -4,6 +4,8 @@
  *   sensors are also registered as entities. Note: Requires
  *   configuration.yaml change in HA, please refer to the comments in the
  *   code of this file.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/mqtt-discovery-sensors.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

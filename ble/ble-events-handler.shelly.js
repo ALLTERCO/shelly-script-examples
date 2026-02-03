@@ -4,6 +4,8 @@
  *   be used with another script that emits events for example
  *   "ble-shelly-blu.shelly.js" script. (Requires firmware version:
  *   1.0.0-beta or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-events-handler.shelly.js
  */
 
 /**

@@ -1,6 +1,8 @@
 /**
  * @title BTHome sensor webhook trigger
  * @description Sends HTTP webhooks when BTHome sensor state changes (e.g. window open/close).
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/bthome-webhook.shelly.js
  */
 
 // === CONFIGURATION ===

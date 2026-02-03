@@ -4,6 +4,8 @@
  *   moment it won't be executed. This script walks through the configured
  *   schedules and runs the one that should be active at that moment of
  *   time.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/restore-schedule.shelly.js
  */
 
 // This script will run once after device boot

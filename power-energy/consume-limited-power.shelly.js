@@ -4,6 +4,8 @@
  *   starts counting the power reported in NotifyStatus every minute. It is
  *   accumulated in a counter and if the combined consumption is over a
  *   threshold the output is turned off.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/consume-limited-power.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

@@ -3,6 +3,8 @@
  * @description This scripts periodically scans for access points with SSID matching
  *   the template for Shelly Plus device APs and if found, will connect to
  *   that AP and provision WiFi credentials.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/networking/wifi-provision.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

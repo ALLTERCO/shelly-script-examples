@@ -2,6 +2,8 @@
  * @title Periodically send Switch status to MQTT topic
  * @description Use MQTT in scripting to periodically provide switch status updates on
  *   the mentioned topic "<topic_prefix>/status/switch:0"
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/mqtt-switch-status-announce.shelly.js
  */
 
 

@@ -4,6 +4,8 @@
  *   virtual boolean component in Shelly. The script will listen for
  *   changes in the boolean component and will turn on or off the light
  *   entity in Home Assistant accordingly.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/control-ha-light-entity-with-boolean.shelly.js
  */
 
 const CONFIG = {

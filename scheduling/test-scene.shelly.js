@@ -3,6 +3,8 @@
  * @description Playing a scene with four Shellies with that have a lamp as a load.
  *   Demonstration of a "Remote Shelly" wrapper object. object prototyping,
  *   and simple scene player.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scheduling/test-scene.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

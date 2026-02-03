@@ -1,6 +1,8 @@
 /**
  * @title BLU Assistant factory reset
  * @description Factory resets Shelly BLU devices via BLE scanning and RPC commands.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/factory-reset-device.shelly.js
  */
 
 /************************************************

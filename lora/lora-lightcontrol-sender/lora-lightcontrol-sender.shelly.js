@@ -3,6 +3,8 @@
  * @description Example how to control remote light device over LoRa with Shelly
  *   Scripting. Check README.md before use. (Requires firmware version: 1.6
  *   or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-lightcontrol-sender/lora-lightcontrol-sender.shelly.js
  */
 
 //AES key is only for example, generate unique key!!

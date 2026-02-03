@@ -2,6 +2,8 @@
  * @title Send Switch status to a custom MQTT topic
  * @description Use MQTT in scripting to provide switch status updates on a custom
  *   topic
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/mqtt/mqtt-switch-status.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD

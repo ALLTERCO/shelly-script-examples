@@ -1,6 +1,8 @@
 /**
  * @title BLU Assistant WiFi provisioning
  * @description Provisions Shelly BLU devices with WiFi credentials via BLE scanning and RPC.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/add-to-wifi.shelly.js
  */
 
 /************************************************

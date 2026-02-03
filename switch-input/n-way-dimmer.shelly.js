@@ -7,6 +7,8 @@
  *   connectivity, the swiches communicate directly with each other. You
  *   will need to update the CONFIG GROUP with the IP addresses of all the
  *   switches in the group.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/n-way-dimmer.shelly.js
  */
 
 // Allows between 2 and 5 Shelly Plus, Pro, and Gen3 dimming products to work in a N-Way Dimmer group. A change at any dimmer is sent to all devices in the group. 

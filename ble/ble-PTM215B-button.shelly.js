@@ -1,6 +1,8 @@
 /**
  * @title PTM215B EnOcean BLE button handler
  * @description Handles PTM215B energy-harvesting BLE button events to control up to 4 relays.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-PTM215B-button.shelly.js
  */
 
 //This script handle the PTM215B BLE button from the enocean alliance

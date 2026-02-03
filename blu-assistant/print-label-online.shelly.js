@@ -1,6 +1,8 @@
 /**
  * @title BLU device label printer
  * @description Scans for Shelly BLU devices and sends device info to an online label printer.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/print-label-online.shelly.js
  */
 
 /************************************************

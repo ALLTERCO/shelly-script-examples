@@ -2,6 +2,8 @@
  * @title Shelly Plus 2PM cover fix for Domoticz MQTTAD v1
  * @description Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'. Shelly
  *   firmware 0.x supported. Developed for ShellyTeacher4Domo.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/shelly2p-domo-coverfix.shelly.js
  */
 
 // Copyright 2021 Allterco Robotics EOOD
