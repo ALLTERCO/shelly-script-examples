@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Remove Apache 2.0 license header comments from legacy JS examples and `tools/put_script.py`
 - Enhance put_script.py with full lifecycle (stop, upload, start) and error handling
 - Move BLU Assistant and Cury to Collections section in README
+- Remove Apache 2.0 license header comments from legacy JS and Python examples
 - Add AGENTS.md with coding standards and contribution guidelines
 - Reorganize documentation structure (separate CHANGELOG.md, update README.md)
 - Add The Pill UART peripheral collection (Roomba, MODBUS, RFID, SDS011/018, YS-IRTM)
