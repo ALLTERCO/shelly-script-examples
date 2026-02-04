@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Remove Apache 2.0 license header comments from legacy JS examples and `tools/put_script.py`
 - Enhance put_script.py with full lifecycle (stop, upload, start) and error handling
 - Move BLU Assistant and Cury to Collections section in README
 - Add AGENTS.md with coding standards and contribution guidelines
