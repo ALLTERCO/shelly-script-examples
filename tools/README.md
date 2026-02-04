@@ -30,31 +30,6 @@ Notes:
 - The script slot (`script-id`) must already exist on the device.
 - Exits with error on HTTP or RPC failures.
 
-## upload-script.sh
-
-Shell uploader that stops, deletes, and re-uploads a script via RPC.
-
-Requirements:
-- `curl`
-- `jq`
-- `split` (or `gsplit` on macOS)
-- Optional: `dialog` (interactive file picker)
-
-Usage:
-```
-tools/upload-script.sh -s <device-ip> -i <script-id> -f <script-file>
-```
-
-Examples:
-```
-tools/upload-script.sh -s 192.168.33.1 -i 1 -f mqtt/mqtt-discovery.shelly.js
-```
-
-Environment variables:
-- `SHELLY` (device IP, default `192.168.33.1`)
-- `SCRIPT_ID` (script slot, default `1`)
-- `SCRIPT_FILE` (path to script file)
-
 ## sync-manifest-json.py
 
 Generate `SHELLY_MJS.md` from `examples-manifest.json`.

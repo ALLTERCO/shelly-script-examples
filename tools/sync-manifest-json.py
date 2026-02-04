@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # What it does?
 # > This script will parse the new JSON format for shelly script examples into the .md file for backward compatibility
 

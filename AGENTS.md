@@ -312,6 +312,7 @@ main ←── dev ←── feature/xyz
 - `git commit` - Always ask before committing
 - `git merge` - Always ask before merging
 - `git push` - Always ask before pushing
+- Every commit request must follow the rules in this `AGENTS.md` file.
 
 Example prompts:
 - "Changes are ready. May I commit them?"
@@ -557,5 +558,4 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ### Community
 - [Shelly Support Forum](https://www.shelly-support.eu/)
 - [GitHub Issues](https://github.com/ALLTERCO/shelly-script-examples/issues)
-
 

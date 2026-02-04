@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # What it does?
 # > This script synchronizes examples-manifest.json with the actual .shelly.js files:
 # >   1. Finds all .shelly.js files in the repository
