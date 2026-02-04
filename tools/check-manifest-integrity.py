@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # What it does?
 # > This script checks the integrity of the examples-manifest.json for CI/CD:
 # >   1. Verifying that all script files referenced in 'fname' exist
