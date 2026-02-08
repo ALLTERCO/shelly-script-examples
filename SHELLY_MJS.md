@@ -374,6 +374,10 @@ switch-input/n-way-dimmer.shelly.js: n-way-dimmer.shelly.js
 ===
 Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group.
 
+switch-input/rgbw-remote-controll.shelly.js: RGBW Remote Toggle with Day/Night Brightness
+===
+Toggle an RGBW output via HTTP endpoint with automatic brightness
+
 switch-input/shelly2p-domo-coverfix-v2.shelly.js: Shelly Plus 2PM cover fix for Domoticz MQTTAD v2
 ===
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.

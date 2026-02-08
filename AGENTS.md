@@ -533,13 +533,90 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ## Tools
 
 ### Script Upload
-- `tools/put_script.py` - Python uploader with chunked transfer
-- `tools/upload-script.sh` - Bash uploader for Linux/Mac
+- `tools/put_script.py` - Upload script to a Shelly device (stop, upload in chunks, start)
 
 ### CI/CD & Manifest
 - `tools/check-manifest-integrity.py` - Check-only integrity validation (CI gate)
 - `tools/sync-manifest-md.py` - Syncs manifest JSON with production files on disk
 - `tools/sync-manifest-json.py` - Generates SHELLY_MJS.md from manifest
+
+### Tool Reference
+
+| Tool | Purpose | Usage |
+|------|---------|-------|
+| `put_script.py` | Upload script to device | `python tools/put_script.py <host> <slot_id> <file>` |
+| `check-manifest-integrity.py` | Validate headers and sync (CI gate) | `python tools/check-manifest-integrity.py --check-headers --check-sync` |
+| `sync-manifest-md.py` | Add/remove manifest entries from file headers | `python tools/sync-manifest-md.py --extract-metadata` |
+| `sync-manifest-json.py` | Regenerate SHELLY_MJS.md from manifest | `python tools/sync-manifest-json.py ./examples-manifest.json` |
+
+---
+
+## Verification Workflow
+
+### Trigger Word: `verify`
+
+When the user says **`verify`** (or `check`, `run verification`), the agent MUST
+execute the full verification pipeline described below. The goal is to
+synchronize all generated files, validate every production script, and report
+or fix any issues found.
+
+### Step-by-Step Pipeline
+
+Run the following steps **in order**. If a step fails, attempt to fix the
+issue automatically, then re-run from that step.
+
+#### 1. Sync manifest from file headers
+
+```bash
+python tools/sync-manifest-md.py --extract-metadata
+```
+
+- Scans every `.shelly.js` file for `@status production`
+- Adds new production files to `examples-manifest.json` (with extracted
+  `@title` and `@description`)
+- Reports removed or skipped files
+- **Fix:** If a file is missing its header, add the standard JSDoc header
+  to the file and re-run
+
+#### 2. Regenerate SHELLY_MJS.md
+
+```bash
+python tools/sync-manifest-json.py ./examples-manifest.json
+```
+
+- Reads `examples-manifest.json` and writes `SHELLY_MJS.md`
+- **Important:** Use `./examples-manifest.json` (forward-slash relative
+  path) to avoid Windows path issues
+
+#### 3. Run integrity checks
+
+```bash
+python tools/check-manifest-integrity.py --check-headers --check-sync
+```
+
+- `--check-headers` — Verifies every manifest entry has a valid standard
+  JSDoc header (`@title`, `@description`, `@status`, `@link`)
+- `--check-sync` — Verifies every `@status production` file on disk has
+  a corresponding manifest entry and vice-versa
+- **This is the same check that CI runs on pull requests**
+
+#### 4. Report results
+
+After all steps complete, report to the user:
+- Total number of manifest entries
+- Any files added, removed, or fixed
+- Final pass/fail status from the integrity check
+- If any issues remain that cannot be auto-fixed, list them clearly
+
+### Common Issues and Fixes
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| `TODO: Add title` in manifest | `sync-manifest-md.py` ran without `--extract-metadata` | Change `@status` to `draft`, re-sync, change back to `production`, re-sync with `--extract-metadata` |
+| Missing header | New script without JSDoc | Add the standard two-header block to the file |
+| Sync mismatch | File on disk but not in manifest | Run `sync-manifest-md.py --extract-metadata` |
+| Manifest entry but no file | File was deleted or renamed | Run `sync-manifest-md.py --remove-missing` |
+| Windows path error in `sync-manifest-json.py` | Backslash path passed as argument | Use `./examples-manifest.json` (forward slashes) |
 
 ---
 

@@ -13,6 +13,7 @@ Use these to customize switch/input behavior and cover control beyond default de
 - `double-press-switch.shelly.js`
 - `idle-alert.shelly.js`
 - `n-way-dimmer.shelly.js`
+- `rgbw-remote-controll.shelly.js`
 - `shelly2p-domo-coverfix.shelly.js`
 - `shelly2p-domo-coverfix-v2.shelly.js`
 
