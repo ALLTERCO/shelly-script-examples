@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Restructure loose HTTP integration scripts into per-script folders with matching README files
 - Fix incomplete Prometheus move (update manifest, @link, README, delete old file)
 - Move Telegram files into http-integrations/telegram directory
 - Clarify in `AGENTS.md` that all commit requests must follow AGENTS rules

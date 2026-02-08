@@ -3,7 +3,7 @@
  * @description Posts live active power (watts) to a ThingSpeak channel at a fixed
  *   interval.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/http_post_watts_to_thingspeak.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/http_post_watts_to_thingspeak/http_post_watts_to_thingspeak.shelly.js
  */
 
 // Shelly GEN2 script: HTTP POST - Send energy meter watts to Thingspeak cloud

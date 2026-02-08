@@ -4,7 +4,7 @@
  *   logic for requests and handlers for those requests. Reconfiguration of
  *   a Switch component as an example is included
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/http-handlers.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/http-handlers/http-handlers.shelly.js
  */
 
 /**
