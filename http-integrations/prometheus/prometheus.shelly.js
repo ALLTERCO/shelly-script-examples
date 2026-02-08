@@ -3,7 +3,7 @@
  * @description This script exposes a /status endpoint that returns Prometheus metrics
  *   that can be scraped.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/prometheus.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/prometheus/prometheus.shelly.js
  */
 
 /**

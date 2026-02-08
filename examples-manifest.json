@@ -185,7 +185,7 @@
     "description": "Posts live active power (watts) to a ThingSpeak channel at a fixed interval."
   },
   {
-    "fname": "http-integrations/prometheus.shelly.js",
+    "fname": "http-integrations/prometheus/prometheus.shelly.js",
     "title": "Prometheus HTTP Endpoint for a single switch",
     "description": "This script exposes a /status endpoint that returns Prometheus metrics that can be scraped."
   },
