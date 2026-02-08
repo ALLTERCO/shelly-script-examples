@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Fix incomplete Prometheus move (update manifest, @link, README, delete old file)
 - Move Telegram files into http-integrations/telegram directory
 - Clarify in `AGENTS.md` that all commit requests must follow AGENTS rules
 - Add Python shebang and UTF-8 encoding headers to all `tools/*.py` scripts
