@@ -11,12 +11,12 @@ Use these when you need Shelly to talk to external services or expose data via H
 - `http-notify-on-power-threshold.shelly.js`
 - `prometheus.shelly.js`
 - `push-pushed.shelly.js`
-- `telegram-interaction.shelly.js` (see `TELEGRAM-BOT.md`)
+- `telegram/telegram-interaction.shelly.js` (see `telegram/TELEGRAM-BOT.md`)
 
 
 ## Guides
 
-- `TELEGRAM-BOT.md` - Telegram bot setup and command configuration.
+- `telegram/TELEGRAM-BOT.md` - Telegram bot setup and command configuration.
 
 
 
