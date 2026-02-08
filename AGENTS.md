@@ -345,7 +345,6 @@ Example prompts:
    - Detailed bullet point 1
    - Detailed bullet point 2
 
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
    EOF
    )"
    ```
