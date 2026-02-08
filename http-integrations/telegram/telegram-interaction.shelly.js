@@ -18,7 +18,7 @@
  * The script will take advantage of the KVS to store the messages offset value. The key 
  * for it is the script's ident name from the configuration
  * 
- * Please check http-integrations/telegram/TELEGRAM-BOT.md for instructions how to setup the telegram bot and
+ * Please check http-integrations/telegram/README.md for instructions how to setup the telegram bot and
  * further instructions of how to configure the commands
  */
 
