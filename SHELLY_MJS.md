@@ -147,29 +147,29 @@ howto/switch-read.shelly.js: Example - Reading Switch status
 ===
 Example of reading Switch component's status.
 
-http-integrations/http-handlers.shelly.js: Shelly HTTP script handling GET requests, query strings
+http-integrations/http-handlers/http-handlers.shelly.js: Shelly HTTP script handling GET requests, query strings
 ===
 This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for
 those requests. Reconfiguration of a Switch component as an example is included
 
-http-integrations/http-notify-on-power-threshold.shelly.js: Shelly XPM - Send HTTP notification if power goes above threshold
+http-integrations/http-notify-on-power-threshold/http-notify-on-power-threshold.shelly.js: Shelly XPM - Send HTTP notification if power goes above threshold
 ===
 This script subscribes for notifications, monitors the instanteneous power of the output switch and if that
 goes above a threshold value and if current time is within the active time window will send an HTTP notification
 
-http-integrations/http_post_watts_to_thingspeak.shelly.js: Send energy meter watts to ThingSpeak via HTTP POST
+http-integrations/http_post_watts_to_thingspeak/http_post_watts_to_thingspeak.shelly.js: Send energy meter watts to ThingSpeak via HTTP POST
 ===
 Posts live active power (watts) to a ThingSpeak channel at a fixed interval.
 
-http-integrations/prometheus.shelly.js: Prometheus HTTP Endpoint for a single switch
+http-integrations/prometheus/prometheus.shelly.js: Prometheus HTTP Endpoint for a single switch
 ===
 This script exposes a /status endpoint that returns Prometheus metrics that can be scraped.
 
-http-integrations/push-pushed.shelly.js: Push notifications using Pushed service
+http-integrations/push-pushed/push-pushed.shelly.js: Push notifications using Pushed service
 ===
 Use a script to notify directly on your mobile phone via a push notification service.
 
-http-integrations/telegram-interaction.shelly.js: Telegram interaction with Shelly script
+http-integrations/telegram/telegram-interaction.shelly.js: Telegram interaction with Shelly script
 ===
 This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. 
 (Requires firmware version: 1.0.0-beta or newer)
