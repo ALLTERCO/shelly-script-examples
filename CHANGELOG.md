@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Add remote feature branch cleanup rule to AGENTS.md git workflow
+- Add dev branch to CI/CD pull_request trigger
+- Mark SDS011 examples as under development
+- Mark all the_pill examples as under development
 - Add `switch-input/rgbw-remote-controll.shelly.js` and register it in the manifest/index
 - Restructure loose HTTP integration scripts into per-script folders with matching README files
 - Fix incomplete Prometheus move (update manifest, @link, README, delete old file)
