@@ -1,7 +1,7 @@
 /**
  * @title iRobot Roomba button controller
  * @description Controls Roomba via virtual buttons and physical inputs over UART.
- * @status production
+ * @status under-development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/iRobotRoomba/roomba_ctrl.shelly.js
  */
 

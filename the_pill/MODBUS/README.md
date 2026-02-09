@@ -1,5 +1,7 @@
 # MODBUS-RTU Master
 
+> **Under Development** - This example is currently under development and may not be fully functional.
+
 Scripts for communicating with MODBUS slave devices (sensors, PLCs, energy meters, etc.) using the MODBUS-RTU protocol over UART.
 
 ## Hardware Requirements

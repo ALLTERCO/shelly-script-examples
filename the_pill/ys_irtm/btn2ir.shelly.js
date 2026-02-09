@@ -1,7 +1,7 @@
 /**
  * @title YS-IRTM button-to-IR example
  * @description Maps Shelly buttons and inputs to IR codes using YS-IRTM.
- * @status production
+ * @status under-development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/btn2ir.shelly.js
  */
 
