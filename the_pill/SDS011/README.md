@@ -1,5 +1,7 @@
 # Nova Fitness SDS011 Air Quality Sensor
 
+> **Under Development** - This example is currently under development and may not be fully functional.
+
 Scripts for reading PM2.5 and PM10 particulate matter concentrations using the SDS011 laser dust sensor.
 
 ## Hardware Requirements
