@@ -388,22 +388,6 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
-the_pill/MODBUS/mb308v.shelly.js: CWT-MB308V MODBUS example
-===
-Example integration for the ComWinTop MB308V IO module over MODBUS-RTU.
-
-the_pill/MODBUS/modbus_rtu.shelly.js: MODBUS-RTU master library
-===
-UART MODBUS-RTU master implementation for reading and writing slave registers.
-
-the_pill/RFID-RC522/mfrc522.shelly.js: MFRC522 UART RFID library
-===
-UART protocol implementation for MFRC522 RFID readers with read/write support.
-
-the_pill/RFID-RC522/mfrc522_read.shelly.js: MFRC522 UART RFID read example
-===
-Basic MFRC522 example that detects cards and prints their UIDs.
-
 the_pill/SDS011/sds011.shelly.js: SDS011 air quality sensor library
 ===
 UART library for SDS011 PM2.5/PM10 readings with power management and AQI.
@@ -415,50 +399,6 @@ Creates virtual components for displaying SDS011 readings.
 the_pill/SDS011/sds011_vc.shelly.js: SDS011 virtual component UI
 ===
 UI-oriented SDS011 script that updates virtual components with PM and AQI data.
-
-the_pill/SDS018/sds018.shelly.js: SDS018 air quality sensor library
-===
-UART library for SDS018 PM2.5/PM10 readings with power management and AQI.
-
-the_pill/iRobotRoomba/roomba.shelly.js: iRobot Roomba Open Interface library
-===
-UART library implementing the iRobot Open Interface (OI) for Roomba 500 series control.
-
-the_pill/iRobotRoomba/roomba_ctrl.shelly.js: iRobot Roomba button controller
-===
-Controls Roomba via virtual buttons and physical inputs over UART.
-
-the_pill/iRobotRoomba/roomba_ctrl_setup.shelly.js: iRobot Roomba controller component setup
-===
-Creates virtual components for the Roomba button controller.
-
-the_pill/iRobotRoomba/roomba_setup.shelly.js: iRobot Roomba virtual component setup
-===
-Creates virtual components required by the Roomba library.
-
-the_pill/ys_irtm/btn2ir.shelly.js: YS-IRTM button-to-IR example
-===
-Maps Shelly buttons and inputs to IR codes using YS-IRTM.
-
-the_pill/ys_irtm/ir2sw.shelly.js: YS-IRTM IR-to-switch example
-===
-Maps received IR codes to Shelly switch actions.
-
-the_pill/ys_irtm/ir_full.shelly.js: YS-IRTM advanced IR automation example
-===
-Bidirectional IR automation with scenes, HTTP calls, and switch integration.
-
-the_pill/ys_irtm/ir_learn.shelly.js: YS-IRTM IR learn mode
-===
-Captures and prints NEC IR codes for reuse in other scripts.
-
-the_pill/ys_irtm/tv_ir.shelly.js: YS-IRTM TV remote codes
-===
-Preconfigured NEC IR codes for common TV brands using YS-IRTM.
-
-the_pill/ys_irtm/ysirtm.shelly.js: YS-IRTM infrared UART library
-===
-UART protocol implementation for YS-IRTM to send and receive NEC IR codes.
 
 weather-env/cover-control-weather.shelly.js: Control a Shelly 2.5 (Gen1) depending on current cloud conditions
 ===

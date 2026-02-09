@@ -2,7 +2,7 @@
  * @title SDS018 air quality sensor library
  * @description UART library for SDS018 PM2.5/PM10 readings with power management and
  *   AQI.
- * @status under-development
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/SDS018/sds018.shelly.js
  */
 

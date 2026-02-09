@@ -1,7 +1,7 @@
 /**
  * @title MFRC522 UART RFID read example
  * @description Basic MFRC522 example that detects cards and prints their UIDs.
- * @status under-development
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/RFID-RC522/mfrc522_read.shelly.js
  */
 
