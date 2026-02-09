@@ -2,7 +2,7 @@
  * @title YS-IRTM infrared UART library
  * @description UART protocol implementation for YS-IRTM to send and receive NEC IR
  *   codes.
- * @status production
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/ysirtm.shelly.js
  */
 

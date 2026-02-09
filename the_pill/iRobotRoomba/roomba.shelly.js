@@ -2,7 +2,7 @@
  * @title iRobot Roomba Open Interface library
  * @description UART library implementing the iRobot Open Interface (OI) for Roomba
  *   500 series control.
- * @status production
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/iRobotRoomba/roomba.shelly.js
  */
 

@@ -1,7 +1,7 @@
 /**
  * @title YS-IRTM TV remote codes
  * @description Preconfigured NEC IR codes for common TV brands using YS-IRTM.
- * @status production
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/tv_ir.shelly.js
  */
 

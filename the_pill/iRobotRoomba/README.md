@@ -1,5 +1,7 @@
 # iRobot Roomba Control
 
+> **Under Development** - This example is currently under development and may not be fully functional.
+
 Scripts for controlling iRobot Roomba 500 series vacuum cleaners via the Open Interface (OI) protocol over UART.
 
 ## Hardware Requirements

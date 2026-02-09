@@ -1,5 +1,7 @@
 # MFRC522 RFID Card Reader
 
+> **Under Development** - This example is currently under development and may not be fully functional.
+
 Scripts for reading RFID cards using the MFRC522-UART module.
 
 ## Hardware Requirements
