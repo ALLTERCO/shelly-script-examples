@@ -32,11 +32,12 @@ This repository is designed for:
 ## Collections
 
 - [The Pill](the_pill/README.md) - UART peripherals and hardware integrations
+- [BLU Assistant](blu-assistant/README.md) - BLE device provisioning, configuration, and management scripts
+- [Cury](cury/README.md) - Expressive light patterns and visual feedback for Shelly Cury devices
 
 ## Repository Layout
 
 - [ble/](ble/README.md) - BLE/BLU sensors, buttons, and gateways
-- [blu-assistant/](blu-assistant/README.md) - BLU Assistant device management scripts
 - [howto/](howto/README.md) - Minimal examples and tutorials
 - [http-integrations/](http-integrations/README.md) - HTTP endpoints, notifications, and external services
 - [lora/](lora/README.md) - LoRa send/receive and device control examples

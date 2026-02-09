@@ -175,35 +175,35 @@
     "description": "Example of reading Switch component's status."
   },
   {
-    "fname": "http-integrations/http-handlers.shelly.js",
+    "fname": "http-integrations/http-handlers/http-handlers.shelly.js",
     "title": "Shelly HTTP script handling GET requests, query strings",
     "description": "This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for\nthose requests. Reconfiguration of a Switch component as an example is included"
   },
   {
-    "fname": "http-integrations/http-notify-on-power-threshold.shelly.js",
+    "fname": "http-integrations/http-notify-on-power-threshold/http-notify-on-power-threshold.shelly.js",
     "title": "Shelly XPM - Send HTTP notification if power goes above threshold",
     "description": "This script subscribes for notifications, monitors the instanteneous power of the output switch and if that\ngoes above a threshold value and if current time is within the active time window will send an HTTP notification"
   },
   {
-    "fname": "http-integrations/http_post_watts_to_thingspeak.shelly.js",
+    "fname": "http-integrations/http_post_watts_to_thingspeak/http_post_watts_to_thingspeak.shelly.js",
     "title": "Send energy meter watts to ThingSpeak via HTTP POST",
     "description": "Posts live active power (watts) to a ThingSpeak channel at a fixed interval."
   },
   {
-    "fname": "http-integrations/prometheus.shelly.js",
+    "fname": "http-integrations/prometheus/prometheus.shelly.js",
     "title": "Prometheus HTTP Endpoint for a single switch",
     "description": "This script exposes a /status endpoint that returns Prometheus metrics that can be scraped."
   },
   {
-    "fname": "http-integrations/push-pushed.shelly.js",
+    "fname": "http-integrations/push-pushed/push-pushed.shelly.js",
     "title": "Push notifications using Pushed service",
     "description": "Use a script to notify directly on your mobile phone via a push notification service."
   },
   {
-    "fname": "http-integrations/telegram-interaction.shelly.js",
+    "fname": "http-integrations/telegram/telegram-interaction.shelly.js",
     "title": "Telegram interaction with Shelly script",
     "description": "This script allows the creation of personalized commands for a Telegram bot, providing the ability to define handlers for each command and support for advanced parameter validation. \n(Requires firmware version: 1.0.0-beta or newer)",
-    "doc": "http-integrations/TELEGRAM-BOT.md"
+    "doc": "http-integrations/telegram/README.md"
   },
   {
     "fname": "lora/lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.shelly.js",
@@ -429,6 +429,11 @@
     "description": "Setup an N-Way dimmer group using Gen3, Pro, or Plus dimmer products. One dimmer is connected to the light while the other dimmer products can be useed to remotely control the light and will reflect the current state of the light. This setup only requires wifi connectivity, the swiches communicate directly with each other. You will need to update the CONFIG GROUP with the IP addresses of all the switches in the group."
   },
   {
+    "fname": "switch-input/rgbw-remote-controll.shelly.js",
+    "title": "RGBW Remote Toggle with Day/Night Brightness",
+    "description": "Toggle an RGBW output via HTTP endpoint with automatic brightness"
+  },
+  {
     "fname": "switch-input/shelly2p-domo-coverfix-v2.shelly.js",
     "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v2",
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Only Shelly firmware >= 1.x supported. Developed for ShellyTeacher4Domo."
@@ -437,114 +442,6 @@
     "fname": "switch-input/shelly2p-domo-coverfix.shelly.js",
     "title": "Shelly Plus 2PM cover fix for Domoticz MQTTAD v1",
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
-  },
-  {
-    "fname": "the_pill/MODBUS/mb308v.shelly.js",
-    "title": "CWT-MB308V MODBUS example",
-    "description": "Example integration for the ComWinTop MB308V IO module over MODBUS-RTU.",
-    "doc": "the_pill/MODBUS/README.md"
-  },
-  {
-    "fname": "the_pill/MODBUS/modbus_rtu.shelly.js",
-    "title": "MODBUS-RTU master library",
-    "description": "UART MODBUS-RTU master implementation for reading and writing slave registers.",
-    "doc": "the_pill/MODBUS/README.md"
-  },
-  {
-    "fname": "the_pill/RFID-RC522/mfrc522.shelly.js",
-    "title": "MFRC522 UART RFID library",
-    "description": "UART protocol implementation for MFRC522 RFID readers with read/write support.",
-    "doc": "the_pill/RFID-RC522/README.md"
-  },
-  {
-    "fname": "the_pill/RFID-RC522/mfrc522_read.shelly.js",
-    "title": "MFRC522 UART RFID read example",
-    "description": "Basic MFRC522 example that detects cards and prints their UIDs.",
-    "doc": "the_pill/RFID-RC522/README.md"
-  },
-  {
-    "fname": "the_pill/SDS011/sds011.shelly.js",
-    "title": "SDS011 air quality sensor library",
-    "description": "UART library for SDS011 PM2.5/PM10 readings with power management and AQI.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
-    "fname": "the_pill/SDS011/sds011_setup.shelly.js",
-    "title": "SDS011 virtual component setup",
-    "description": "Creates virtual components for displaying SDS011 readings.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
-    "fname": "the_pill/SDS011/sds011_vc.shelly.js",
-    "title": "SDS011 virtual component UI",
-    "description": "UI-oriented SDS011 script that updates virtual components with PM and AQI data.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
-    "fname": "the_pill/SDS018/sds018.shelly.js",
-    "title": "SDS018 air quality sensor library",
-    "description": "UART library for SDS018 PM2.5/PM10 readings with power management and AQI.",
-    "doc": "the_pill/SDS018/README.md"
-  },
-  {
-    "fname": "the_pill/iRobotRoomba/roomba.shelly.js",
-    "title": "iRobot Roomba Open Interface library",
-    "description": "UART library implementing the iRobot Open Interface (OI) for Roomba 500 series control.",
-    "doc": "the_pill/iRobotRoomba/README.md"
-  },
-  {
-    "fname": "the_pill/iRobotRoomba/roomba_ctrl.shelly.js",
-    "title": "iRobot Roomba button controller",
-    "description": "Controls Roomba via virtual buttons and physical inputs over UART.",
-    "doc": "the_pill/iRobotRoomba/README.md"
-  },
-  {
-    "fname": "the_pill/iRobotRoomba/roomba_ctrl_setup.shelly.js",
-    "title": "iRobot Roomba controller component setup",
-    "description": "Creates virtual components for the Roomba button controller.",
-    "doc": "the_pill/iRobotRoomba/README.md"
-  },
-  {
-    "fname": "the_pill/iRobotRoomba/roomba_setup.shelly.js",
-    "title": "iRobot Roomba virtual component setup",
-    "description": "Creates virtual components required by the Roomba library.",
-    "doc": "the_pill/iRobotRoomba/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/btn2ir.shelly.js",
-    "title": "YS-IRTM button-to-IR example",
-    "description": "Maps Shelly buttons and inputs to IR codes using YS-IRTM.",
-    "doc": "the_pill/ys_irtm/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/ir2sw.shelly.js",
-    "title": "YS-IRTM IR-to-switch example",
-    "description": "Maps received IR codes to Shelly switch actions.",
-    "doc": "the_pill/ys_irtm/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/ir_full.shelly.js",
-    "title": "YS-IRTM advanced IR automation example",
-    "description": "Bidirectional IR automation with scenes, HTTP calls, and switch integration.",
-    "doc": "the_pill/ys_irtm/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/ir_learn.shelly.js",
-    "title": "YS-IRTM IR learn mode",
-    "description": "Captures and prints NEC IR codes for reuse in other scripts.",
-    "doc": "the_pill/ys_irtm/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/tv_ir.shelly.js",
-    "title": "YS-IRTM TV remote codes",
-    "description": "Preconfigured NEC IR codes for common TV brands using YS-IRTM.",
-    "doc": "the_pill/ys_irtm/README.md"
-  },
-  {
-    "fname": "the_pill/ys_irtm/ysirtm.shelly.js",
-    "title": "YS-IRTM infrared UART library",
-    "description": "UART protocol implementation for YS-IRTM to send and receive NEC IR codes.",
-    "doc": "the_pill/ys_irtm/README.md"
   },
   {
     "fname": "weather-env/cover-control-weather.shelly.js",

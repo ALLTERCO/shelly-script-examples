@@ -4,6 +4,8 @@
  *   Decoding protocols Mijia/ATC/pvvx/BTHome2, forwards data to the MQTT
  *   broker with Autodiscovery objects. (Requires firmware version
  *   0.12.0-beta1 or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-pasv-mqtt-gw.shelly.js
  */
 
 let CONFIG = {

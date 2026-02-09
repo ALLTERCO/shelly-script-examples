@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Add `switch-input/rgbw-remote-controll.shelly.js` and register it in the manifest/index
+- Restructure loose HTTP integration scripts into per-script folders with matching README files
+- Fix incomplete Prometheus move (update manifest, @link, README, delete old file)
+- Move Telegram files into http-integrations/telegram directory
+- Clarify in `AGENTS.md` that all commit requests must follow AGENTS rules
+- Add Python shebang and UTF-8 encoding headers to all `tools/*.py` scripts
+- Remove deprecated `tools/upload-script.sh` and its documentation section
+- Enhance put_script.py with full lifecycle (stop, upload, start) and error handling
+- Move BLU Assistant and Cury to Collections section in README
+- Remove Apache 2.0 license header comments from legacy JS and Python examples
 - Add AGENTS.md with coding standards and contribution guidelines
 - Reorganize documentation structure (separate CHANGELOG.md, update README.md)
 - Add The Pill UART peripheral collection (Roomba, MODBUS, RFID, SDS011/018, YS-IRTM)

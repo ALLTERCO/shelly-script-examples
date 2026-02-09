@@ -2,6 +2,8 @@
  * @title MFRC522 UART RFID library
  * @description UART protocol implementation for MFRC522 RFID readers with read/write
  *   support.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/RFID-RC522/mfrc522.shelly.js
  */
 
 /**

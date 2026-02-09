@@ -3,6 +3,8 @@
  * @description This script will scan aired advertisement data, select Shelly BLU
  *   devices and will print their name and address (Requires firmware
  *   version 0.12.0-beta1 or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-shelly-scanner.shelly.js
  */
 
 // Shelly BLU devices:

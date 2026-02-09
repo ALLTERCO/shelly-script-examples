@@ -1,6 +1,8 @@
 /**
  * @title YS-IRTM IR learn mode
  * @description Captures and prints NEC IR codes for reuse in other scripts.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/ir_learn.shelly.js
  */
 
 // ============================================================================

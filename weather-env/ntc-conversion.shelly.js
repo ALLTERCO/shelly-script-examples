@@ -3,6 +3,8 @@
  * @description Reads voltage data from the Shelly Plus Add-on, calculate the
  *   corresponding temperature using the Steinhart-Hart equation, and take
  *   action based on the temperature reading
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/weather-env/ntc-conversion.shelly.js
  */
 
 // SH Coefficient Calculator

@@ -4,6 +4,8 @@
  *   Telegram bot, providing the ability to define handlers for each
  *   command and support for advanced parameter validation. (Requires
  *   firmware version: 1.0.0-beta or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/telegram/telegram-interaction.shelly.js
  */
 
 //VERSION: 1
@@ -16,7 +18,7 @@
  * The script will take advantage of the KVS to store the messages offset value. The key 
  * for it is the script's ident name from the configuration
  * 
- * Please check http-integrations/TELEGRAM-BOT.md for instructions how to setup the telegram bot and 
+ * Please check http-integrations/telegram/README.md for instructions how to setup the telegram bot and
  * further instructions of how to configure the commands
  */
 

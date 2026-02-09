@@ -4,6 +4,8 @@
  *   ZB device and controls a cover connected to a Shelly 2PM (gen 2 or
  *   newer). Requires the "ble-shelly-blu.shelly.js" script to be installed
  *   and running (Requires firmware version: 1.0.0-beta or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-shelly-blu-remote-control-cover.shelly.js
  */
 
 /**

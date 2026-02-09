@@ -1,6 +1,8 @@
 /**
  * @title DHT22 temperature adjustment for Wall Display
  * @description Reads DHT22 sensor and applies temperature/humidity delta to Shelly Wall Display.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/weather-env/script-temperature-adjust.shelly.js
  */
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 /**
  * @title Double-press handler for single switch
  * @description Detects single and double press on a toggle switch to trigger different actions.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/double-press-switch.shelly.js
  */
 
 // the script show how perform mutliple action with a double classic switch used to toggle light.

@@ -1,6 +1,8 @@
 /**
  * @title BLU Assistant MQTT configuration
  * @description Configures MQTT settings on Shelly BLU devices via BLE scanning and RPC.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/config-mqtt.shelly.js
  */
 
 /************************************************

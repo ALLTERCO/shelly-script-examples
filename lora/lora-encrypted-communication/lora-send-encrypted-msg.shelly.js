@@ -4,6 +4,8 @@
  *   scripting. It encrypts the message with AES-256-ECB and prepends a
  *   checksum to ensure message integrity. (Requires firmware version: 1.6
  *   or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-encrypted-communication/lora-send-encrypted-msg.shelly.js
  */
 
 //AES key is only for example, generate unique key!!

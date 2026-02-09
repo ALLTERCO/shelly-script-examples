@@ -2,6 +2,8 @@
  * @title Example - Universal BLU to MQTT Script
  * @description This script is about shares any BLU product's complete payload to
  *   MQTT..
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/universal-blu-to-mqtt.shelly.js
  */
 
 /**

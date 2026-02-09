@@ -2,6 +2,8 @@
  * @title BLE in Scripting - Shelly BLU Button script actions
  * @description Example how to use a Shelly BLU Button, read advertising data, decode
  *   and turn on switch. (Requires firmware version 0.12.0-beta1 or newer)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-shelly-btn.shelly.js
  */
 
 // Shelly BLU devices:

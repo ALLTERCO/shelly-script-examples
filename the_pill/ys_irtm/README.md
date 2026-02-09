@@ -1,5 +1,7 @@
 # YS-IRTM Infrared Module
 
+> **Under Development** - This example is currently under development and may not be fully functional.
+
 Scripts for sending and receiving NEC-format infrared codes using the YS-IRTM module.
 
 ## Hardware Requirements

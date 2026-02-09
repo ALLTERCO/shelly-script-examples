@@ -2,6 +2,8 @@
  * @title SDS011 virtual component UI
  * @description UI-oriented SDS011 script that updates virtual components with PM and
  *   AQI data.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/SDS011/sds011_vc.shelly.js
  */
 
 /**

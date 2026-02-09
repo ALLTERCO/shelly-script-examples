@@ -1,6 +1,8 @@
 /**
  * @title MiFlora Parser / xiaomi_hhccjcy01
  * @description Scans for BLE events of MiFlora plant sensors and publishes them
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-miflora-xiaomi-hhccjcy01.shelly.js
  */
 
 // Shelly BLU Scanner + MiFlora Parser inspired by xiaomi_hhccjcy01 sensor for esphome

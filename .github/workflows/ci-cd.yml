@@ -1,0 +1,63 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  pull_request_target:
+    types:
+      - closed
+    paths:
+      - '**/*.shelly.js'
+      - 'examples-manifest.json'
+
+jobs:
+
+  # Runs on every PR - blocks merge if checks fail
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Run integrity checks
+      run: |
+        python ./tools/check-manifest-integrity.py \
+          --check-headers \
+          --check-sync
+
+  # Runs after PR is merged - generates JSON and MD files
+  generate:
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Run integrity checks
+      run: |
+        python ./tools/check-manifest-integrity.py \
+          --check-headers \
+          --check-sync
+
+    - name: Generate JSON and MD files
+      run: |
+        python ./tools/sync-manifest-md.py --extract-metadata --remove-missing
+        python ./tools/sync-manifest-json.py ./examples-manifest.json
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git diff --cached --quiet || git commit -m "Sync manifest and update legacy docs (${{ github.event.pull_request.title }})"
+        git push

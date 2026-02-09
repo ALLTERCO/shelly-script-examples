@@ -2,6 +2,8 @@
  * @title YS-IRTM advanced IR automation example
  * @description Bidirectional IR automation with scenes, HTTP calls, and switch
  *   integration.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/ys_irtm/ir_full.shelly.js
  */
 
 // ============================================================================
