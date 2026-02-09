@@ -1,7 +1,7 @@
 /**
  * @title iRobot Roomba virtual component setup
  * @description Creates virtual components required by the Roomba library.
- * @status production
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/iRobotRoomba/roomba_setup.shelly.js
  */
 
