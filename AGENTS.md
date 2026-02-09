@@ -386,6 +386,7 @@ Example prompts:
    git push origin main
    git push origin dev
    git branch -d feature/<short-description>
+   git push origin --delete feature/<short-description>
    ```
 
 ### Important: Always Use --no-ff
