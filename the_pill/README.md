@@ -8,7 +8,7 @@ its own README with wiring, setup, and usage details.
 - iRobot Roomba (Open Interface control) — *under development*
 - MODBUS-RTU master + MB308V example — *under development*
 - MFRC522 RFID reader (UART) — *under development*
-- SDS011 air quality sensor (PM2.5/PM10)
+- SDS011 air quality sensor (PM2.5/PM10) — *under development*
 - SDS018 air quality sensor (PM2.5/PM10) — *under development*
 - YS-IRTM infrared module (send/receive NEC codes) — *under development*
 - _backup (deprecated/experimental scripts)

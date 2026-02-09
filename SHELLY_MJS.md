@@ -388,18 +388,6 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
-the_pill/SDS011/sds011.shelly.js: SDS011 air quality sensor library
-===
-UART library for SDS011 PM2.5/PM10 readings with power management and AQI.
-
-the_pill/SDS011/sds011_setup.shelly.js: SDS011 virtual component setup
-===
-Creates virtual components for displaying SDS011 readings.
-
-the_pill/SDS011/sds011_vc.shelly.js: SDS011 virtual component UI
-===
-UI-oriented SDS011 script that updates virtual components with PM and AQI data.
-
 weather-env/cover-control-weather.shelly.js: Control a Shelly 2.5 (Gen1) depending on current cloud conditions
 ===
 The script, when run, will fetch via REST api from a weather service the current conditions for a location check if

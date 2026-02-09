@@ -439,24 +439,6 @@
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
   },
   {
-    "fname": "the_pill/SDS011/sds011.shelly.js",
-    "title": "SDS011 air quality sensor library",
-    "description": "UART library for SDS011 PM2.5/PM10 readings with power management and AQI.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
-    "fname": "the_pill/SDS011/sds011_setup.shelly.js",
-    "title": "SDS011 virtual component setup",
-    "description": "Creates virtual components for displaying SDS011 readings.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
-    "fname": "the_pill/SDS011/sds011_vc.shelly.js",
-    "title": "SDS011 virtual component UI",
-    "description": "UI-oriented SDS011 script that updates virtual components with PM and AQI data.",
-    "doc": "the_pill/SDS011/README.md"
-  },
-  {
     "fname": "weather-env/cover-control-weather.shelly.js",
     "title": "Control a Shelly 2.5 (Gen1) depending on current cloud conditions",
     "description": "The script, when run, will fetch via REST api from a weather service the current conditions for a location check if\ncloud coverage is above or below certain percentage and respectively open or close window shades by calling a Shelly\n2.5 (Gen1) endpoint."
