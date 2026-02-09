@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Remove non-production `ble/events-to-kvs.shelly.js` from manifest (missing @status)
 - Add remote feature branch cleanup rule to AGENTS.md git workflow
 - Add dev branch to CI/CD pull_request trigger
 - Mark SDS011 examples as under development
