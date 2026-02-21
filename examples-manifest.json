@@ -269,6 +269,11 @@
     "description": "This script will control a light entity in Home Assistant via a virtual boolean component in Shelly. The script will listen for changes in the boolean component and will turn on or off the light entity in Home Assistant accordingly."
   },
   {
+    "fname": "mqtt/jaalee-jht-mqtt-bridge.shelly.js",
+    "title": "Jaalee JHT BLE to MQTT",
+    "description": "Jaalee JHT temperature/humidity/battery (celsius, fahrenheit, kelvin) via Shelly BLU to MQTT. Bridge script for Jaalee JHT BLE sensor to MQTT topics, compatible with Home Assistant MQTT Discovery. (Requires firmware version: 1.0.0-beta or newer)"
+  },
+  {
     "fname": "mqtt/mqtt-announce-control.shelly.js",
     "title": "Backward compatibility with Gen1 MQTT format (extended)",
     "description": "Use MQTT in scripting to provide backwards compatibility with Gen1 MQTT topics shellies/announce, shellies/command, <device-id>/command,\n/command/switch:0/output.\n\nPublish device status, input and switch status"
