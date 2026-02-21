@@ -2,7 +2,7 @@
  * @title Jaalee JHT BLE - MQTT Home Assistant Bridge
  * @description Parses iBeacon-format temperature/humidity/battery data from Jaalee JHT BLE sensors via Shelly BLU Gateway and publishes to Home Assistant via MQTT Auto-Discovery.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scripts/mqtt/jaalee-jht-mqtt-bridge.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/scripts/mqtt/mqtt-jaalee-jht-bridge.shelly.js
  */
 
 /**
