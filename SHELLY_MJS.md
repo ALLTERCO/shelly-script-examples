@@ -249,6 +249,10 @@ The implementation is banal and directly reports switch state and controls a swi
 
 Note: Requires configuration.yaml change in HA, please refer to the comments in the code of this file.
 
+mqtt/mqtt-jaalee-jht-bridge.shelly.js: Jaalee JHT BLE - MQTT Home Assistant Bridge via Shelly BLU Gateway
+===
+Jaalee JHT temperature/humidity/battery (temp: celsius, fahrenheit, kelvin) via Shelly BLU Gateway to MQTT. Bridge script for Jaalee JHT BLE sensor to MQTT topics, compatible with Home Assistant MQTT Discovery. (Requires firmware version: 1.0.0-beta or newer)
+
 mqtt/mqtt-switch-status-announce.shelly.js: Periodically send Switch status to MQTT topic
 ===
 Use MQTT in scripting to periodically provide switch status updates on the mentioned topic "<topic_prefix>/status/switch:0"
