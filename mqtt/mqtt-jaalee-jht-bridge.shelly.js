@@ -29,6 +29,8 @@
  * - sensor/link_quality - Link quality 0-100% (optional)
  * - sensor/data_age     - Age of last data in seconds (optional)
  * - binary_sensor/battery_low - Low battery warning (optional)
+ * 
+ * @see https://github.com/arboeh/jABas/blob/main/scripts/mqtt/README.mqtt-jaalee-jht-bridge.shelly.js.md
  */
 
 // ============================================================================
