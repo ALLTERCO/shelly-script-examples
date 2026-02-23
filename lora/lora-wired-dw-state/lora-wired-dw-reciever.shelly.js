@@ -1,6 +1,10 @@
 /**
- * Script with event handler that listens for lora messages with "user" payload type
- * If doorWindowComponent is in the recieved data - show the result in virtual boolean component
+ * @title Recieve and display Door/Window state over LoRa
+ * @description Example script with event handler that listens for lora messages with "user" payload type
+ *   If doorWindowComponent is in the recieved data - show the result in virtual boolean component
+ *   Check README.md before use. (Requires firmware version: 2.1.1 or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-wired-dw-state/lora-wired-dw-reciever.shelly.js
  */
 
 const CONFIG = {
