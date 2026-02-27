@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
-- Add LinkedGo ST802 Youth Smart Thermostat Modbus RTU BMS client (`the_pill/MODBUS/LinkedGo/st802_bms.shelly.js`) with enable-flag mechanism for 8 BMS scenarios
+- Add LinkedGo ST802 Youth Smart Thermostat Modbus RTU BMS client (`the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js`) with enable-flag mechanism for 8 BMS scenarios
 - Add Shelly script deploy and monitor skill document (`skills/shelly-script-deploy.md`)
 - Move JK200 BMS script into JKESS/JK200-MBS namespace
 - Mark YS-IRTM scripts as production; add all 6 to manifest; remove Under Development banner from README
