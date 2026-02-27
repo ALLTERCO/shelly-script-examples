@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-02
+- Mark LinkedGo ST802 BMS client as production; add @link, POLL_MODE, POLL_FAN_SPEED, POLL_HUMIDITY flags
 - Add LinkedGo ST802 Youth Smart Thermostat Modbus RTU BMS client (`the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js`) with enable-flag mechanism for 8 BMS scenarios
 - Add Shelly script deploy and monitor skill document (`skills/shelly-script-deploy.md`)
 - Move JK200 BMS script into JKESS/JK200-MBS namespace
