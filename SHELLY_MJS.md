@@ -131,10 +131,6 @@ cury/button-control/cury-btn-test.shelly.js: Cury Button Test Scanner
 ===
 Scans BTHome BLE advertisements, logs nearby devices, and prints decoded events for the target BLU button.
 
-cury/cury-light-language-2.shelly.js: Cury Light Language v2
-===
-Expressive light patterns for Shelly Cury UI and ambient LEDs with 9 communication states.
-
 cury/legacy/cury-mini.shelly.js: Cury Mini Legacy
 ===
 Compact legacy Cury light-language implementation with built-in state logic, timing patterns, and periodic hardware checks.
@@ -416,7 +412,7 @@ the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + 
 ===
 MODBUS-RTU reader for Deye SG02LP1 solar inverter with Virtual Component updates. Reads parameters over UART (RS485) and pushes values to user-defined virtual number components.
 
-the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
+the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
 ===
 MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
 
