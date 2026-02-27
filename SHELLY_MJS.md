@@ -416,6 +416,10 @@ the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-
 ===
 MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
 
+the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client
+===
+Modbus RTU master that simulates BMS (Building Management System)
+
 the_pill/UART/uart_test.shelly.js: UART test
 ===
 Simple UART loopback test that sends periodic messages and prints received data.

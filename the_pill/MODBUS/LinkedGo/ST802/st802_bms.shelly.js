@@ -2,7 +2,8 @@
  * @title LinkedGo ST802 Thermostat - BMS Modbus RTU Client
  * @description Modbus RTU master that simulates BMS (Building Management System)
  *   commands for the LinkedGo ST802 Youth Smart Thermostat over RS485.
- * @status under construction
+ * @status production
+ * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js
  */
 
 /**
@@ -67,6 +68,9 @@ var ENABLE = {
     POLL_TEMPERATURES: true,
     POLL_RELAYS:       true,
     POLL_ALARM:        true,
+    POLL_MODE:         true,
+    POLL_FAN_SPEED:    true,
+    POLL_HUMIDITY:     true,
 
     // BMS command scenarios (CMD_SCENARIOS keys)
     CMD_MORNING_HEAT:  false,
@@ -610,6 +614,60 @@ function readAlarm(callback) {
 }
 
 /**
+ * Read current operating mode (H03 / 0x1004).
+ * @param {function} callback  callback(error, modeValue)
+ */
+function readMode(callback) {
+    var data = [
+        (REG.MODE >> 8) & 0xFF, REG.MODE & 0xFF,
+        0x00, 0x01
+    ];
+    sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, resp) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
+        callback(null, (resp[1] << 8) | resp[2]);
+    });
+}
+
+/**
+ * Read current fan speed (H06 / 0x1007).
+ * @param {function} callback  callback(error, fanSpeedValue)
+ */
+function readFanSpeed(callback) {
+    var data = [
+        (REG.FAN_SPEED >> 8) & 0xFF, REG.FAN_SPEED & 0xFF,
+        0x00, 0x01
+    ];
+    sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, resp) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
+        callback(null, (resp[1] << 8) | resp[2]);
+    });
+}
+
+/**
+ * Read current humidity sensor value (O01 / 0x2102).
+ * @param {function} callback  callback(error, humidityPercent)
+ */
+function readHumidity(callback) {
+    var data = [
+        (REG.HUMIDITY >> 8) & 0xFF, REG.HUMIDITY & 0xFF,
+        0x00, 0x01
+    ];
+    sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, resp) {
+        if (err) {
+            callback(err, null);
+            return;
+        }
+        callback(null, rawToHumidity((resp[1] << 8) | resp[2]));
+    });
+}
+
+/**
  * Read current power state and operating mode (H00 and H03).
  * @param {function} callback  callback(error, {power, mode, fanSpeed, setpoint})
  */
@@ -670,7 +728,7 @@ function pollStatus() {
     }
 
     function doAlarm() {
-        if (!ENABLE.POLL_ALARM) { return; }
+        if (!ENABLE.POLL_ALARM) { doMode(); return; }
         Timer.set(200, false, function() {
             readAlarm(function(err, alarm) {
                 if (err) {
@@ -679,6 +737,48 @@ function pollStatus() {
                     print("[ST802] ALARM: Room sensor failure!");
                 } else {
                     debug("Alarm: OK");
+                }
+                doMode();
+            });
+        });
+    }
+
+    function doMode() {
+        if (!ENABLE.POLL_MODE) { doFanSpeed(); return; }
+        Timer.set(200, false, function() {
+            readMode(function(err, val) {
+                if (err) {
+                    debug("Mode read error: " + err);
+                } else {
+                    print("[ST802] Mode: " + modeLabel(val));
+                }
+                doFanSpeed();
+            });
+        });
+    }
+
+    function doFanSpeed() {
+        if (!ENABLE.POLL_FAN_SPEED) { doHumidity(); return; }
+        Timer.set(200, false, function() {
+            readFanSpeed(function(err, val) {
+                if (err) {
+                    debug("Fan speed read error: " + err);
+                } else {
+                    print("[ST802] Fan: " + fanLabel(val));
+                }
+                doHumidity();
+            });
+        });
+    }
+
+    function doHumidity() {
+        if (!ENABLE.POLL_HUMIDITY) { return; }
+        Timer.set(200, false, function() {
+            readHumidity(function(err, val) {
+                if (err) {
+                    debug("Humidity read error: " + err);
+                } else {
+                    print("[ST802] Humidity: " + val.toFixed(0) + "%");
                 }
             });
         });
