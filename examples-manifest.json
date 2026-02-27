@@ -474,6 +474,11 @@
     "description": "MODBUS-RTU reader for Jikong JK-PB series BMS over RS485."
   },
   {
+    "fname": "the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js",
+    "title": "LinkedGo ST802 Thermostat - BMS Modbus RTU Client",
+    "description": "Modbus RTU master that simulates BMS (Building Management System)"
+  },
+  {
     "fname": "the_pill/UART/uart_test.shelly.js",
     "title": "UART test",
     "description": "Simple UART loopback test that sends periodic messages and prints received data."
