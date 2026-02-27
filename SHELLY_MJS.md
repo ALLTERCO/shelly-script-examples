@@ -412,7 +412,7 @@ the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + 
 ===
 MODBUS-RTU reader for Deye SG02LP1 solar inverter with Virtual Component updates. Reads parameters over UART (RS485) and pushes values to user-defined virtual number components.
 
-the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
+the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
 ===
 MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
 
