@@ -2,7 +2,7 @@
  * @title LinkedGo ST802 Thermostat - BMS Modbus RTU Client
  * @description Modbus RTU master that simulates BMS (Building Management System)
  *   commands for the LinkedGo ST802 Youth Smart Thermostat over RS485.
- * @status production
+ * @status under development
  * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js
  */
 
@@ -83,26 +83,35 @@ var ENABLE = {
     CMD_STANDBY:       false
 };
 
-/* === ST802 REGISTER ADDRESSES (hex) === */
-var REG = {
-    // Read / Write (FC 03 / 06)
-    POWER:       0x1001,  // H00
-    SYS_TYPE:    0x1003,  // H02
-    MODE:        0x1004,  // H03
-    HC_SELECT:   0x1006,  // H05
-    FAN_SPEED:   0x1007,  // H06
-    SETPOINT:    0x1008,  // H07  raw * 0.1 = degC
-    HUMIDITY_SP: 0x1009,  // H08  raw * 0.1 = %
-    MIN_SP:      0x1018,  // H23  raw * 0.1 = degC
-    MAX_SP:      0x1019,  // H24  raw * 0.1 = degC
+/* === ST802 REGISTER MAP === */
+var ENTITIES = [
+    //
+    // --- Control registers (Read / Write, FC 03 / 06) ---
+    //
+    { key: "POWER",       name: "Power",            units: "-",    reg: { addr: 0x1001, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "SYS_TYPE",    name: "System Type",       units: "-",    reg: { addr: 0x1003, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "MODE",        name: "Operating Mode",    units: "-",    reg: { addr: 0x1004, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "HC_SELECT",   name: "Heat/Cool Select",  units: "-",    reg: { addr: 0x1006, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "FAN_SPEED",   name: "Fan Speed",         units: "-",    reg: { addr: 0x1007, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "SETPOINT",    name: "Setpoint Temp",     units: "degC", reg: { addr: 0x1008, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "HUMIDITY_SP", name: "Humidity Setpoint", units: "%",    reg: { addr: 0x1009, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "MIN_SP",      name: "Min Setpoint",      units: "degC", reg: { addr: 0x1018, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "MAX_SP",      name: "Max Setpoint",      units: "degC", reg: { addr: 0x1019, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    //
+    // --- Sensor registers (Read only, FC 03) ---
+    //
+    { key: "ROOM_TEMP",   name: "Room Temperature",  units: "degC", reg: { addr: 0x2101, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "HUMIDITY",    name: "Humidity",          units: "%",    reg: { addr: 0x2102, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "FLOOR_TEMP",  name: "Floor Temperature", units: "degC", reg: { addr: 0x2103, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "RELAY_STATE", name: "Relay Status",      units: "-",    reg: { addr: 0x2110, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "ALARM",       name: "Alarm",             units: "-",    reg: { addr: 0x211A, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
+];
 
-    // Read only (FC 03)
-    ROOM_TEMP:   0x2101,  // O00  raw * 0.1 = degC
-    HUMIDITY:    0x2102,  // O01  raw * 0.1 = %
-    FLOOR_TEMP:  0x2103,  // O02  raw * 0.1 = degC
-    RELAY_STATE: 0x2110,  // O14  bitmask
-    ALARM:       0x211A   // bit0 = room sensor failure
-};
+/* Build REG address map from ENTITIES so all API functions work unchanged */
+var REG = {};
+for (var _ei = 0; _ei < ENTITIES.length; _ei++) {
+    REG[ENTITIES[_ei].key] = ENTITIES[_ei].reg.addr;
+}
 
 /* === ENUMERATION VALUES === */
 var POWER = { OFF: 0, ON: 1 };
