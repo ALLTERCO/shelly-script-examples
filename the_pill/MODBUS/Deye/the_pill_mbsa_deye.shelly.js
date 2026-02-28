@@ -2,7 +2,7 @@
  * @title Deye SG02LP1 MODBUS-RTU
  * @description MODBUS-RTU example for reading Deye SG02LP1 solar inverter
  *   parameters over UART using the MODBUS-RTU master library.
- * @status production
+ * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/the_pill_mbsa_deye.shelly.js
  */
 
@@ -37,15 +37,111 @@ var CONFIG = {
 
 /* === DEYE REGISTER MAP === */
 var ENTITIES = [
-    { name: "Total Power",     units: "W",  addr: 175, itype: "i16", scale: 1 },
-    { name: "Battery Power",   units: "W",  addr: 190, itype: "i16", scale: 1 },
-    { name: "PV1 Power",       units: "W",  addr: 186, itype: "u16", scale: 1 },
-    { name: "Total Grid Power",units: "W",  addr: 169, itype: "i16", scale: 10 },
-    { name: "Battery SOC",     units: "%",  addr: 184, itype: "u16", scale: 1 },
-    { name: "PV1 Voltage",     units: "V",  addr: 109, itype: "u16", scale: 0.1 },
-    { name: "Grid Voltage L1", units: "V",  addr: 150, itype: "u16", scale: 0.1 },
-    { name: "Current L1",      units: "A",  addr: 164, itype: "i16", scale: 0.01 },
-    { name: "AC Frequency",    units: "Hz", addr: 192, itype: "u16", scale: 0.01 }
+    //
+    // --- Solar / Battery summary ---
+    //
+    {
+        name:   "Total Power",
+        units:  "W",
+        reg:    { addr: 175, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "Battery Power",
+        units:  "W",
+        reg:    { addr: 190, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "PV1 Power",
+        units:  "W",
+        reg:    { addr: 186, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- Grid ---
+    //
+    {
+        name:   "Total Grid Power",
+        units:  "W",
+        reg:    { addr: 169, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  10,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- Battery ---
+    //
+    {
+        name:   "Battery SOC",
+        units:  "%",
+        reg:    { addr: 184, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- DC Input ---
+    //
+    {
+        name:   "PV1 Voltage",
+        units:  "V",
+        reg:    { addr: 109, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- AC Output ---
+    //
+    {
+        name:   "Grid Voltage L1",
+        units:  "V",
+        reg:    { addr: 150, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "Current L1",
+        units:  "A",
+        reg:    { addr: 164, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  0.01,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "AC Frequency",
+        units:  "Hz",
+        reg:    { addr: 192, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.01,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
 ];
 
 /* === MODBUS FUNCTION CODES === */
@@ -314,11 +410,11 @@ function pollEntities() {
         }
 
         var entity = ENTITIES[index];
-        readRegister(entity.addr, function(err, raw) {
+        readRegister(entity.reg.addr, function(err, raw) {
             if (err) {
                 results.push(entity.name + ": ERROR (" + err + ")");
             } else {
-                var value = entity.itype === "i16" ? toSigned16(raw) : raw;
+                var value = entity.reg.itype === "i16" ? toSigned16(raw) : raw;
                 value = value * entity.scale;
                 results.push(entity.name + ": " + value + " [" + entity.units + "]");
             }
