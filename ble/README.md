@@ -23,6 +23,6 @@ Use these examples to connect Shelly devices to nearby BLE/BLU sensors and butto
 - `ble-shelly-dw.shelly.js`
 - `ble-shelly-motion.shelly.js`
 - `ble-shelly-scanner.shelly.js`
+- `ble-open-windows.shelly.js`
 - `hue-lights-control.shelly.js`
 - `universal-blu-to-mqtt.shelly.js`
-
