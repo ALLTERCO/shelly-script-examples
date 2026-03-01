@@ -37,12 +37,11 @@
  *     0x2110 (O14) Relay status   bitmask (see RELAYS below)
  *     0x211A       Alarm          bit0 = room sensor failure
  *
- * Hardware wiring:
- *   Shelly TX  -->  RS485 module DI
- *   Shelly RX  -->  RS485 module RO
- *   RS485 A (D+) -> Thermostat A2
- *   RS485 B (D-) -> Thermostat B2
- *   GND          -> Thermostat GND
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> Thermostat B2 (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> Thermostat A2 (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> Thermostat GND
  */
 
 /* === CONFIG === */
