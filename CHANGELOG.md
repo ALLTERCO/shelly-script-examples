@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## 2026-03
 - Add LinkedGo R290 A/W thermal pump MODBUS-RTU example for The Pill (`the_pill/MODBUS/LinkedGo/r290_aw_thermal_pump.shelly.js`) with FC03 polling, FC06 control helpers, and RS485 wiring notes
 - Update all `the_pill/MODBUS/**/README.md` files with RS485-for-The-Pill wiring guidance plus `Problem (The Story)` and `Persona` sections; add missing README files for `JKESS`, `LinkedGo`, `LinkedGo/ST802`, and `LinkedGo/R290`
+- Add skill document `skills/manifest-verify-tools.md` for strict `tools/`-driven manifest/index verification and regeneration workflow
 
 ## 2026-02
 - Mark LinkedGo ST802 BMS client as production; add @link, POLL_MODE, POLL_FAN_SPEED, POLL_HUMIDITY flags
