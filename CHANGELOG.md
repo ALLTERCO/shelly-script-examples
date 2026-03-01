@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Remove legacy SDS011 setup/UI scripts and rename `uart_lib_SDS011.js` to `the_pill/SDS011/sds011-vc-cycle.shelly.js`; add standard metadata headers and refresh SDS011 README references
 - Add LinkedGo R290 A/W thermal pump MODBUS-RTU example for The Pill (`the_pill/MODBUS/LinkedGo/r290_aw_thermal_pump.shelly.js`) with FC03 polling, FC06 control helpers, and RS485 wiring notes
 - Update all `the_pill/MODBUS/**/README.md` files with RS485-for-The-Pill wiring guidance plus `Problem (The Story)` and `Persona` sections; add missing README files for `JKESS`, `LinkedGo`, `LinkedGo/ST802`, and `LinkedGo/R290`
 - Add skill document `skills/manifest-verify-tools.md` for strict `tools/`-driven manifest/index verification and regeneration workflow
