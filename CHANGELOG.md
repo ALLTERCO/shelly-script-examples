@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Add `skills/js-to-shelly-standardize.md` for converting non-standard `.js` files into repository-compliant `.shelly.js` scripts with required headers and doc updates
 - Standardize BLE open windows script by renaming `ble/open_windows.js` to `ble/ble-open-windows.shelly.js`, adding standard headers, and aligning code style/structure
 - Add `skills/git-commit-merge-cleanup.md` documenting the team Git flow and required local/remote `feature/*` branch cleanup after merges
 - Add `http-integrations/finance-yahoo/README.md` with Problem (The Story) and Persona sections for the Yahoo Finance stock monitor example
