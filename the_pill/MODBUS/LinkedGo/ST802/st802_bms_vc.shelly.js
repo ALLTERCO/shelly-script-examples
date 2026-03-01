@@ -1,13 +1,15 @@
 /**
- * @title LinkedGo ST802 Thermostat - BMS Modbus RTU Client
- * @description Modbus RTU master that simulates BMS (Building Management System)
- *   commands for the LinkedGo ST802 Youth Smart Thermostat over RS485.
+ * @title LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components
+ * @description Modbus RTU master that simulates BMS commands for the LinkedGo
+ *   ST802 Youth Smart Thermostat over RS485 with Virtual Component updates.
+ *   Publishes room temp, humidity, floor temp, relay state, alarm, mode,
+ *   fan speed, setpoint, and power state to virtual number components.
  * @status under development
- * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js
+ * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js
  */
 
 /**
- * LinkedGo ST802 Youth Smart Thermostat - BMS Client
+ * LinkedGo ST802 Youth Smart Thermostat - BMS Client + Virtual Components
  *
  * Communicates via RS485-2 (terminals A2/B2) which defaults to slave mode.
  *
@@ -42,6 +44,18 @@
  *   IO2 (RX)  ─── A (D+)  ──> Thermostat A2 (D+)
  *   IO3       ─── DE/RE   ──  direction control (automatic)
  *   GND       ─── GND     ──> Thermostat GND
+ *
+ * Virtual Component mapping (pre-create with skills/modbus-vc-deploy.md):
+ *   number:200  Room Temperature  degC
+ *   number:201  Humidity          %
+ *   number:202  Floor Temperature degC
+ *   number:203  Relay State       bitmask
+ *   number:204  Alarm             0/1
+ *   number:205  Mode              0-7
+ *   number:206  Fan Speed         0-5
+ *   number:207  Setpoint          degC
+ *   number:208  Power             0/1
+ *   group:200   ST802 Thermostat  (group)
  */
 
 /* === CONFIG === */
@@ -70,6 +84,8 @@ var ENABLE = {
     POLL_MODE:         true,
     POLL_FAN_SPEED:    true,
     POLL_HUMIDITY:     true,
+    POLL_SETPOINT:     true,  // VC variant: reads setpoint to keep VC current
+    POLL_POWER:        true,  // VC variant: reads power state to keep VC current
 
     // BMS command scenarios (CMD_SCENARIOS keys)
     CMD_MORNING_HEAT:  false,
@@ -87,23 +103,23 @@ var ENTITIES = [
     //
     // --- Control registers (Read / Write, FC 03 / 06) ---
     //
-    { key: "POWER",       name: "Power",            units: "-",    reg: { addr: 0x1001, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "SYS_TYPE",    name: "System Type",       units: "-",    reg: { addr: 0x1003, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "MODE",        name: "Operating Mode",    units: "-",    reg: { addr: 0x1004, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "HC_SELECT",   name: "Heat/Cool Select",  units: "-",    reg: { addr: 0x1006, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "FAN_SPEED",   name: "Fan Speed",         units: "-",    reg: { addr: 0x1007, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "SETPOINT",    name: "Setpoint Temp",     units: "degC", reg: { addr: 0x1008, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "HUMIDITY_SP", name: "Humidity Setpoint", units: "%",    reg: { addr: 0x1009, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "MIN_SP",      name: "Min Setpoint",      units: "degC", reg: { addr: 0x1018, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "MAX_SP",      name: "Max Setpoint",      units: "degC", reg: { addr: 0x1019, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "POWER",       name: "Power",            units: "-",    reg: { addr: 0x1001, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: "number:208", handle: null, vcHandle: null },
+    { key: "SYS_TYPE",    name: "System Type",       units: "-",    reg: { addr: 0x1003, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null,         handle: null, vcHandle: null },
+    { key: "MODE",        name: "Operating Mode",    units: "-",    reg: { addr: 0x1004, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: "number:205",  handle: null, vcHandle: null },
+    { key: "HC_SELECT",   name: "Heat/Cool Select",  units: "-",    reg: { addr: 0x1006, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null,         handle: null, vcHandle: null },
+    { key: "FAN_SPEED",   name: "Fan Speed",         units: "-",    reg: { addr: 0x1007, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: "number:206",  handle: null, vcHandle: null },
+    { key: "SETPOINT",    name: "Setpoint Temp",     units: "degC", reg: { addr: 0x1008, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: "number:207",  handle: null, vcHandle: null },
+    { key: "HUMIDITY_SP", name: "Humidity Setpoint", units: "%",    reg: { addr: 0x1009, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null,         handle: null, vcHandle: null },
+    { key: "MIN_SP",      name: "Min Setpoint",      units: "degC", reg: { addr: 0x1018, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null,         handle: null, vcHandle: null },
+    { key: "MAX_SP",      name: "Max Setpoint",      units: "degC", reg: { addr: 0x1019, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "RW", vcId: null,         handle: null, vcHandle: null },
     //
     // --- Sensor registers (Read only, FC 03) ---
     //
-    { key: "ROOM_TEMP",   name: "Room Temperature",  units: "degC", reg: { addr: 0x2101, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "HUMIDITY",    name: "Humidity",          units: "%",    reg: { addr: 0x2102, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "FLOOR_TEMP",  name: "Floor Temperature", units: "degC", reg: { addr: 0x2103, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "RELAY_STATE", name: "Relay Status",      units: "-",    reg: { addr: 0x2110, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "ALARM",       name: "Alarm",             units: "-",    reg: { addr: 0x211A, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "ROOM_TEMP",   name: "Room Temperature",  units: "degC", reg: { addr: 0x2101, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:200",  handle: null, vcHandle: null },
+    { key: "HUMIDITY",    name: "Humidity",          units: "%",    reg: { addr: 0x2102, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:201",  handle: null, vcHandle: null },
+    { key: "FLOOR_TEMP",  name: "Floor Temperature", units: "degC", reg: { addr: 0x2103, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:202",  handle: null, vcHandle: null },
+    { key: "RELAY_STATE", name: "Relay Status",      units: "-",    reg: { addr: 0x2110, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: "number:203",  handle: null, vcHandle: null },
+    { key: "ALARM",       name: "Alarm",             units: "-",    reg: { addr: 0x211A, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: "number:204",  handle: null, vcHandle: null },
 ];
 
 /* Build REG address map from ENTITIES so all API functions work unchanged */
@@ -252,6 +268,21 @@ function buildFrame(slaveAddr, functionCode, data) {
     return frame;
 }
 
+/* === VIRTUAL COMPONENT === */
+
+function entityByKey(key) {
+    for (var i = 0; i < ENTITIES.length; i++) {
+        if (ENTITIES[i].key === key) return ENTITIES[i];
+    }
+    return null;
+}
+
+function updateVc(entity, value) {
+    if (!entity || !entity.vcHandle) return;
+    entity.vcHandle.setValue(value);
+    debug(entity.name + " -> " + value + " [" + entity.units + "]");
+}
+
 /* === MODBUS CORE === */
 
 function sendRequest(functionCode, data, callback) {
@@ -362,39 +393,18 @@ function clearResponseTimer() {
 
 /* === REGISTER DECODE HELPERS === */
 
-/**
- * Decode raw register value to degrees Celsius (factor 0.1)
- * @param {number} raw
- * @returns {number}
- */
 function rawToTemp(raw) {
     return raw * 0.1;
 }
 
-/**
- * Encode temperature in degC to raw register value (rounded to 0.5degC step)
- * @param {number} degC
- * @returns {number}
- */
 function tempToRaw(degC) {
-    // Round to nearest 0.5degC then multiply by 10
     return Math.round(degC * 2) * 5;
 }
 
-/**
- * Decode raw humidity register value to percent (factor 0.1)
- * @param {number} raw
- * @returns {number}
- */
 function rawToHumidity(raw) {
     return raw * 0.1;
 }
 
-/**
- * Decode relay status bitmask into a readable object
- * @param {number} mask
- * @returns {object}
- */
 function decodeRelayStatus(mask) {
     return {
         highSpeed:     !!(mask & (1 << RELAYS.HIGH_SPEED)),
@@ -406,11 +416,6 @@ function decodeRelayStatus(mask) {
     };
 }
 
-/**
- * Decode operating mode value to label string
- * @param {number} v
- * @returns {string}
- */
 function modeLabel(v) {
     switch (v) {
         case MODE.COOLING:       return "Cooling";
@@ -422,11 +427,6 @@ function modeLabel(v) {
     }
 }
 
-/**
- * Decode fan speed value to label string
- * @param {number} v
- * @returns {string}
- */
 function fanLabel(v) {
     switch (v) {
         case FAN.AUTO:   return "Auto";
@@ -441,11 +441,6 @@ function fanLabel(v) {
 
 /* === ST802 CONTROL API === */
 
-/**
- * Set thermostat power on or off.
- * @param {number} onOff  POWER.ON or POWER.OFF
- * @param {function} callback  callback(error, success)
- */
 function setPower(onOff, callback) {
     var data = [
         (REG.POWER >> 8) & 0xFF, REG.POWER & 0xFF,
@@ -458,15 +453,11 @@ function setPower(onOff, callback) {
             return;
         }
         debug("Power set to " + (onOff ? "ON" : "OFF"));
+        updateVc(entityByKey("POWER"), onOff);
         if (callback) callback(null, true);
     });
 }
 
-/**
- * Set operating mode.
- * @param {number} mode  MODE.HEATING / COOLING / DRY / FLOOR_HEATING / VENTILATION
- * @param {function} callback  callback(error, success)
- */
 function setMode(mode, callback) {
     var data = [
         (REG.MODE >> 8) & 0xFF, REG.MODE & 0xFF,
@@ -479,15 +470,11 @@ function setMode(mode, callback) {
             return;
         }
         debug("Mode set to " + modeLabel(mode));
+        updateVc(entityByKey("MODE"), mode);
         if (callback) callback(null, true);
     });
 }
 
-/**
- * Set fan speed.
- * @param {number} speed  FAN.AUTO / LOW / MEDIUM / HIGH / SPD4 / SPD5
- * @param {function} callback  callback(error, success)
- */
 function setFanSpeed(speed, callback) {
     var data = [
         (REG.FAN_SPEED >> 8) & 0xFF, REG.FAN_SPEED & 0xFF,
@@ -500,16 +487,11 @@ function setFanSpeed(speed, callback) {
             return;
         }
         debug("Fan speed set to " + fanLabel(speed));
+        updateVc(entityByKey("FAN_SPEED"), speed);
         if (callback) callback(null, true);
     });
 }
 
-/**
- * Set temperature setpoint.
- * Resolution: 0.5degC steps. Range: 5-35degC (device default).
- * @param {number} degC  Target temperature in degC (e.g. 22.0 or 22.5)
- * @param {function} callback  callback(error, success)
- */
 function setSetpoint(degC, callback) {
     var raw = tempToRaw(degC);
     var data = [
@@ -523,16 +505,11 @@ function setSetpoint(degC, callback) {
             return;
         }
         debug("Setpoint set to " + degC + "degC (raw " + raw + ")");
+        updateVc(entityByKey("SETPOINT"), degC);
         if (callback) callback(null, true);
     });
 }
 
-/**
- * Set humidity setpoint.
- * Range: 40-75%.
- * @param {number} pct  Target humidity in % (integer)
- * @param {function} callback  callback(error, success)
- */
 function setHumiditySetpoint(pct, callback) {
     var raw = pct * 10;
     if (raw < 400) raw = 400;
@@ -554,11 +531,6 @@ function setHumiditySetpoint(pct, callback) {
 
 /* === ST802 STATUS API === */
 
-/**
- * Read current room temperature, humidity, and floor temperature.
- * Reads three consecutive registers starting at O00 (0x2101).
- * @param {function} callback  callback(error, {roomTemp, humidity, floorTemp})
- */
 function readTemperatures(callback) {
     var startAddr = REG.ROOM_TEMP;
     var qty = 3;  // O00, O01, O02
@@ -571,10 +543,12 @@ function readTemperatures(callback) {
             callback(err, null);
             return;
         }
-        // resp[0] = byteCount (6), then pairs of bytes per register
         var roomTemp  = rawToTemp((resp[1] << 8) | resp[2]);
         var humidity  = rawToHumidity((resp[3] << 8) | resp[4]);
         var floorTemp = rawToTemp((resp[5] << 8) | resp[6]);
+        updateVc(entityByKey("ROOM_TEMP"),  roomTemp);
+        updateVc(entityByKey("HUMIDITY"),   humidity);
+        updateVc(entityByKey("FLOOR_TEMP"), floorTemp);
         callback(null, {
             roomTemp:  roomTemp,
             humidity:  humidity,
@@ -583,10 +557,6 @@ function readTemperatures(callback) {
     });
 }
 
-/**
- * Read relay output status bitmask (O14 / 0x2110).
- * @param {function} callback  callback(error, relayStatus)
- */
 function readRelayStatus(callback) {
     var data = [
         (REG.RELAY_STATE >> 8) & 0xFF, REG.RELAY_STATE & 0xFF,
@@ -598,14 +568,11 @@ function readRelayStatus(callback) {
             return;
         }
         var mask = (resp[1] << 8) | resp[2];
+        updateVc(entityByKey("RELAY_STATE"), mask);
         callback(null, decodeRelayStatus(mask));
     });
 }
 
-/**
- * Read alarm register (0x211A).
- * @param {function} callback  callback(error, {roomSensorFail})
- */
 function readAlarm(callback) {
     var data = [
         (REG.ALARM >> 8) & 0xFF, REG.ALARM & 0xFF,
@@ -617,14 +584,11 @@ function readAlarm(callback) {
             return;
         }
         var mask = (resp[1] << 8) | resp[2];
+        updateVc(entityByKey("ALARM"), mask & 0x01);
         callback(null, { roomSensorFail: !!(mask & 0x01) });
     });
 }
 
-/**
- * Read current operating mode (H03 / 0x1004).
- * @param {function} callback  callback(error, modeValue)
- */
 function readMode(callback) {
     var data = [
         (REG.MODE >> 8) & 0xFF, REG.MODE & 0xFF,
@@ -635,14 +599,12 @@ function readMode(callback) {
             callback(err, null);
             return;
         }
-        callback(null, (resp[1] << 8) | resp[2]);
+        var val = (resp[1] << 8) | resp[2];
+        updateVc(entityByKey("MODE"), val);
+        callback(null, val);
     });
 }
 
-/**
- * Read current fan speed (H06 / 0x1007).
- * @param {function} callback  callback(error, fanSpeedValue)
- */
 function readFanSpeed(callback) {
     var data = [
         (REG.FAN_SPEED >> 8) & 0xFF, REG.FAN_SPEED & 0xFF,
@@ -653,14 +615,12 @@ function readFanSpeed(callback) {
             callback(err, null);
             return;
         }
-        callback(null, (resp[1] << 8) | resp[2]);
+        var val = (resp[1] << 8) | resp[2];
+        updateVc(entityByKey("FAN_SPEED"), val);
+        callback(null, val);
     });
 }
 
-/**
- * Read current humidity sensor value (O01 / 0x2102).
- * @param {function} callback  callback(error, humidityPercent)
- */
 function readHumidity(callback) {
     var data = [
         (REG.HUMIDITY >> 8) & 0xFF, REG.HUMIDITY & 0xFF,
@@ -671,16 +631,13 @@ function readHumidity(callback) {
             callback(err, null);
             return;
         }
-        callback(null, rawToHumidity((resp[1] << 8) | resp[2]));
+        var val = rawToHumidity((resp[1] << 8) | resp[2]);
+        updateVc(entityByKey("HUMIDITY"), val);
+        callback(null, val);
     });
 }
 
-/**
- * Read current power state and operating mode (H00 and H03).
- * @param {function} callback  callback(error, {power, mode, fanSpeed, setpoint})
- */
 function readControlRegisters(callback) {
-    // Read H00, skip H01, H02, H03 in one block: addr 0x1001, qty 4
     var startAddr = REG.POWER;  // 0x1001
     var qty = 4;  // H00(1001), gap(1002), H02(1003), H03(1004)
     var data = [
@@ -692,9 +649,7 @@ function readControlRegisters(callback) {
             callback(err, null);
             return;
         }
-        // resp[0]=byteCount(8), then 4 registers as big-endian words
         var power    = (resp[1] << 8) | resp[2];   // H00 at 0x1001
-        // resp[3..4] = register 0x1002 (unused gap)
         var sysType  = (resp[5] << 8) | resp[6];   // H02 at 0x1003
         var mode     = (resp[7] << 8) | resp[8];   // H03 at 0x1004
         callback(null, {
@@ -707,11 +662,6 @@ function readControlRegisters(callback) {
 
 /* === BMS POLL CYCLE === */
 
-/**
- * Full status poll: reads temperatures, relay status, and alarm.
- * Each step is guarded by its ENABLE flag and chained sequentially
- * to avoid bus collisions.
- */
 function pollStatus() {
     debug("--- Polling ST802 status ---");
 
@@ -780,13 +730,49 @@ function pollStatus() {
     }
 
     function doHumidity() {
-        if (!ENABLE.POLL_HUMIDITY) { return; }
+        if (!ENABLE.POLL_HUMIDITY) { doSetpoint(); return; }
         Timer.set(200, false, function() {
             readHumidity(function(err, val) {
                 if (err) {
                     debug("Humidity read error: " + err);
                 } else {
                     print("[ST802] Humidity: " + val.toFixed(0) + "%");
+                }
+                doSetpoint();
+            });
+        });
+    }
+
+    function doSetpoint() {
+        if (!ENABLE.POLL_SETPOINT) { doPower(); return; }
+        Timer.set(200, false, function() {
+            var data = [
+                (REG.SETPOINT >> 8) & 0xFF, REG.SETPOINT & 0xFF,
+                0x00, 0x01
+            ];
+            sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, resp) {
+                if (!err) {
+                    var val = rawToTemp((resp[1] << 8) | resp[2]);
+                    updateVc(entityByKey("SETPOINT"), val);
+                    debug("Setpoint: " + val + " degC");
+                }
+                doPower();
+            });
+        });
+    }
+
+    function doPower() {
+        if (!ENABLE.POLL_POWER) { return; }
+        Timer.set(200, false, function() {
+            var data = [
+                (REG.POWER >> 8) & 0xFF, REG.POWER & 0xFF,
+                0x00, 0x01
+            ];
+            sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, resp) {
+                if (!err) {
+                    var val = (resp[1] << 8) | resp[2];
+                    updateVc(entityByKey("POWER"), val);
+                    debug("Power: " + (val ? "ON" : "OFF"));
                 }
             });
         });
@@ -810,11 +796,6 @@ function pollStatus() {
 
 /* === BMS COMMAND SIMULATION === */
 
-/**
- * BMS command scenarios, cycled on CMD_INTERVAL.
- * Each scenario has a `key` matching an ENABLE flag so it can be
- * individually disabled without removing code.
- */
 var CMD_SCENARIOS = [
     {
         key:   "CMD_MORNING_HEAT",
@@ -922,11 +903,6 @@ var CMD_SCENARIOS = [
     }
 ];
 
-/**
- * Execute the next enabled BMS command scenario in the rotation.
- * Scenarios whose ENABLE key is false are silently skipped.
- * If all scenarios are disabled the cycle is a no-op.
- */
 function runNextBmsCommand() {
     var total = CMD_SCENARIOS.length;
     var checked = 0;
@@ -948,10 +924,19 @@ function runNextBmsCommand() {
 /* === INITIALIZATION === */
 
 function init() {
-    print("LinkedGo ST802 - BMS Modbus RTU Client");
-    print("=======================================");
+    print("LinkedGo ST802 - BMS Modbus RTU Client + Virtual Components");
+    print("=============================================================");
     print("Slave ID: " + CONFIG.SLAVE_ID + "  Baud: " + CONFIG.BAUD_RATE + " " + CONFIG.MODE);
     print("");
+
+    // Initialize virtual component handles
+    for (var i = 0; i < ENTITIES.length; i++) {
+        var ent = ENTITIES[i];
+        if (ent.vcId) {
+            ent.vcHandle = Virtual.getHandle(ent.vcId);
+            debug("VC handle for " + ent.name + " -> " + ent.vcId);
+        }
+    }
 
     state.uart = UART.get();
     if (!state.uart) {

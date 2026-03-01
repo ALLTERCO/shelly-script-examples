@@ -1,13 +1,14 @@
 /**
- * @title JK200 BMS MODBUS-RTU Reader
- * @description MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
- *   Reads cell voltages, pack voltage, current, SOC, temperatures and alarms.
- * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js
+ * @title JK200 BMS MODBUS-RTU Reader + Virtual Components
+ * @description MODBUS-RTU reader for Jikong JK-PB series BMS over RS485 with
+ *   Virtual Component updates. Reads pack voltage, current, SOC, temperatures
+ *   and alarms and pushes values to user-defined virtual number components.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200_vc.shelly.js
  */
 
 /**
- * JK200 BMS - MODBUS-RTU Reader for Shelly (The Pill)
+ * JK200 BMS - MODBUS-RTU Reader + Virtual Components for Shelly (The Pill)
  *
  * Compatible with Jikong JK-PB series BMS:
  *   JK-PB2A8S20P, JK-PB2A16S20P, JK-PB2A20S20P (and other PB variants).
@@ -17,13 +18,12 @@
  *   Any non-zero address activates RS485 Modbus slave mode.
  *   Default: 9600 baud, 8N1.
  *
- * Hardware Connection (via RS485 transceiver, e.g. MAX485):
- *   RS485 A (D+)  <->  BMS RS485 A (D+)
- *   RS485 B (D-)  <->  BMS RS485 B (D-)
- *   RS485 RO      ->   Shelly RX (GPIO)
- *   RS485 DI      ->   Shelly TX (GPIO)
- *   RS485 VCC     ->   3.3V or 5V
- *   RS485 GND     ->   GND
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> BMS RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> BMS RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> BMS GND
+ *   5V        ─── 5V      ──> BMS VCC (if 5V powered)
  *
  * Addressing scheme (actual JK BMS RS485 Modbus V1.0 at 115200 baud):
  *   - Supports only FC 0x03 (Read Holding Registers).
@@ -48,6 +48,18 @@
  *   13      0x1297    Balance current   S_WORD    mA
  *   14      0x1298    State of Charge   U_WORD    %
  *
+ * Virtual Component mapping (pre-create with skills/modbus-vc-deploy.md):
+ *   number:200  MOSFET Temperature  degC
+ *   number:201  Pack Voltage        mV
+ *   number:202  Pack Power          mW
+ *   number:203  Pack Current        mA
+ *   number:204  Temperature 1       degC
+ *   number:205  Temperature 2       degC
+ *   number:206  Alarm Bitmask       -
+ *   number:207  Balance Current     mA
+ *   number:208  State of Charge     %
+ *   group:200   JK200 BMS           (group)
+ *
  * References:
  *   JK BMS RS485 Modbus V1.0: https://github.com/ciciban/jkbms-PB2A16S20P
  *   ESPHome integration:       https://github.com/syssi/esphome-jk-bms
@@ -65,12 +77,128 @@ var CONFIG = {
   DEBUG: true,
 };
 
-/* === REGISTER MAP === */
+/* === BLOCK READ COORDINATES === */
 var REG = {
-  CELLS_BASE: 0x1200,
-  MAIN_BASE: 0x128A,
-  MAIN_QTY: 30,
+  CELLS_BASE: 0x1200,  // Cell voltage block start address
+  MAIN_BASE:  0x128A,  // Main parameter block start address
+  MAIN_QTY:   30,      // Main block register count (reads ahead for safety)
 };
+
+/* === ENTITIES (Main block - logical values at actual register addresses) ===
+ *
+ * Cell voltages are NOT enumerated here because their count is dynamic
+ * (CONFIG.CELL_COUNT).  The cell entity template is:
+ *   addr = REG.CELLS_BASE + cellIndex, rtype 0x03, itype "u16", units "mV"
+ * See parseCellBlock() for extraction logic.
+ *
+ * Main block is read as one bulk FC 0x03 from REG.MAIN_BASE, qty REG.MAIN_QTY.
+ * Each entity below documents its actual register address; the block offset is
+ * (reg.addr - REG.MAIN_BASE).  Word-order within 32-bit pairs: high word first.
+ */
+var ENTITIES = [
+  //
+  // --- Temperatures ---
+  //
+  {
+    name:   "MOSFET Temperature",
+    units:  "degC",
+    reg:    { addr: 0x128A, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+    scale:  0.1,     // raw in 0.1 degC units
+    rights: "R",
+    vcId:   "number:200",
+    handle:   null,
+    vcHandle: null,
+  },
+  //
+  // --- Pack parameters ---
+  //
+  {
+    name:   "Pack Voltage",
+    units:  "mV",
+    reg:    { addr: 0x128D, rtype: 0x03, itype: "u32", bo: "BE", wo: "BE" },
+    scale:  1,       // raw in mV (hi word at 0x128D, lo at 0x128E)
+    rights: "R",
+    vcId:   "number:201",
+    handle:   null,
+    vcHandle: null,
+  },
+  {
+    name:   "Pack Power",
+    units:  "mW",
+    reg:    { addr: 0x128F, rtype: 0x03, itype: "i32", bo: "BE", wo: "BE" },
+    scale:  1,       // raw in mW; positive = charge, negative = discharge
+    rights: "R",
+    vcId:   "number:202",
+    handle:   null,
+    vcHandle: null,
+  },
+  {
+    name:   "Pack Current",
+    units:  "mA",
+    reg:    { addr: 0x1291, rtype: 0x03, itype: "i32", bo: "BE", wo: "BE" },
+    scale:  1,       // raw in mA; positive = charge, negative = discharge
+    rights: "R",
+    vcId:   "number:203",
+    handle:   null,
+    vcHandle: null,
+  },
+  //
+  // --- Cell temperatures ---
+  //
+  {
+    name:   "Temperature 1",
+    units:  "degC",
+    reg:    { addr: 0x1293, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+    scale:  0.1,
+    rights: "R",
+    vcId:   "number:204",
+    handle:   null,
+    vcHandle: null,
+  },
+  {
+    name:   "Temperature 2",
+    units:  "degC",
+    reg:    { addr: 0x1294, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+    scale:  0.1,
+    rights: "R",
+    vcId:   "number:205",
+    handle:   null,
+    vcHandle: null,
+  },
+  //
+  // --- Status ---
+  //
+  {
+    name:   "Alarm Bitmask",
+    units:  "-",
+    reg:    { addr: 0x1295, rtype: 0x03, itype: "u32", bo: "BE", wo: "BE" },
+    scale:  1,       // bitmask; see ALARM_LABELS for bit definitions
+    rights: "R",
+    vcId:   "number:206",
+    handle:   null,
+    vcHandle: null,
+  },
+  {
+    name:   "Balance Current",
+    units:  "mA",
+    reg:    { addr: 0x1297, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+    scale:  1,
+    rights: "R",
+    vcId:   "number:207",
+    handle:   null,
+    vcHandle: null,
+  },
+  {
+    name:   "State of Charge",
+    units:  "%",
+    reg:    { addr: 0x1298, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+    scale:  1,
+    rights: "R",
+    vcId:   "number:208",
+    handle:   null,
+    vcHandle: null,
+  },
+];
 
 /* === ALARM BIT LABELS === */
 var ALARM_LABELS = [
@@ -230,6 +358,14 @@ function fmtC(tenths) {
   return sign + Math.floor(abs / 10) + '.' + (abs % 10) + ' C';
 }
 
+/* === VIRTUAL COMPONENT === */
+
+function updateVc(entity, value) {
+  if (!entity || !entity.vcHandle) return;
+  entity.vcHandle.setValue(value);
+  debug(entity.name + ' -> ' + value + ' [' + entity.units + ']');
+}
+
 /* === MODBUS CORE (FC 0x03 only) === */
 
 var FC_READ_HOLDING = 0x03;
@@ -384,17 +520,18 @@ function parseCellBlock(regs) {
 
 /* === PARSE MAIN BLOCK (start 0x128A, qty 30) === */
 
-// Actual register offsets at 115200 baud (stride-1 WORDs, stride-2 DWORDs):
-//   [0]      0x128A  MOSFET temp   S_WORD  0.1  degC
-//   [1..2]   0x128B-C (reserved)
-//   [3..4]   0x128D-E Pack voltage  U_DWORD mV   hi=regs[3], lo=regs[4]
-//   [5..6]   0x128F-90 Pack power   S_DWORD mW   hi=regs[5], lo=regs[6]
-//   [7..8]   0x1291-92 Pack current S_DWORD mA   hi=regs[7], lo=regs[8]
-//   [9]      0x1293  Temp 1        S_WORD  0.1  degC
-//   [10]     0x1294  Temp 2        S_WORD  0.1  degC
-//   [11..12] 0x1295-96 Alarm bits  U_DWORD bitmask  hi=regs[11], lo=regs[12]
-//   [13]     0x1297  Balance curr  S_WORD  mA
-//   [14]     0x1298  SOC           U_WORD  %
+// Register layout is documented in ENTITIES above.
+// Block offsets used below: offset = (reg.addr - REG.MAIN_BASE).
+//   regs[0]     -> MOSFET Temperature  (0x128A, i16, *0.1 degC)
+//   regs[1..2]  -> reserved (0x128B-C)
+//   regs[3..4]  -> Pack Voltage        (0x128D, u32 hi/lo, mV)
+//   regs[5..6]  -> Pack Power          (0x128F, i32 hi/lo, mW)
+//   regs[7..8]  -> Pack Current        (0x1291, i32 hi/lo, mA)
+//   regs[9]     -> Temperature 1       (0x1293, i16, *0.1 degC)
+//   regs[10]    -> Temperature 2       (0x1294, i16, *0.1 degC)
+//   regs[11..12]-> Alarm Bitmask       (0x1295, u32 hi/lo)
+//   regs[13]    -> Balance Current     (0x1297, i16, mA)
+//   regs[14]    -> State of Charge     (0x1298, u16, %)
 function parseMainBlock(regs) {
   return {
     mosFetTemp: toSigned16(regs[0]),             // 0.1  degC
@@ -489,6 +626,19 @@ function pollBMS() {
           main = parseMainBlock(regs);
         }
 
+        // Update Virtual Components (9 entities, scale applied here)
+        if (main) {
+          updateVc(ENTITIES[0], main.mosFetTemp * ENTITIES[0].scale);  // degC
+          updateVc(ENTITIES[1], main.voltage    * ENTITIES[1].scale);  // mV
+          updateVc(ENTITIES[2], main.power      * ENTITIES[2].scale);  // mW
+          updateVc(ENTITIES[3], main.current    * ENTITIES[3].scale);  // mA
+          updateVc(ENTITIES[4], main.temp1      * ENTITIES[4].scale);  // degC
+          updateVc(ENTITIES[5], main.temp2      * ENTITIES[5].scale);  // degC
+          updateVc(ENTITIES[6], main.alarms     * ENTITIES[6].scale);  // bitmask
+          updateVc(ENTITIES[7], main.balanceCurrent * ENTITIES[7].scale); // mA
+          updateVc(ENTITIES[8], main.soc        * ENTITIES[8].scale);  // %
+        }
+
         printData(cellData, main);
       });
     });
@@ -498,8 +648,17 @@ function pollBMS() {
 /* === INIT === */
 
 function init() {
-  print('JK200 BMS - MODBUS-RTU Reader');
-  print('==============================');
+  print('JK200 BMS - MODBUS-RTU Reader + Virtual Components');
+  print('===================================================');
+
+  // Initialize virtual component handles
+  for (var i = 0; i < ENTITIES.length; i++) {
+    var ent = ENTITIES[i];
+    if (ent.vcId) {
+      ent.vcHandle = Virtual.getHandle(ent.vcId);
+      debug('VC handle for ' + ent.name + ' -> ' + ent.vcId);
+    }
+  }
 
   state.uart = UART.get();
   if (!state.uart) {
