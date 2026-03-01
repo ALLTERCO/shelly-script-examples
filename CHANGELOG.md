@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Add `skills/git-commit-merge-cleanup.md` documenting the team Git flow and required local/remote `feature/*` branch cleanup after merges
 - Add `http-integrations/finance-yahoo/README.md` with Problem (The Story) and Persona sections for the Yahoo Finance stock monitor example
 - Rename `http-integrations/finance-yahoo/stock_monitor 2.js` to `http-integrations/finance-yahoo/stock-monitor.shelly.js` to follow script naming standards
 - Remove legacy SDS011 setup/UI scripts and rename `uart_lib_SDS011.js` to `the_pill/SDS011/sds011-vc-cycle.shelly.js`; add standard metadata headers and refresh SDS011 README references
