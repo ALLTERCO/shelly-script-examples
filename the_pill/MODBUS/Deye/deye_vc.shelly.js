@@ -7,6 +7,14 @@
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js
  */
 
+/*
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> Inverter RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> Inverter RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> Inverter GND
+ */
+
 /* === CONFIG === */
 var CONFIG = {
     BAUD_RATE: 9600,

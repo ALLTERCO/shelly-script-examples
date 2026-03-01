@@ -18,11 +18,11 @@
  * - PV1 Voltage, Grid Voltage L1, Current L1
  * - AC Frequency
  *
- * Hardware connection:
- * - RS485 Module TX -> Shelly RX (GPIO)
- * - RS485 Module RX -> Shelly TX (GPIO)
- * - RS485 Module A/B -> Inverter RS485 A/B
- * - GND -> GND
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> Inverter RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> Inverter RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (HIGH=TX, LOW=RX)
+ *   GND       ─── GND     ──> Inverter GND
  */
 
 /* === CONFIG === */

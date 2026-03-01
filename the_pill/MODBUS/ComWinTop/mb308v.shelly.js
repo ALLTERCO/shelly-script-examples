@@ -18,12 +18,12 @@
  * - 8 Digital Inputs (DI): Dry contact / NPN
  * - 12 Digital Outputs (DO): Relay outputs
  *
- * Hardware connection:
- * - RS485 Module A (D+) -> MB308V A (D+)
- * - RS485 Module B (D-) -> MB308V B (D-)
- * - RS485 Module RO -> Shelly RX (GPIO)
- * - RS485 Module DI -> Shelly TX (GPIO)
- * - Power: 7-35VDC to MB308V
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> MB308V B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> MB308V A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> MB308V GND
+ *   Power: 7-35VDC to MB308V (separate supply)
  *
  * Default settings: 9600 baud, 8N1, Slave ID: 1
  *
