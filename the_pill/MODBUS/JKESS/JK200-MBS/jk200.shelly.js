@@ -17,13 +17,12 @@
  *   Any non-zero address activates RS485 Modbus slave mode.
  *   Default: 9600 baud, 8N1.
  *
- * Hardware Connection (via RS485 transceiver, e.g. MAX485):
- *   RS485 A (D+)  <->  BMS RS485 A (D+)
- *   RS485 B (D-)  <->  BMS RS485 B (D-)
- *   RS485 RO      ->   Shelly RX (GPIO)
- *   RS485 DI      ->   Shelly TX (GPIO)
- *   RS485 VCC     ->   3.3V or 5V
- *   RS485 GND     ->   GND
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> BMS RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> BMS RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> BMS GND
+ *   5V        ─── 5V      ──> BMS VCC (if 5V powered)
  *
  * Addressing scheme (actual JK BMS RS485 Modbus V1.0 at 115200 baud):
  *   - Supports only FC 0x03 (Read Holding Registers).
