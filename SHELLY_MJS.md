@@ -404,21 +404,29 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
-the_pill/MODBUS/Deye/the_pill_mbsa_deye.shelly.js: Deye SG02LP1 MODBUS-RTU
+the_pill/MODBUS/Deye/deye.shelly.js: Deye SG02LP1 MODBUS-RTU
 ===
-MODBUS-RTU example for reading Deye SG02LP1 solar inverter parameters over UART using the MODBUS-RTU master library.
+MODBUS-RTU example for reading Deye SG02LP1 solar inverter
 
-the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + Virtual Components
+the_pill/MODBUS/Deye/deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + Virtual Components
 ===
-MODBUS-RTU reader for Deye SG02LP1 solar inverter with Virtual Component updates. Reads parameters over UART (RS485) and pushes values to user-defined virtual number components.
+MODBUS-RTU reader for Deye SG02LP1 solar inverter with
 
-the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
+the_pill/MODBUS/JKESS/JK200-MBS/jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
 ===
 MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
+
+the_pill/MODBUS/JKESS/JK200-MBS/jk200_vc.shelly.js: JK200 BMS MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for Jikong JK-PB series BMS over RS485 with
 
 the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client
 ===
 Modbus RTU master that simulates BMS (Building Management System)
+
+the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components
+===
+Modbus RTU master that simulates BMS commands for the LinkedGo
 
 the_pill/UART/uart_test.shelly.js: UART test
 ===

@@ -3,8 +3,8 @@
  * @description MODBUS-RTU reader for Deye SG02LP1 solar inverter with
  *   Virtual Component updates. Reads parameters over UART (RS485) and
  *   pushes values to user-defined virtual number components.
- * @status under development
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/deye_vc.shelly.js
  */
 
 /*

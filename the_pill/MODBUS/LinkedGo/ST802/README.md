@@ -14,6 +14,10 @@ A central automation controller needs to enforce operating mode, setpoint, and f
 - [`st802_bms.shelly.js`](st802_bms.shelly.js): command + polling script
 - [`st802_bms_vc.shelly.js`](st802_bms_vc.shelly.js): same with Virtual Components
 
+## Screenshot
+![ST802 VC Screenshot](screenshot.png)
+This screen shows the ST802 Virtual Components with room/floor temperature, humidity, relay/alarm status, mode, fan speed, setpoint, and power state.
+
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 | The Pill Pin | ST802 Side |
 |---|---|

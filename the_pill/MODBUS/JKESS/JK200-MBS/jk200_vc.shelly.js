@@ -3,8 +3,8 @@
  * @description MODBUS-RTU reader for Jikong JK-PB series BMS over RS485 with
  *   Virtual Component updates. Reads pack voltage, current, SOC, temperatures
  *   and alarms and pushes values to user-defined virtual number components.
- * @status under development
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JKESS/JK200-MBS/the_pill_mbsa_jk200_vc.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JKESS/JK200-MBS/jk200_vc.shelly.js
  */
 
 /**
@@ -40,8 +40,8 @@
  *    0      0x128A    MOSFET temp       S_WORD    0.1  degC
  *    1-2    0x128B-C  (reserved)
  *    3-4    0x128D-E  Pack voltage      U_DWORD   mV   (hi, lo)
- *    5-6    0x128F-90 Pack power        S_DWORD   mW   (hi, lo)
- *    7-8    0x1291-92 Pack current      S_DWORD   mA   (hi, lo)
+ *    5-6    0x128F-90 Pack power        S_DWORD   mW   (hi, lo, converted to W)
+ *    7-8    0x1291-92 Pack current      S_DWORD   mA   (hi, lo, converted to A)
  *    9      0x1293    Temperature 1     S_WORD    0.1  degC
  *   10      0x1294    Temperature 2     S_WORD    0.1  degC
  *   11-12   0x1295-96 Alarm bitmask     U_DWORD   --   (hi, lo)
@@ -50,9 +50,9 @@
  *
  * Virtual Component mapping (pre-create with skills/modbus-vc-deploy.md):
  *   number:200  MOSFET Temperature  degC
- *   number:201  Pack Voltage        mV
- *   number:202  Pack Power          mW
- *   number:203  Pack Current        mA
+ *   number:201  Pack Voltage        V
+ *   number:202  Pack Power          W
+ *   number:203  Pack Current        A
  *   number:204  Temperature 1       degC
  *   number:205  Temperature 2       degC
  *   number:206  Alarm Bitmask       -
@@ -114,9 +114,9 @@ var ENTITIES = [
   //
   {
     name:   "Pack Voltage",
-    units:  "mV",
+    units:  "V",
     reg:    { addr: 0x128D, rtype: 0x03, itype: "u32", bo: "BE", wo: "BE" },
-    scale:  1,       // raw in mV (hi word at 0x128D, lo at 0x128E)
+    scale:  0.001,   // raw in mV -> V (hi word at 0x128D, lo at 0x128E)
     rights: "R",
     vcId:   "number:201",
     handle:   null,
@@ -124,9 +124,9 @@ var ENTITIES = [
   },
   {
     name:   "Pack Power",
-    units:  "mW",
+    units:  "W",
     reg:    { addr: 0x128F, rtype: 0x03, itype: "i32", bo: "BE", wo: "BE" },
-    scale:  1,       // raw in mW; positive = charge, negative = discharge
+    scale:  0.001,   // raw in mW -> W; positive = charge, negative = discharge
     rights: "R",
     vcId:   "number:202",
     handle:   null,
@@ -134,9 +134,9 @@ var ENTITIES = [
   },
   {
     name:   "Pack Current",
-    units:  "mA",
+    units:  "A",
     reg:    { addr: 0x1291, rtype: 0x03, itype: "i32", bo: "BE", wo: "BE" },
-    scale:  1,       // raw in mA; positive = charge, negative = discharge
+    scale:  0.001,   // raw in mA -> A; positive = charge, negative = discharge
     rights: "R",
     vcId:   "number:203",
     handle:   null,
@@ -525,8 +525,8 @@ function parseCellBlock(regs) {
 //   regs[0]     -> MOSFET Temperature  (0x128A, i16, *0.1 degC)
 //   regs[1..2]  -> reserved (0x128B-C)
 //   regs[3..4]  -> Pack Voltage        (0x128D, u32 hi/lo, mV)
-//   regs[5..6]  -> Pack Power          (0x128F, i32 hi/lo, mW)
-//   regs[7..8]  -> Pack Current        (0x1291, i32 hi/lo, mA)
+//   regs[5..6]  -> Pack Power          (0x128F, i32 hi/lo, mW raw)
+//   regs[7..8]  -> Pack Current        (0x1291, i32 hi/lo, mA raw)
 //   regs[9]     -> Temperature 1       (0x1293, i16, *0.1 degC)
 //   regs[10]    -> Temperature 2       (0x1294, i16, *0.1 degC)
 //   regs[11..12]-> Alarm Bitmask       (0x1295, u32 hi/lo)
@@ -536,8 +536,8 @@ function parseMainBlock(regs) {
   return {
     mosFetTemp: toSigned16(regs[0]),             // 0.1  degC
     voltage: regs[3] * 65536 + regs[4],          // mV (U_DWORD)
-    power: toSigned32(regs[5], regs[6]),          // mW (S_DWORD, + charge / - discharge)
-    current: toSigned32(regs[7], regs[8]),        // mA (S_DWORD, + charge / - discharge)
+    power: toSigned32(regs[5], regs[6]),          // mW raw (S_DWORD, + charge / - discharge)
+    current: toSigned32(regs[7], regs[8]),        // mA raw (S_DWORD, + charge / - discharge)
     temp1: toSigned16(regs[9]),                   // 0.1  degC
     temp2: toSigned16(regs[10]),                  // 0.1  degC
     alarms: regs[11] * 65536 + regs[12],          // bitmask
@@ -630,8 +630,8 @@ function pollBMS() {
         if (main) {
           updateVc(ENTITIES[0], main.mosFetTemp * ENTITIES[0].scale);  // degC
           updateVc(ENTITIES[1], main.voltage    * ENTITIES[1].scale);  // mV
-          updateVc(ENTITIES[2], main.power      * ENTITIES[2].scale);  // mW
-          updateVc(ENTITIES[3], main.current    * ENTITIES[3].scale);  // mA
+          updateVc(ENTITIES[2], main.power      * ENTITIES[2].scale);  // W
+          updateVc(ENTITIES[3], main.current    * ENTITIES[3].scale);  // A
           updateVc(ENTITIES[4], main.temp1      * ENTITIES[4].scale);  // degC
           updateVc(ENTITIES[5], main.temp2      * ENTITIES[5].scale);  // degC
           updateVc(ENTITIES[6], main.alarms     * ENTITIES[6].scale);  // bitmask

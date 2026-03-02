@@ -2,8 +2,8 @@
  * @title JK200 BMS MODBUS-RTU Reader
  * @description MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
  *   Reads cell voltages, pack voltage, current, SOC, temperatures and alarms.
- * @status under development
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/JKESS/JK200-MBS/jk200.shelly.js
  */
 
 /**
