@@ -2,8 +2,8 @@
  * @title Deye SG02LP1 MODBUS-RTU
  * @description MODBUS-RTU example for reading Deye SG02LP1 solar inverter
  *   parameters over UART using the MODBUS-RTU master library.
- * @status under development
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/the_pill_mbsa_deye.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/deye.shelly.js
  */
 
 /**

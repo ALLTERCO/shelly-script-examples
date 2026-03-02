@@ -14,6 +14,10 @@ You need reliable pack voltage/current/SOC/cell telemetry and alarm visibility f
 - [`jk200.shelly.js`](jk200.shelly.js): console reader
 - [`jk200_vc.shelly.js`](jk200_vc.shelly.js): reader + Virtual Components
 
+## Screenshot
+![JK200 VC Screenshot](screenshot.png)
+This view shows the JK200 Virtual Components page with pack-level telemetry, temperatures, alarm bitmask, balance current, and SOC values.
+
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 | The Pill Pin | JK BMS Side |
 |---|---|

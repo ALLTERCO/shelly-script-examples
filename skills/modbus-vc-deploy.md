@@ -152,9 +152,9 @@ curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application
 | id | Name | Unit |
 |----|------|------|
 | 200 | MOSFET Temperature | degC |
-| 201 | Pack Voltage | mV |
-| 202 | Pack Power | mW |
-| 203 | Pack Current | mA |
+| 201 | Pack Voltage | V |
+| 202 | Pack Power | W |
+| 203 | Pack Current | A |
 | 204 | Temperature 1 | degC |
 | 205 | Temperature 2 | degC |
 | 206 | Alarm Bitmask | - |
@@ -166,11 +166,11 @@ curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
   -d '{"type":"number","id":200,"config":{"name":"MOSFET Temperature","persisted":false,"unit":"degC","min":-50,"max":150}}'
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
-  -d '{"type":"number","id":201,"config":{"name":"Pack Voltage","persisted":false,"unit":"mV","min":0,"max":1000000}}'
+  -d '{"type":"number","id":201,"config":{"name":"Pack Voltage","persisted":false,"unit":"V","min":0,"max":1000}}'
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
-  -d '{"type":"number","id":202,"config":{"name":"Pack Power","persisted":false,"unit":"mW","min":-1000000,"max":1000000}}'
+  -d '{"type":"number","id":202,"config":{"name":"Pack Power","persisted":false,"unit":"W","min":-1000,"max":1000}}'
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
-  -d '{"type":"number","id":203,"config":{"name":"Pack Current","persisted":false,"unit":"mA","min":-1000000,"max":1000000}}'
+  -d '{"type":"number","id":203,"config":{"name":"Pack Current","persisted":false,"unit":"A","min":-1000,"max":1000}}'
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
   -d '{"type":"number","id":204,"config":{"name":"Temperature 1","persisted":false,"unit":"degC","min":-50,"max":150}}'
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
@@ -271,6 +271,11 @@ curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application
 After all number/button VCs are created, bundle them into a group.
 Run the block for your specific device:
 
+**Important visibility rule:** every VC that should be visible inside the UI
+group must be included in the `Group.Set` `value` array. If a component is
+created but not listed in the group members, it may appear hidden from the
+group view.
+
 ```bash
 # --- Deye SG02LP1 ---
 curl -s -X POST "http://${DEVICE}/rpc/Virtual.Add" -H "Content-Type: application/json" \
@@ -310,6 +315,18 @@ Expected output lists each VC:
 ...
 "key": "group:200",
 ```
+
+Also verify group membership contains all intended components:
+
+```bash
+curl -s -X POST "http://${DEVICE}/rpc/Group.GetStatus" \
+  -H "Content-Type: application/json" \
+  -d '{"id":200}'
+```
+
+Expected:
+- `value` includes every created `number:*` / `button:*` VC that should be
+  visible in the group.
 
 ---
 

@@ -4,8 +4,8 @@
  *   ST802 Youth Smart Thermostat over RS485 with Virtual Component updates.
  *   Publishes room temp, humidity, floor temp, relay state, alarm, mode,
  *   fan speed, setpoint, and power state to virtual number components.
- * @status under development
- * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js
  */
 
 /**

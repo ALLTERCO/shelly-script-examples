@@ -2,8 +2,8 @@
  * @title LinkedGo ST802 Thermostat - BMS Modbus RTU Client
  * @description Modbus RTU master that simulates BMS (Building Management System)
  *   commands for the LinkedGo ST802 Youth Smart Thermostat over RS485.
- * @status under development
- * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js
  */
 
 /**
