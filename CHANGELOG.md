@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Add screenshot sections with descriptive captions to Deye, JK200, and ST802 MODBUS README files
+- Promote `the_pill/MODBUS/Deye/deye.shelly.js` to production and fix its header `@link` path
+- Promote `the_pill/MODBUS/Deye/deye_vc.shelly.js` to production and fix its header `@link` path
+- Promote `the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js` to production and update its header `@link` to the ALLTERCO repository path
+- Promote `the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js` to production and update its header `@link` to the ALLTERCO repository path
+- Promote `the_pill/MODBUS/JKESS/JK200-MBS/jk200.shelly.js` to production and fix its header `@link` path
+- Promote `the_pill/MODBUS/JKESS/JK200-MBS/jk200_vc.shelly.js` to production and fix its header `@link` path
+- Change JK200 VC `Pack Current` unit from `mA` to `A` and scale value conversion in `jk200_vc.shelly.js`; update `skills/modbus-vc-deploy.md` JK200 VC table and creation example
+- Change JK200 VC `Pack Power` unit from `mW` to `W` and scale value conversion in `jk200_vc.shelly.js`; update `skills/modbus-vc-deploy.md` JK200 VC table and creation example
+- Change JK200 VC `Pack Voltage` unit from `mV` to `V` and scale value conversion in `jk200_vc.shelly.js`; update `skills/modbus-vc-deploy.md` VC creation table accordingly
+- Update `skills/modbus-vc-deploy.md` to require including all created VCs in `Group.Set` membership so grouped components are visible in Shelly UI
 - Add `skills/js-to-shelly-standardize.md` for converting non-standard `.js` files into repository-compliant `.shelly.js` scripts with required headers and doc updates
 - Standardize BLE open windows script by renaming `ble/open_windows.js` to `ble/ble-open-windows.shelly.js`, adding standard headers, and aligning code style/structure
 - Add `skills/git-commit-merge-cleanup.md` documenting the team Git flow and required local/remote `feature/*` branch cleanup after merges
