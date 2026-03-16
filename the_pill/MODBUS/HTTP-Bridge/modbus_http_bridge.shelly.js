@@ -4,7 +4,7 @@
  *   register descriptor as JSON, performs MODBUS RTU read/write via The Pill
  *   UART, and returns the result as JSON.
  * @status under development
- * @link https://github.com/orlin369/shelly-script-examples/blob/main/the_pill/MODBUS/HTTP-Bridge/modbus_http_bridge.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/HTTP-Bridge/modbus_http_bridge.shelly.js
  */
 
 /**
