@@ -11,6 +11,7 @@ Wirenboard devices expose environmental, input, and IR data over RS485 MODBUS-RT
 - DIY user wiring an IR transceiver into a local control loop
 
 ## Available Device Folders
+- [`WB-M1W2-v3/`](WB-M1W2-v3/): Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter — dual DS18B20 channel reader + slave scanner
 - [`WB-MIR-v-3/`](WB-MIR-v-3/): Wirenboard WB-MIR v3 IR transceiver + DS18B20 temperature + button input examples
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)

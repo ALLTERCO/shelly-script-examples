@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Add Wirenboard WB-M1W2 v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-M1W2-v3/`): console reader and slave ID scanner utility; add `WB-M1W2-v3/` README; update wirenboard root README index
 - Add Wirenboard WB-MIR v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-MIR-v-3/`): console reader and Virtual Components variant; add `wirenboard/` and `WB-MIR-v-3/` READMEs; update MODBUS root README index
 - Add screenshot sections with descriptive captions to Deye, JK200, and ST802 MODBUS README files
 - Promote `the_pill/MODBUS/Deye/deye.shelly.js` to production and fix its header `@link` path
