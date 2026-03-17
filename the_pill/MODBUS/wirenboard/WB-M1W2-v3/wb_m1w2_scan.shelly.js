@@ -1,18 +1,18 @@
 /**
  * @title WB-M1W2 MODBUS Slave Scanner
- * @description Scans MODBUS slave IDs 1-30 at 9600 baud with both 8N1 and 8N2
- *   stop-bit modes. Reports any device that responds. Use this to discover the
- *   actual slave ID and serial settings printed on the device label.
+ * @description Scans MODBUS slave IDs 1-30 across baud rates 4800/9600/19200/38400
+ *   and stop-bit modes 8N1/8N2. Reports any device that responds. Use this to
+ *   discover the actual slave ID and serial settings printed on the device label.
  * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_scan.shelly.js
  */
 
 /* === CONFIG === */
-var BAUD = 9600;
+var BAUDS = [4800, 9600, 19200, 38400];  // baud rates to try
 var ID_START = 1;
 var ID_END = 30;
 var MODES = ['8N1', '8N2'];
-var TIMEOUT_MS = 400;   // ms per attempt; raise if line has many sensors
+var TIMEOUT_MS = 250;   // ms per attempt; raise if line has many sensors
 
 /* === CRC-16 TABLE === */
 var CRC_TABLE = [
@@ -56,6 +56,7 @@ var sc = {
   rxBuf:     [],
   pending:   false,
   timer:     null,
+  baudIdx:   0,
   modeIdx:   0,
   slaveId:   ID_START,
   found:     [],
@@ -131,24 +132,32 @@ function onTimeout() {
 function advance() {
   sc.slaveId++;
   if (sc.slaveId > ID_END) {
-    sc.modeIdx++;
     sc.slaveId = ID_START;
+    sc.modeIdx++;
     if (sc.modeIdx >= MODES.length) {
-      // Scan complete
-      print('');
-      print('=== Scan complete ===');
-      if (sc.found.length === 0) {
-        print('No device responded. Check wiring, power, and baud rate.');
-      } else {
-        for (var i = 0; i < sc.found.length; i++) {
-          print('  Slave ' + sc.found[i].id + '  mode ' + sc.found[i].mode);
+      sc.modeIdx = 0;
+      sc.baudIdx++;
+      if (sc.baudIdx >= BAUDS.length) {
+        // Scan complete
+        print('');
+        print('=== Scan complete ===');
+        if (sc.found.length === 0) {
+          print('No device responded. Check wiring, power, and baud rate.');
+        } else {
+          for (var i = 0; i < sc.found.length; i++) {
+            print('  Slave ' + sc.found[i].id +
+                  '  baud ' + sc.found[i].baud +
+                  '  mode ' + sc.found[i].mode);
+          }
         }
+        return;
       }
-      return;
     }
+    var baud = BAUDS[sc.baudIdx];
+    var mode = MODES[sc.modeIdx];
     print('');
-    print('--- Switching to ' + MODES[sc.modeIdx] + ' ---');
-    sc.uart.configure({ baud: BAUD, mode: MODES[sc.modeIdx] });
+    print('--- ' + baud + ' baud ' + mode + ' ---');
+    sc.uart.configure({ baud: baud, mode: mode });
   }
   Timer.set(30, false, scanNext);
 }
@@ -157,8 +166,8 @@ function scanNext() {
   sc.rxBuf = [];
   sc.pending = true;
 
-  // FC4 read input reg addr 6 qty 1 (NTC temp); any valid reg works for probing
-  var frame = buildFrame(sc.slaveId, 0x04, [0x00, 0x06, 0x00, 0x01]);
+  // FC4 read input reg addr 121 qty 1 (supply voltage); present on all Wirenboard devices
+  var frame = buildFrame(sc.slaveId, 0x04, [0x00, 0x79, 0x00, 0x01]);
   sc.timer = Timer.set(TIMEOUT_MS, false, onTimeout);
   sc.uart.write(bytesToStr(frame));
 }
@@ -167,22 +176,21 @@ function scanNext() {
 
 function init() {
   print('');
-  print('WB-M1W2 MODBUS Scanner');
-  print('======================');
-  print('Baud: ' + BAUD + '  IDs: ' + ID_START + '-' + ID_END);
-  print('Modes: ' + MODES.join(', '));
-  print('Timeout per attempt: ' + TIMEOUT_MS + ' ms');
+  print('MODBUS Scanner');
+  print('==============');
+  print('Bauds: ' + BAUDS.join(', ') + '  IDs: ' + ID_START + '-' + ID_END);
+  print('Modes: ' + MODES.join(', ') + '  Timeout: ' + TIMEOUT_MS + ' ms');
   print('');
 
   sc.uart = UART.get();
   if (!sc.uart) { print('ERROR: UART not available'); return; }
-  if (!sc.uart.configure({ baud: BAUD, mode: MODES[sc.modeIdx] })) {
+  if (!sc.uart.configure({ baud: BAUDS[sc.baudIdx], mode: MODES[sc.modeIdx] })) {
     print('ERROR: UART configure failed');
     return;
   }
   sc.uart.recv(onData);
 
-  print('--- Starting ' + MODES[sc.modeIdx] + ' ---');
+  print('--- ' + BAUDS[sc.baudIdx] + ' baud ' + MODES[sc.modeIdx] + ' ---');
   Timer.set(300, false, scanNext);
 }
 
