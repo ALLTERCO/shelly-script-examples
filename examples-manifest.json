@@ -459,19 +459,59 @@
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
   },
   {
-    "fname": "the_pill/MODBUS/Deye/the_pill_mbsa_deye.shelly.js",
+    "fname": "the_pill/MODBUS/Davis/pyranometer.shelly.js",
+    "title": "Davis Pyranometer MODBUS example",
+    "description": "Reads solar irradiance (W/m2) from a Davis-compatible RS-485"
+  },
+  {
+    "fname": "the_pill/MODBUS/Davis/pyranometer_vc.shelly.js",
+    "title": "Davis Pyranometer MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for a Davis-compatible RS-485 pyranometer with"
+  },
+  {
+    "fname": "the_pill/MODBUS/Deye/deye.shelly.js",
     "title": "Deye SG02LP1 MODBUS-RTU",
-    "description": "MODBUS-RTU example for reading Deye SG02LP1 solar inverter parameters over UART using the MODBUS-RTU master library."
+    "description": "MODBUS-RTU example for reading Deye SG02LP1 solar inverter"
   },
   {
-    "fname": "the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js",
+    "fname": "the_pill/MODBUS/Deye/deye_vc.shelly.js",
     "title": "Deye SG02LP1 MODBUS-RTU + Virtual Components",
-    "description": "MODBUS-RTU reader for Deye SG02LP1 solar inverter with Virtual Component updates. Reads parameters over UART (RS485) and pushes values to user-defined virtual number components."
+    "description": "MODBUS-RTU reader for Deye SG02LP1 solar inverter with"
   },
   {
-    "fname": "the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js",
+    "fname": "the_pill/MODBUS/JKESS/JK200-MBS/jk200.shelly.js",
     "title": "JK200 BMS MODBUS-RTU Reader",
     "description": "MODBUS-RTU reader for Jikong JK-PB series BMS over RS485."
+  },
+  {
+    "fname": "the_pill/MODBUS/JKESS/JK200-MBS/jk200_vc.shelly.js",
+    "title": "JK200 BMS MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for Jikong JK-PB series BMS over RS485 with"
+  },
+  {
+    "fname": "the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js",
+    "title": "LinkedGo ST802 Thermostat - BMS Modbus RTU Client",
+    "description": "Modbus RTU master that simulates BMS (Building Management System)"
+  },
+  {
+    "fname": "the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js",
+    "title": "LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components",
+    "description": "Modbus RTU master that simulates BMS commands for the LinkedGo"
+  },
+  {
+    "fname": "the_pill/MODBUS/utils/modbus_scan.shelly.js",
+    "title": "Universal MODBUS-RTU Scanner",
+    "description": "Discovers MODBUS-RTU slave devices by scanning all combinations"
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter"
   },
   {
     "fname": "the_pill/UART/uart_test.shelly.js",

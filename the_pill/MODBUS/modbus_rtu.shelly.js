@@ -20,12 +20,12 @@
  * - 0x05: Write Single Coil
  * - 0x06: Write Single Register
  *
- * Hardware connection:
- * - RS485 Module TX -> Shelly RX (GPIO)
- * - RS485 Module RX -> Shelly TX (GPIO)
- * - RS485 Module DE/RE -> Directly managed by module
- * - VCC -> 3.3V or 5V (depending on module)
- * - GND -> GND
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> Device RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> Device RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> Device GND
+ *   5V        ─── 5V      ──> Device VCC (if needed)
  *
  * Protocol:
  * - Default baud rate: 9600 (configurable)

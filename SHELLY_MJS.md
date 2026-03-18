@@ -131,10 +131,6 @@ cury/button-control/cury-btn-test.shelly.js: Cury Button Test Scanner
 ===
 Scans BTHome BLE advertisements, logs nearby devices, and prints decoded events for the target BLU button.
 
-cury/cury-light-language-2.shelly.js: Cury Light Language v2
-===
-Expressive light patterns for Shelly Cury UI and ambient LEDs with 9 communication states.
-
 cury/legacy/cury-mini.shelly.js: Cury Mini Legacy
 ===
 Compact legacy Cury light-language implementation with built-in state logic, timing patterns, and periodic hardware checks.
@@ -408,17 +404,49 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
-the_pill/MODBUS/Deye/the_pill_mbsa_deye.shelly.js: Deye SG02LP1 MODBUS-RTU
+the_pill/MODBUS/Davis/pyranometer.shelly.js: Davis Pyranometer MODBUS example
 ===
-MODBUS-RTU example for reading Deye SG02LP1 solar inverter parameters over UART using the MODBUS-RTU master library.
+Reads solar irradiance (W/m2) from a Davis-compatible RS-485
 
-the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + Virtual Components
+the_pill/MODBUS/Davis/pyranometer_vc.shelly.js: Davis Pyranometer MODBUS-RTU Reader + Virtual Components
 ===
-MODBUS-RTU reader for Deye SG02LP1 solar inverter with Virtual Component updates. Reads parameters over UART (RS485) and pushes values to user-defined virtual number components.
+MODBUS-RTU reader for a Davis-compatible RS-485 pyranometer with
 
-the_pill/MODBUS/JK200-MBS/the_pill_mbsa_jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
+the_pill/MODBUS/Deye/deye.shelly.js: Deye SG02LP1 MODBUS-RTU
+===
+MODBUS-RTU example for reading Deye SG02LP1 solar inverter
+
+the_pill/MODBUS/Deye/deye_vc.shelly.js: Deye SG02LP1 MODBUS-RTU + Virtual Components
+===
+MODBUS-RTU reader for Deye SG02LP1 solar inverter with
+
+the_pill/MODBUS/JKESS/JK200-MBS/jk200.shelly.js: JK200 BMS MODBUS-RTU Reader
 ===
 MODBUS-RTU reader for Jikong JK-PB series BMS over RS485.
+
+the_pill/MODBUS/JKESS/JK200-MBS/jk200_vc.shelly.js: JK200 BMS MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for Jikong JK-PB series BMS over RS485 with
+
+the_pill/MODBUS/LinkedGo/ST802/st802_bms.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client
+===
+Modbus RTU master that simulates BMS (Building Management System)
+
+the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components
+===
+Modbus RTU master that simulates BMS commands for the LinkedGo
+
+the_pill/MODBUS/utils/modbus_scan.shelly.js: Universal MODBUS-RTU Scanner
+===
+Discovers MODBUS-RTU slave devices by scanning all combinations
+
+the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js: WB-M1W2 v3 MODBUS-RTU Reader
+===
+MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter.
+
+the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js: WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter
 
 the_pill/UART/uart_test.shelly.js: UART test
 ===

@@ -1,10 +1,28 @@
 /**
- * @title Deye SG02LP1 MODBUS-RTU + Virtual Components
- * @description MODBUS-RTU reader for Deye SG02LP1 solar inverter with
- *   Virtual Component updates. Reads parameters over UART (RS485) and
- *   pushes values to user-defined virtual number components.
+ * @title Deye SG02LP1 MODBUS-RTU
+ * @description MODBUS-RTU example for reading Deye SG02LP1 solar inverter
+ *   parameters over UART using the MODBUS-RTU master library.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/the_pill_mbsa_deye_vc.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Deye/deye.shelly.js
+ */
+
+/**
+ * Deye SG02LP1 Solar Inverter - MODBUS-RTU Reader
+ *
+ * Reads key parameters from a Deye SG02LP1 hybrid inverter via
+ * MODBUS-RTU over UART (RS485).
+ *
+ * Monitored parameters:
+ * - Total Power, Battery Power, PV1 Power
+ * - Total Grid Power, Battery SOC
+ * - PV1 Voltage, Grid Voltage L1, Current L1
+ * - AC Frequency
+ *
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> Inverter RS485 B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> Inverter RS485 A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (HIGH=TX, LOW=RX)
+ *   GND       ─── GND     ──> Inverter GND
  */
 
 /* === CONFIG === */
@@ -17,17 +35,113 @@ var CONFIG = {
     DEBUG: true
 };
 
-/* === DEYE REGISTER MAP + VIRTUAL COMPONENT MAPPING === */
+/* === DEYE REGISTER MAP === */
 var ENTITIES = [
-    { name: "Total Power",     units: "W",  addr: 175, itype: "i16", scale: 1,    vcId: "number:200", vcHandle: null },
-    { name: "Battery Power",   units: "W",  addr: 190, itype: "i16", scale: 1,    vcId: "number:201", vcHandle: null },
-    { name: "PV1 Power",       units: "W",  addr: 186, itype: "u16", scale: 1,    vcId: "number:202", vcHandle: null },
-    { name: "Total Grid Power",units: "W",  addr: 169, itype: "i16", scale: 10,   vcId: "number:203", vcHandle: null },
-    { name: "Battery SOC",     units: "%",  addr: 184, itype: "u16", scale: 1,    vcId: "number:204", vcHandle: null },
-    { name: "PV1 Voltage",     units: "V",  addr: 109, itype: "u16", scale: 0.1,  vcId: "number:205", vcHandle: null },
-    { name: "Grid Voltage L1", units: "V",  addr: 150, itype: "u16", scale: 0.1,  vcId: "number:206", vcHandle: null },
-    { name: "Current L1",      units: "A",  addr: 164, itype: "i16", scale: 0.01, vcId: "number:207", vcHandle: null },
-    { name: "AC Frequency",    units: "Hz", addr: 192, itype: "u16", scale: 0.01, vcId: "number:208", vcHandle: null }
+    //
+    // --- Solar / Battery summary ---
+    //
+    {
+        name:   "Total Power",
+        units:  "W",
+        reg:    { addr: 175, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "Battery Power",
+        units:  "W",
+        reg:    { addr: 190, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "PV1 Power",
+        units:  "W",
+        reg:    { addr: 186, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- Grid ---
+    //
+    {
+        name:   "Total Grid Power",
+        units:  "W",
+        reg:    { addr: 169, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  10,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- Battery ---
+    //
+    {
+        name:   "Battery SOC",
+        units:  "%",
+        reg:    { addr: 184, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- DC Input ---
+    //
+    {
+        name:   "PV1 Voltage",
+        units:  "V",
+        reg:    { addr: 109, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    //
+    // --- AC Output ---
+    //
+    {
+        name:   "Grid Voltage L1",
+        units:  "V",
+        reg:    { addr: 150, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.1,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "Current L1",
+        units:  "A",
+        reg:    { addr: 164, rtype: 0x03, itype: "i16", bo: "BE", wo: "BE" },
+        scale:  0.01,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
+    {
+        name:   "AC Frequency",
+        units:  "Hz",
+        reg:    { addr: 192, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" },
+        scale:  0.01,
+        rights: "R",
+        vcId:   null,
+        handle:   null,
+        vcHandle: null,
+    },
 ];
 
 /* === MODBUS FUNCTION CODES === */
@@ -240,6 +354,11 @@ function clearResponseTimeout() {
 
 /* === DEYE API === */
 
+/**
+ * Read a single holding register
+ * @param {number} addr - Register address
+ * @param {function} callback - callback(error, rawValue)
+ */
 function readRegister(addr, callback) {
     var data = [
         (addr >> 8) & 0xFF,
@@ -253,6 +372,7 @@ function readRegister(addr, callback) {
             callback(err, null);
             return;
         }
+        // response: [byteCount, highByte, lowByte]
         if (response.length < 3) {
             callback("Short response", null);
             return;
@@ -262,6 +382,9 @@ function readRegister(addr, callback) {
     });
 }
 
+/**
+ * Interpret raw u16 value as signed i16
+ */
 function toSigned16(val) {
     if (val >= 0x8000) {
         return val - 0x10000;
@@ -269,18 +392,15 @@ function toSigned16(val) {
     return val;
 }
 
-function updateVc(entity, value) {
-    if (!entity.vcHandle) return;
-    var oldVal = entity.vcHandle.getValue();
-    entity.vcHandle.setValue(value);
-    debug(entity.name + ": " + oldVal + " -> " + value + " [" + entity.units + "]");
-}
-
+/**
+ * Read all entities sequentially, then print results
+ */
 function pollEntities() {
     var results = [];
 
     function readNext(index) {
         if (index >= ENTITIES.length) {
+            // All done, print results
             print("--- Deye SG02LP1 ---");
             for (var i = 0; i < results.length; i++) {
                 print(results[i]);
@@ -290,15 +410,15 @@ function pollEntities() {
         }
 
         var entity = ENTITIES[index];
-        readRegister(entity.addr, function(err, raw) {
+        readRegister(entity.reg.addr, function(err, raw) {
             if (err) {
                 results.push(entity.name + ": ERROR (" + err + ")");
             } else {
-                var value = entity.itype === "i16" ? toSigned16(raw) : raw;
+                var value = entity.reg.itype === "i16" ? toSigned16(raw) : raw;
                 value = value * entity.scale;
                 results.push(entity.name + ": " + value + " [" + entity.units + "]");
-                updateVc(entity, value);
             }
+            // Small delay between requests for bus stability
             Timer.set(50, false, function() {
                 readNext(index + 1);
             });
@@ -311,17 +431,8 @@ function pollEntities() {
 /* === INITIALIZATION === */
 
 function init() {
-    print("Deye SG02LP1 - MODBUS-RTU Reader + Virtual Components");
-    print("======================================================");
-
-    // Initialize virtual component handles
-    for (var i = 0; i < ENTITIES.length; i++) {
-        var ent = ENTITIES[i];
-        if (ent.vcId) {
-            ent.vcHandle = Virtual.getHandle(ent.vcId);
-            debug("VC handle for " + ent.name + " -> " + ent.vcId);
-        }
-    }
+    print("Deye SG02LP1 - MODBUS-RTU Reader");
+    print("=================================");
 
     state.uart = UART.get();
     if (!state.uart) {

@@ -18,12 +18,12 @@
  * - 8 Digital Inputs (DI): Dry contact / NPN
  * - 12 Digital Outputs (DO): Relay outputs
  *
- * Hardware connection:
- * - RS485 Module A (D+) -> MB308V A (D+)
- * - RS485 Module B (D-) -> MB308V B (D-)
- * - RS485 Module RO -> Shelly RX (GPIO)
- * - RS485 Module DI -> Shelly TX (GPIO)
- * - Power: 7-35VDC to MB308V
+ * The Pill 5-Terminal Add-on wiring:
+ *   IO1 (TX)  ─── B (D-)  ──> MB308V B (D-)
+ *   IO2 (RX)  ─── A (D+)  ──> MB308V A (D+)
+ *   IO3       ─── DE/RE   ──  direction control (automatic)
+ *   GND       ─── GND     ──> MB308V GND
+ *   Power: 7-35VDC to MB308V (separate supply)
  *
  * Default settings: 9600 baud, 8N1, Slave ID: 1
  *
@@ -48,25 +48,70 @@ var CONFIG = {
 };
 
 /* === CWT-MB308V REGISTER MAP === */
-var MB308V = {
-    // Digital Outputs (Relays) - 12 coils
-    DO_COUNT: 12,
-    DO_START_ADDR: 0,
 
-    // Digital Inputs - 8 inputs
-    DI_COUNT: 8,
-    DI_START_ADDR: 0,
+// Calibration constants for analog channel conversion
+var AI_MAX_VALUE = 10216;  // Raw full-scale for AI (4-20mA or 0-5V/0-10V)
+var AO_MAX_VALUE = 24000;  // Raw full-scale for AO (0-10V or 4-20mA)
 
-    // Analog Outputs - 4 registers (0-24000 = 0-10V or 4-20mA)
-    AO_COUNT: 4,
-    AO_START_ADDR: 0,
-    AO_MAX_VALUE: 24000,
+var ENTITIES = [
+    //
+    // --- Digital Inputs (DI 0-7, FC 0x02 Read Discrete Inputs) ---
+    //
+    { name: "DI 0", units: "-", reg: { addr: 0, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 1", units: "-", reg: { addr: 1, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 2", units: "-", reg: { addr: 2, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 3", units: "-", reg: { addr: 3, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 4", units: "-", reg: { addr: 4, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 5", units: "-", reg: { addr: 5, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 6", units: "-", reg: { addr: 6, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "DI 7", units: "-", reg: { addr: 7, rtype: 0x02, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    //
+    // --- Digital Outputs / Relays (DO 0-11, FC 0x01 Read Coils) ---
+    //
+    { name: "DO 0",  units: "-", reg: { addr: 0,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 1",  units: "-", reg: { addr: 1,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 2",  units: "-", reg: { addr: 2,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 3",  units: "-", reg: { addr: 3,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 4",  units: "-", reg: { addr: 4,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 5",  units: "-", reg: { addr: 5,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 6",  units: "-", reg: { addr: 6,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 7",  units: "-", reg: { addr: 7,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 8",  units: "-", reg: { addr: 8,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 9",  units: "-", reg: { addr: 9,  rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 10", units: "-", reg: { addr: 10, rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "DO 11", units: "-", reg: { addr: 11, rtype: 0x01, itype: "bool", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    //
+    // --- Analog Inputs (AI 0-7, FC 0x04 Read Input Registers) ---
+    //   Raw range: 0 - AI_MAX_VALUE (10216 for 4-20mA mode)
+    //
+    { name: "AI 0", units: "raw", reg: { addr: 0, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 1", units: "raw", reg: { addr: 1, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 2", units: "raw", reg: { addr: 2, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 3", units: "raw", reg: { addr: 3, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 4", units: "raw", reg: { addr: 4, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 5", units: "raw", reg: { addr: 5, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 6", units: "raw", reg: { addr: 6, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { name: "AI 7", units: "raw", reg: { addr: 7, rtype: 0x04, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    //
+    // --- Analog Outputs (AO 0-3, FC 0x03 Read/Write Holding Registers) ---
+    //   Raw range: 0 - AO_MAX_VALUE (24000 = full-scale 0-10V or 4-20mA)
+    //
+    { name: "AO 0", units: "raw", reg: { addr: 0, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "AO 1", units: "raw", reg: { addr: 1, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "AO 2", units: "raw", reg: { addr: 2, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { name: "AO 3", units: "raw", reg: { addr: 3, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1, rights: "RW", vcId: null, handle: null, vcHandle: null },
+];
 
-    // Analog Inputs - 8 registers (0-10216 typical for 4-20mA)
-    AI_COUNT: 8,
-    AI_START_ADDR: 0,
-    AI_MAX_VALUE: 10216
-};
+// Return all entities whose register type matches rtype
+function entitiesByRtype(rtype) {
+    var result = [];
+    for (var i = 0; i < ENTITIES.length; i++) {
+        if (ENTITIES[i].reg.rtype === rtype) {
+            result.push(ENTITIES[i]);
+        }
+    }
+    return result;
+}
 
 /* === MODBUS FUNCTION CODES === */
 var FC = {
@@ -300,14 +345,15 @@ function clearTimeout() {
  * @param {function} callback - callback(error, inputs[8])
  */
 function readDigitalInputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.DI_COUNT];
+    var diEntities = entitiesByRtype(0x02);
+    var data = [0x00, diEntities[0].reg.addr, 0x00, diEntities.length];
     sendRequest(FC.READ_DISCRETE_INPUTS, data, function(err, response) {
         if (err) {
             callback(err, null);
             return;
         }
         var inputs = [];
-        for (var i = 0; i < MB308V.DI_COUNT; i++) {
+        for (var i = 0; i < diEntities.length; i++) {
             var byteIdx = Math.floor(i / 8) + 1;
             var bitIdx = i % 8;
             if (byteIdx < response.length) {
@@ -323,14 +369,15 @@ function readDigitalInputs(callback) {
  * @param {function} callback - callback(error, relays[12])
  */
 function readDigitalOutputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.DO_COUNT];
+    var doEntities = entitiesByRtype(0x01);
+    var data = [0x00, doEntities[0].reg.addr, 0x00, doEntities.length];
     sendRequest(FC.READ_COILS, data, function(err, response) {
         if (err) {
             callback(err, null);
             return;
         }
         var relays = [];
-        for (var i = 0; i < MB308V.DO_COUNT; i++) {
+        for (var i = 0; i < doEntities.length; i++) {
             var byteIdx = Math.floor(i / 8) + 1;
             var bitIdx = i % 8;
             if (byteIdx < response.length) {
@@ -348,11 +395,12 @@ function readDigitalOutputs(callback) {
  * @param {function} callback - callback(error, success)
  */
 function writeDigitalOutput(channel, value, callback) {
-    if (channel < 0 || channel >= MB308V.DO_COUNT) {
+    var doEntities = entitiesByRtype(0x01);
+    if (channel < 0 || channel >= doEntities.length) {
         callback("Invalid channel: " + channel, false);
         return;
     }
-    var data = [0x00, channel & 0xFF, value ? 0xFF : 0x00, 0x00];
+    var data = [0x00, doEntities[channel].reg.addr & 0xFF, value ? 0xFF : 0x00, 0x00];
     sendRequest(FC.WRITE_SINGLE_COIL, data, function(err, response) {
         callback(err, !err);
     });
@@ -363,7 +411,8 @@ function writeDigitalOutput(channel, value, callback) {
  * @param {function} callback - callback(error, values[8])
  */
 function readAnalogInputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.AI_COUNT];
+    var aiEntities = entitiesByRtype(0x04);
+    var data = [0x00, aiEntities[0].reg.addr, 0x00, aiEntities.length];
     sendRequest(FC.READ_INPUT_REGISTERS, data, function(err, response) {
         if (err) {
             callback(err, null);
@@ -383,7 +432,8 @@ function readAnalogInputs(callback) {
  * @param {function} callback - callback(error, values[4])
  */
 function readAnalogOutputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.AO_COUNT];
+    var aoEntities = entitiesByRtype(0x03);
+    var data = [0x00, aoEntities[0].reg.addr, 0x00, aoEntities.length];
     sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, response) {
         if (err) {
             callback(err, null);
@@ -401,18 +451,19 @@ function readAnalogOutputs(callback) {
 /**
  * Write single Analog Output
  * @param {number} channel - AO channel (0-3)
- * @param {number} value - Value (0-24000)
+ * @param {number} value - Value (0-AO_MAX_VALUE)
  * @param {function} callback - callback(error, success)
  */
 function writeAnalogOutput(channel, value, callback) {
-    if (channel < 0 || channel >= MB308V.AO_COUNT) {
+    var aoEntities = entitiesByRtype(0x03);
+    if (channel < 0 || channel >= aoEntities.length) {
         callback("Invalid channel: " + channel, false);
         return;
     }
     if (value < 0) value = 0;
-    if (value > MB308V.AO_MAX_VALUE) value = MB308V.AO_MAX_VALUE;
+    if (value > AO_MAX_VALUE) value = AO_MAX_VALUE;
 
-    var data = [0x00, channel & 0xFF, (value >> 8) & 0xFF, value & 0xFF];
+    var data = [0x00, aoEntities[channel].reg.addr & 0xFF, (value >> 8) & 0xFF, value & 0xFF];
     sendRequest(FC.WRITE_SINGLE_REGISTER, data, function(err, response) {
         callback(err, !err);
     });
@@ -420,12 +471,12 @@ function writeAnalogOutput(channel, value, callback) {
 
 /**
  * Convert raw AI value to milliamps (4-20mA mode)
- * @param {number} raw - Raw value (0-10216)
+ * @param {number} raw - Raw value (0-AI_MAX_VALUE)
  * @returns {number} Current in mA
  */
 function aiToMilliamps(raw) {
-    // 0 = 4mA, 10216 = 20mA (typical)
-    return 4.0 + (raw / MB308V.AI_MAX_VALUE) * 16.0;
+    // 0 = 4mA, AI_MAX_VALUE = 20mA (typical)
+    return 4.0 + (raw / AI_MAX_VALUE) * 16.0;
 }
 
 /**
@@ -434,7 +485,7 @@ function aiToMilliamps(raw) {
  * @returns {number} Voltage in V
  */
 function aiToVoltage(raw) {
-    return (raw / MB308V.AI_MAX_VALUE) * 10.0;
+    return (raw / AI_MAX_VALUE) * 10.0;
 }
 
 /**
@@ -445,7 +496,7 @@ function aiToVoltage(raw) {
 function milliampsToAo(mA) {
     if (mA < 4) mA = 4;
     if (mA > 20) mA = 20;
-    return Math.round(((mA - 4) / 16.0) * MB308V.AO_MAX_VALUE);
+    return Math.round(((mA - 4) / 16.0) * AO_MAX_VALUE);
 }
 
 /**
@@ -456,7 +507,7 @@ function milliampsToAo(mA) {
 function voltageToAo(volts) {
     if (volts < 0) volts = 0;
     if (volts > 10) volts = 10;
-    return Math.round((volts / 10.0) * MB308V.AO_MAX_VALUE);
+    return Math.round((volts / 10.0) * AO_MAX_VALUE);
 }
 
 /* === DEMO POLLING === */
