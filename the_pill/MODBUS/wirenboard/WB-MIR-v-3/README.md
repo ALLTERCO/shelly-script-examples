@@ -15,6 +15,11 @@ You have a WB-MIR v3 on the RS485 bus and want to read DS18B20 temperature, moni
 - [`wb_mir_v3_vc.shelly.js`](wb_mir_v3_vc.shelly.js): reader + Virtual Components
 - [`wb_mir_v3_ir.shelly.js`](wb_mir_v3_ir.shelly.js): dedicated IR utility for learning, playback, ROM dump, and erase operations
 
+## Screenshot
+This screenshot shows the WB-MIR v3 telemetry page with 1-Wire temperature, supply voltage, MCU temperature, and IR / 1-Wire module status in the Shelly UI.
+
+![WB-MIR v3 screenshot](screenshot.png)
+
 ## IR Utility (`wb_mir_v3_ir.shelly.js`)
 Dedicated IR operations for the WB-MIR v3:
 - learn one remote command into ROM
