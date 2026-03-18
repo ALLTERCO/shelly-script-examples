@@ -3,7 +3,7 @@
  * @description Discovers MODBUS-RTU slave devices by scanning all combinations
  *   of baud rate, parity, stop bits, and slave IDs. After finding a device,
  *   reads PROBE_REGS to help identify the device type. Works with any vendor.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/utils/modbus_scan.shelly.js
  */
 
