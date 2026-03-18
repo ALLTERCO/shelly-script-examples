@@ -20,7 +20,6 @@
  *
  * Virtual Component mapping (pre-create in the Shelly UI before running):
  *   number:200  Solar Irradiance    W/m2
- *   group:200   Davis Pyranometer   (group)
  *
  * The Pill 5-Terminal Add-on wiring:
  *   IO1 (TX)  --- B (D-)  --> Sensor B (D-)
