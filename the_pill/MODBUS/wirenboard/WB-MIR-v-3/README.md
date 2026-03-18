@@ -3,7 +3,7 @@
 MODBUS-RTU scripts for the Wirenboard WB-MIR v3 IR transceiver and environment sensor module.
 
 ## Problem (The Story)
-You have a WB-MIR v3 on the RS485 bus and want to read DS18B20 temperature, detect button presses (short / long / double), monitor IR module presence, and track supply voltages — all from a Shelly device without a separate gateway.
+You have a WB-MIR v3 on the RS485 bus and want to read DS18B20 temperature, monitor IR and 1-Wire module presence, and track supply voltages — all from a Shelly device without a separate gateway.
 
 ## Persona
 - Building automation integrator reading temperature and input events over MODBUS
@@ -18,12 +18,8 @@ You have a WB-MIR v3 on the RS485 bus and want to read DS18B20 temperature, dete
 | Virtual Component | Name | Unit |
 |---|---|---|
 | `number:200` | 1-Wire Temperature | degC |
-| `number:201` | Supply Voltage | mV |
+| `number:201` | Supply Voltage | V |
 | `number:202` | MCU Temperature | degC |
-| `number:203` | Short Press Counter | - |
-| `number:204` | Long Press Counter | - |
-| `number:205` | Double Press Counter | - |
-| `number:206` | Short+Long Counter | - |
 | `boolean:200` | Input 1W State | 0=open, 1=closed |
 | `boolean:201` | 1-Wire Probe Status | 0=disconnected, 1=connected |
 | `boolean:202` | IR Transceiver | 0=absent, 1=present |
