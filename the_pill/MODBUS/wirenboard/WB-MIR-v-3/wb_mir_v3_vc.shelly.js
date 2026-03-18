@@ -2,9 +2,9 @@
  * @title WB-MIR v3 MODBUS-RTU Reader + Virtual Components
  * @description MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and
  *   environment sensor over RS485 with Virtual Component updates. Reads DS18B20
- *   temperature, button press counters, module presence flags, and supply
- *   voltages, then pushes values to user-defined virtual components.
- * @status under development
+ *   temperature, module presence flags, and supply voltages, then pushes values
+ *   to user-defined virtual components.
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js
  */
 
@@ -29,12 +29,8 @@
  *
  * Virtual Component mapping (pre-create via Shelly UI or scripts):
  *   number:200   1-Wire Temperature    degC
- *   number:201   Supply Voltage        mV
+ *   number:201   Supply Voltage        V
  *   number:202   MCU Temperature       degC
- *   number:203   Short Press Counter   -
- *   number:204   Long Press Counter    -
- *   number:205   Double Press Counter  -
- *   number:206   Short+Long Counter    -
  *   boolean:200  Input 1W State        0=open/1-wire, 1=closed
  *   boolean:201  1-Wire Probe Status   0=disconnected, 1=connected
  *   boolean:202  IR Transceiver        0=absent, 1=present
@@ -49,7 +45,7 @@
 var CONFIG = {
   BAUD_RATE: 9600,
   MODE: '8N2',             // WB-MIR v3 factory default: 8 data, no parity, 2 stop bits
-  SLAVE_ID: 1,
+  SLAVE_ID: 62,
   RESPONSE_TIMEOUT: 1000,  // ms
   INTER_READ_DELAY: 100,   // ms between chained block reads
   POLL_INTERVAL: 5000,     // ms between full poll cycles
@@ -62,10 +58,6 @@ var REG = {
   DISCRETE:     { addr: 0,   qty: 17, fc: 0x02 },
   POWER:        { addr: 121, qty: 4,  fc: 0x04 },
   PRESENCE:     { addr: 375, qty: 2,  fc: 0x04 },
-  SHORT_PRESS:  { addr: 464, qty: 1,  fc: 0x04 },
-  LONG_PRESS:   { addr: 480, qty: 1,  fc: 0x04 },
-  DOUBLE_PRESS: { addr: 496, qty: 1,  fc: 0x04 },
-  SL_PRESS:     { addr: 512, qty: 1,  fc: 0x04 },
 };
 
 /* === ENTITIES === */
@@ -79,12 +71,8 @@ var ENTITIES = [
   // --- Input Registers (FC 0x04) - read-only sensor data ---
   //
   { name: '1-Wire Temperature',  units: 'degC', reg: { addr: 7,    rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: 'number:200',  handle: null, vcHandle: null },
-  { name: 'Supply Voltage',      units: 'mV',   reg: { addr: 121,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:201',  handle: null, vcHandle: null },
+  { name: 'Supply Voltage',      units: 'V',    reg: { addr: 121,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 0.001,  rights: 'R',  vcId: 'number:201',  handle: null, vcHandle: null },
   { name: 'MCU Temperature',     units: 'degC', reg: { addr: 124,  rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.1,    rights: 'R',  vcId: 'number:202',  handle: null, vcHandle: null },
-  { name: 'Short Press Counter', units: '-',    reg: { addr: 464,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:203',  handle: null, vcHandle: null },
-  { name: 'Long Press Counter',  units: '-',    reg: { addr: 480,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:204',  handle: null, vcHandle: null },
-  { name: 'Double Press Counter',units: '-',    reg: { addr: 496,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:205',  handle: null, vcHandle: null },
-  { name: 'Short+Long Counter',  units: '-',    reg: { addr: 512,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:206',  handle: null, vcHandle: null },
   { name: 'IR Transceiver',      units: '-',    reg: { addr: 375,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:202', handle: null, vcHandle: null },
   { name: '1-Wire Sensor',       units: '-',    reg: { addr: 376,  rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:203', handle: null, vcHandle: null },
   //
@@ -105,12 +93,8 @@ var E = {
   TEMPERATURE:    2,
   SUPPLY_V:       3,
   MCU_TEMP:       4,
-  SHORT_PRESS:    5,
-  LONG_PRESS:     6,
-  DOUBLE_PRESS:   7,
-  SL_PRESS:       8,
-  IR_PRESENT:     9,
-  OW_PRESENT:    10,
+  IR_PRESENT:     5,
+  OW_PRESENT:     6,
 };
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
@@ -157,6 +141,9 @@ var state = {
   pendingRequest: null,
   responseTimer: null,
   pollTimer: null,
+  metadataQueue: [],
+  metadataIndex: 0,
+  metadataBusy: false,
 };
 
 /* === HELPERS === */
@@ -218,8 +205,79 @@ function toSigned16(v) {
 
 function updateVc(entity, value) {
   if (!entity || !entity.vcHandle) return;
+  if (typeof value === 'number') {
+    value = Math.round(value * 10) / 10;
+  }
   entity.vcHandle.setValue(value);
   debug(entity.name + ' -> ' + value + ' [' + entity.units + ']');
+}
+
+function capitalize(s) {
+  if (!s || s.length === 0) return s;
+  return s.slice(0, 1).toUpperCase() + s.slice(1);
+}
+
+function parseVcId(vcId) {
+  var parts;
+  if (!vcId) return null;
+  parts = vcId.split(':');
+  if (parts.length !== 2) return null;
+  return {
+    type: parts[0],
+    id: +parts[1],
+  };
+}
+
+function configureVcMetadata(entity) {
+  var parsed, config, method;
+  if (!entity || !entity.vcId) return;
+
+  parsed = parseVcId(entity.vcId);
+  if (!parsed || (parsed.type !== 'number' && parsed.type !== 'boolean')) return;
+
+  config = Shelly.getComponentConfig(parsed.type, parsed.id);
+  if (!config) {
+    debug('VC config missing for ' + entity.vcId);
+    return;
+  }
+
+  if (!config.meta) config.meta = {};
+  if (!config.meta.ui) config.meta.ui = {};
+
+  config.name = entity.name;
+  if (parsed.type === 'number') {
+    config.meta.ui.unit = entity.units;
+  }
+  if (parsed.type === 'boolean') {
+    config.meta.ui.titles = ['OFF', 'ON'];
+  }
+
+  method = capitalize(parsed.type) + '.SetConfig';
+  state.metadataQueue.push({
+    method: method,
+    params: { id: parsed.id, config: config },
+    vcId: entity.vcId,
+    units: entity.units,
+  });
+}
+
+function processMetadataQueue() {
+  var job;
+  if (state.metadataBusy || state.metadataIndex >= state.metadataQueue.length) return;
+
+  job = state.metadataQueue[state.metadataIndex];
+  state.metadataIndex++;
+  state.metadataBusy = true;
+
+  Shelly.call(job.method, job.params, function(result, error_code, error_message) {
+    if (error_code !== 0) {
+      print('[WB-MIR] VC config error for ' + job.vcId + ': ' + error_message);
+    } else {
+      debug('VC config updated for ' + job.vcId + ' unit=' + job.units);
+    }
+    state.metadataBusy = false;
+    Timer.set(50, false, processMetadataQueue);
+  });
 }
 
 /* === MODBUS CORE === */
@@ -405,11 +463,6 @@ function printData(d) {
     print('  1-Wire:       ' + (d.presence.owPresent ? 'present' : 'absent'));
   }
 
-  print('  Buttons:      short=' + d.shortPress +
-        '  long=' + d.longPress +
-        '  double=' + d.doublePress +
-        '  s+l=' + d.slPress);
-
   print('');
 }
 
@@ -421,10 +474,6 @@ function pollDevice() {
     discrete:    null,
     power:       null,
     presence:    null,
-    shortPress:  null,
-    longPress:   null,
-    doublePress: null,
-    slPress:     null,
   };
 
   // Block A: temperature (FC 0x04, addr 7, qty 1)
@@ -475,39 +524,7 @@ function pollDevice() {
                   updateVc(ENTITIES[E.IR_PRESENT], result.presence.irPresent);
                   updateVc(ENTITIES[E.OW_PRESENT], result.presence.owPresent);
                 }
-
-                Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
-                  // Block E: short press counter
-                  readInputRegisters(REG.SHORT_PRESS.addr, REG.SHORT_PRESS.qty, function(err, regs) {
-                    result.shortPress = err ? null : regs[0];
-                    if (!err) updateVc(ENTITIES[E.SHORT_PRESS], result.shortPress);
-
-                    Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
-                      // Block F: long press counter
-                      readInputRegisters(REG.LONG_PRESS.addr, REG.LONG_PRESS.qty, function(err, regs) {
-                        result.longPress = err ? null : regs[0];
-                        if (!err) updateVc(ENTITIES[E.LONG_PRESS], result.longPress);
-
-                        Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
-                          // Block G: double press counter
-                          readInputRegisters(REG.DOUBLE_PRESS.addr, REG.DOUBLE_PRESS.qty, function(err, regs) {
-                            result.doublePress = err ? null : regs[0];
-                            if (!err) updateVc(ENTITIES[E.DOUBLE_PRESS], result.doublePress);
-
-                            Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
-                              // Block H: short+long press counter
-                              readInputRegisters(REG.SL_PRESS.addr, REG.SL_PRESS.qty, function(err, regs) {
-                                result.slPress = err ? null : regs[0];
-                                if (!err) updateVc(ENTITIES[E.SL_PRESS], result.slPress);
-                                printData(result);
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
+                printData(result);
               });
             });
           });
@@ -528,9 +545,11 @@ function init() {
     var ent = ENTITIES[i];
     if (ent.vcId) {
       ent.vcHandle = Virtual.getHandle(ent.vcId);
+      configureVcMetadata(ent);
       debug('VC handle for ' + ent.name + ' -> ' + ent.vcId);
     }
   }
+  processMetadataQueue();
 
   state.uart = UART.get();
   if (!state.uart) {
