@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Add universal MODBUS-RTU scanner (`the_pill/MODBUS/utils/modbus_scan.shelly.js`): two-phase scan (ping all baud/mode/ID combos) then identify found devices via configurable PROBE_REGS; remove device-specific `wb_m1w2_scan.shelly.js` in favour of this shared utility; add `utils/` README and update MODBUS root README index
 - Update `wb_m1w2_scan.shelly.js` scanner to probe all four baud rates (4800/9600/19200/38400) × both stop-bit modes (8N1/8N2), switch probe register to addr 121 (supply voltage, universally present on all Wirenboard devices), and reduce per-attempt timeout from 400 ms to 250 ms
 - Add Wirenboard WB-M1W2 v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-M1W2-v3/`): console reader and slave ID scanner utility; add `WB-M1W2-v3/` README; update wirenboard root README index
 - Add Wirenboard WB-MIR v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-MIR-v-3/`): console reader and Virtual Components variant; add `wirenboard/` and `WB-MIR-v-3/` READMEs; update MODBUS root README index
