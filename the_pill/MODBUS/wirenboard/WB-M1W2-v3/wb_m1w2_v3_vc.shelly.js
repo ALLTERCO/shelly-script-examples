@@ -1,14 +1,15 @@
 /**
- * @title WB-M1W2 v3 MODBUS-RTU Reader
- * @description MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter.
- *   Reads internal NTC thermistor temperature, two external DS18B20 1-Wire channels,
- *   discrete input states, sensor presence flags, supply voltage, and pulse counters.
+ * @title WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components
+ * @description MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter
+ *   with Virtual Component updates. Reads two external DS18B20 1-Wire channels,
+ *   discrete input states, sensor presence flags, supply voltage, and pulse counters,
+ *   then pushes values to user-defined virtual components.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js
  */
 
 /**
- * Wirenboard WB-M1W2 v3 - MODBUS-RTU Reader for Shelly (The Pill)
+ * Wirenboard WB-M1W2 v3 - MODBUS-RTU Reader + Virtual Components
  *
  * WB-M1W2 v3 features:
  *   - Two universal inputs, each supporting up to 20 DS18B20 1-Wire sensors in parallel
@@ -26,22 +27,20 @@
  *   GND       ─── GND     ──> WB-M1W2 v3 GND
  *   9–28 V ext ─────────> WB-M1W2 v3 V+
  *
- * Register blocks read per poll cycle:
- *   Block A - Temperatures:   FC 0x04, addr  6, qty  3  (NTC + ch1 + ch2)
- *   Block B - Discrete:       FC 0x02, addr  0, qty 18  (input states + presence)
- *   Block C - Supply voltage: FC 0x04, addr 121, qty  1
- *   Block D - Counters:       FC 0x04, addr 277, qty  2  (pulse counter ch1 + ch2)
+ * Virtual Component mapping (pre-create via Shelly UI or scripts):
+ *   number:200   Ch1 Temperature   degC  (1-Wire channel 1 DS18B20)
+ *   number:201   Ch2 Temperature   degC  (1-Wire channel 2 DS18B20)
+ *   number:202   Supply Voltage    V
+ *   number:203   Counter Ch1       -     (pulse counter, input #1)
+ *   number:204   Counter Ch2       -     (pulse counter, input #2)
+ *   boolean:200  Input #1 State    0=open, 1=closed to GND
+ *   boolean:201  Input #2 State    0=open, 1=closed to GND
+ *   boolean:202  Sensor #1 Status  0=absent/polling, 1=data valid
+ *   boolean:203  Sensor #2 Status  0=absent/polling, 1=data valid
+ *   group:200    WB-M1W2 v3        (group containing all above)
  *
- * Temperature register layout (FC 0x04, addr 6, qty 3):
- *   regs[0]  addr 6  Built-in NTC thermistor  s16  raw/16 = °C; 0x7FFF = error
- *   regs[1]  addr 7  External 1-Wire ch1      s16  raw/16 = °C; 0x7FFF = absent/error
- *   regs[2]  addr 8  External 1-Wire ch2      s16  raw/16 = °C; 0x7FFF = absent/error
- *
- * Discrete Block B (FC 0x02, addr 0, qty 18):
- *   bit  0  addr  0  Input #1 state    0=open, 1=closed to GND
- *   bit  1  addr  1  Input #2 state    0=open, 1=closed to GND
- *   bit 16  addr 16  Sensor #1 status  0=absent/polling, 1=data valid (v4.6.0+)
- *   bit 17  addr 17  Sensor #2 status  0=absent/polling, 1=data valid (v4.6.0+)
+ * NOTE: NTC thermistor (addr 6, FC 0x04) is not available on all firmware versions.
+ *   On devices where it causes Exception 02, it is skipped. No VC is mapped for it.
  *
  * References:
  *   WB-M1W2 Product Page:  https://wirenboard.com/en/product/WB-M1W2/
@@ -73,36 +72,50 @@ var REG = {
   COUNTERS: { addr: 277, qty: 2,  fc: 0x04 },
 };
 
-/* === ENTITIES (full register map for documentation and optional VC binding) === */
+/* === ENTITIES (full register map with VC binding) === */
 var ENTITIES = [
   //
   // --- Discrete Inputs (FC 0x02) ---
   //
-  { name: 'Input #1 State',     units: '-',    reg: { addr: 0,   rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Input #2 State',     units: '-',    reg: { addr: 1,   rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Sensor #1 Status',   units: '-',    reg: { addr: 16,  rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Sensor #2 Status',   units: '-',    reg: { addr: 17,  rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
+  { name: 'Input #1 State',   units: '-',    reg: { addr: 0,   rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:200', handle: null, vcHandle: null },
+  { name: 'Input #2 State',   units: '-',    reg: { addr: 1,   rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:201', handle: null, vcHandle: null },
+  { name: 'Sensor #1 Status', units: '-',    reg: { addr: 16,  rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:202', handle: null, vcHandle: null },
+  { name: 'Sensor #2 Status', units: '-',    reg: { addr: 17,  rtype: 0x02, itype: 'bool', bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'boolean:203', handle: null, vcHandle: null },
   //
   // --- Input Registers (FC 0x04) - read-only sensor data ---
   //
-  { name: 'NTC Temperature',    units: 'degC', reg: { addr: 6,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Ch1 Temperature',    units: 'degC', reg: { addr: 7,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Ch2 Temperature',    units: 'degC', reg: { addr: 8,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Supply Voltage',     units: 'mV',   reg: { addr: 121, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Counter Ch1',        units: '-',    reg: { addr: 277, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
-  { name: 'Counter Ch2',        units: '-',    reg: { addr: 278, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: null, handle: null, vcHandle: null },
+  { name: 'NTC Temperature',  units: 'degC', reg: { addr: 6,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: null,          handle: null, vcHandle: null },
+  { name: 'Ch1 Temperature',  units: 'degC', reg: { addr: 7,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: 'number:200',  handle: null, vcHandle: null },
+  { name: 'Ch2 Temperature',  units: 'degC', reg: { addr: 8,   rtype: 0x04, itype: 'i16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'R',  vcId: 'number:201',  handle: null, vcHandle: null },
+  { name: 'Supply Voltage',   units: 'V',    reg: { addr: 121, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 0.001,  rights: 'R',  vcId: 'number:202',  handle: null, vcHandle: null },
+  { name: 'Counter Ch1',      units: '-',    reg: { addr: 277, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:203',  handle: null, vcHandle: null },
+  { name: 'Counter Ch2',      units: '-',    reg: { addr: 278, rtype: 0x04, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'R',  vcId: 'number:204',  handle: null, vcHandle: null },
   //
   // --- Holding Registers (FC 0x03) - configuration (read FC3, write FC6/FC16) ---
   //
-  { name: 'Filter Threshold',   units: 'degC', reg: { addr: 99,  rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Baud Rate',          units: 'bps',  reg: { addr: 110, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 100,    rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Parity',             units: '-',    reg: { addr: 111, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Stop Bits',          units: '-',    reg: { addr: 112, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Reset',              units: '-',    reg: { addr: 120, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Slave Address',      units: '-',    reg: { addr: 128, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Input #1 Mode',      units: '-',    reg: { addr: 275, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
-  { name: 'Input #2 Mode',      units: '-',    reg: { addr: 276, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null, handle: null, vcHandle: null },
+  { name: 'Filter Threshold', units: 'degC', reg: { addr: 99,  rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 0.0625, rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Baud Rate',        units: 'bps',  reg: { addr: 110, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 100,    rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Parity',           units: '-',    reg: { addr: 111, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Stop Bits',        units: '-',    reg: { addr: 112, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Reset',            units: '-',    reg: { addr: 120, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Slave Address',    units: '-',    reg: { addr: 128, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Input #1 Mode',    units: '-',    reg: { addr: 275, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Input #2 Mode',    units: '-',    reg: { addr: 276, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
 ];
+
+// Entity index constants for convenient access
+var E = {
+  INPUT1:   0,
+  INPUT2:   1,
+  SENSOR1:  2,
+  SENSOR2:  3,
+  NTC_TEMP: 4,
+  CH1_TEMP: 5,
+  CH2_TEMP: 6,
+  SUPPLY_V: 7,
+  COUNTER1: 8,
+  COUNTER2: 9,
+};
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
 var CRC_TABLE = [
@@ -205,16 +218,57 @@ function toSigned16(v) {
   return v >= 0x8000 ? v - 0x10000 : v;
 }
 
-/* === DISPLAY FORMATTERS (integer arithmetic only) === */
+/* === VIRTUAL COMPONENT === */
 
-// raw s16 (×1/16 degC) -> "XX.XXXX C" (4 decimal places)
-function fmtC16(raw) {
-  var sign = raw < 0 ? '-' : '';
-  var abs = raw < 0 ? -raw : raw;
-  var whole = Math.floor(abs / 16);
-  var frac = (abs % 16) * 625;  // 0-9375 in units of 0.0001 degC
-  var f4 = ('0000' + frac).slice(-4);
-  return sign + whole + '.' + f4 + ' C';
+function updateVc(entity, value) {
+  if (!entity || !entity.vcHandle) return;
+  entity.vcHandle.setValue(value);
+  debug(entity.name + ' -> ' + value + ' [' + entity.units + ']');
+}
+
+function capitalize(s) {
+  if (!s || s.length === 0) return s;
+  return s.slice(0, 1).toUpperCase() + s.slice(1);
+}
+
+function parseVcId(vcId) {
+  var parts;
+  if (!vcId) return null;
+  parts = vcId.split(':');
+  if (parts.length !== 2) return null;
+  return {
+    type: parts[0],
+    id: +parts[1],
+  };
+}
+
+function configureVcMetadata(entity) {
+  var parsed, config, method;
+  if (!entity || !entity.vcId || !entity.units || entity.units === '-') return;
+
+  parsed = parseVcId(entity.vcId);
+  if (!parsed || parsed.type !== 'number') return;
+
+  config = Shelly.getComponentConfig(parsed.type, parsed.id);
+  if (!config) {
+    debug('VC config missing for ' + entity.vcId);
+    return;
+  }
+
+  if (!config.meta) config.meta = {};
+  if (!config.meta.ui) config.meta.ui = {};
+
+  config.name = entity.name;
+  config.meta.ui.unit = entity.units;
+
+  method = capitalize(parsed.type) + '.SetConfig';
+  Shelly.call(method, { id: parsed.id, config: config }, function(result, error_code, error_message) {
+    if (error_code !== 0) {
+      print('[WB-M1W2] VC config error for ' + entity.vcId + ': ' + error_message);
+      return;
+    }
+    debug('VC config updated for ' + entity.vcId + ' unit=' + entity.units);
+  });
 }
 
 /* === MODBUS CORE === */
@@ -411,7 +465,17 @@ function parsePresenceBlock(bits) {
   };
 }
 
-/* === TEMPERATURE FORMATTING === */
+/* === DISPLAY FORMATTERS (integer arithmetic only) === */
+
+// raw s16 (×1/16 degC) -> "XX.XXXX C" (4 decimal places)
+function fmtC16(raw) {
+  var sign = raw < 0 ? '-' : '';
+  var abs = raw < 0 ? -raw : raw;
+  var whole = Math.floor(abs / 16);
+  var frac = (abs % 16) * 625;  // 0-9375 in units of 0.0001 degC
+  var f4 = ('0000' + frac).slice(-4);
+  return sign + whole + '.' + f4 + ' C';
+}
 
 // Formats a raw s16 temperature (×1/16 degC) with error/absent check.
 // Returns a display string.
@@ -450,8 +514,8 @@ function printData(d) {
   }
 
   // Supply voltage
-  if (d.supplyMv !== null) {
-    print('  Supply: ' + d.supplyMv + ' mV');
+  if (d.supplyV !== null) {
+    print('  Supply: ' + d.supplyV + ' V');
   }
 
   // Pulse counters
@@ -467,7 +531,7 @@ function pollDevice() {
     temps:    null,
     discrete: null,
     presence: null,
-    supplyMv: null,
+    supplyV: null,
     counter1: null,
     counter2: null,
   };
@@ -478,6 +542,12 @@ function pollDevice() {
       print('[WB-M1W2] Temp read error: ' + err);
     } else {
       result.temps = parseTempBlock(regs);
+      if (result.temps.ch1Raw !== 0x7FFF) {
+        updateVc(ENTITIES[E.CH1_TEMP], result.temps.ch1Raw * ENTITIES[E.CH1_TEMP].scale);
+      }
+      if (result.temps.ch2Raw !== 0x7FFF) {
+        updateVc(ENTITIES[E.CH2_TEMP], result.temps.ch2Raw * ENTITIES[E.CH2_TEMP].scale);
+      }
     }
 
     Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
@@ -487,6 +557,8 @@ function pollDevice() {
           print('[WB-M1W2] Discrete read error: ' + err);
         } else {
           result.discrete = parseDiscreteBlock(bits);
+          updateVc(ENTITIES[E.INPUT1], result.discrete.input1);
+          updateVc(ENTITIES[E.INPUT2], result.discrete.input2);
         }
 
         Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
@@ -496,6 +568,8 @@ function pollDevice() {
               print('[WB-M1W2] Presence read error: ' + err);
             } else {
               result.presence = parsePresenceBlock(bits);
+              updateVc(ENTITIES[E.SENSOR1], result.presence.sensor1);
+              updateVc(ENTITIES[E.SENSOR2], result.presence.sensor2);
             }
 
             Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
@@ -504,7 +578,8 @@ function pollDevice() {
                 if (err) {
                   print('[WB-M1W2] Supply read error: ' + err);
                 } else {
-                  result.supplyMv = regs[0];
+                  result.supplyV = regs[0] * ENTITIES[E.SUPPLY_V].scale;
+                  updateVc(ENTITIES[E.SUPPLY_V], result.supplyV);
                 }
 
                 Timer.set(CONFIG.INTER_READ_DELAY, false, function() {
@@ -515,6 +590,8 @@ function pollDevice() {
                     } else {
                       result.counter1 = regs[0];
                       result.counter2 = regs[1];
+                      updateVc(ENTITIES[E.COUNTER1], result.counter1);
+                      updateVc(ENTITIES[E.COUNTER2], result.counter2);
                     }
                     printData(result);
                   });
@@ -531,8 +608,18 @@ function pollDevice() {
 /* === INIT === */
 
 function init() {
-  print('WB-M1W2 v3 - MODBUS-RTU Reader');
-  print('================================');
+  print('WB-M1W2 v3 - MODBUS-RTU Reader + Virtual Components');
+  print('====================================================');
+
+  // Bind virtual component handles
+  for (var i = 0; i < ENTITIES.length; i++) {
+    var ent = ENTITIES[i];
+    if (ent.vcId) {
+      ent.vcHandle = Virtual.getHandle(ent.vcId);
+      debug('VC handle for ' + ent.name + ' -> ' + ent.vcId);
+      configureVcMetadata(ent);
+    }
+  }
 
   state.uart = UART.get();
   if (!state.uart) {
