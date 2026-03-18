@@ -3,7 +3,7 @@
  * @description Reads solar irradiance (W/m2) from a Davis-compatible RS-485
  *   pyranometer over MODBUS-RTU.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/davis/pyranometer.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Davis/pyranometer.shelly.js
  */
 
 /**
@@ -160,19 +160,17 @@ function onReceive(data) {
 
 function processResponse() {
     if (!state.pendingRequest) { state.rxBuffer = []; return; }
-    if (state.rxBuffer.length < 3) return;
+    if (state.rxBuffer.length < 5) return;
 
     var fc = state.rxBuffer[1];
     if (fc & 0x80) {
-        if (state.rxBuffer.length >= 5) {
-            var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
-            if (excCrc === (state.rxBuffer[3] | (state.rxBuffer[4] << 8))) {
-                clearResponseTimer();
-                var cb = state.pendingRequest.callback;
-                state.pendingRequest = null;
-                state.rxBuffer = [];
-                cb("Exception 0x" + toHex(fc & 0x7F), null);
-            }
+        var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
+        if (excCrc === (state.rxBuffer[3] | (state.rxBuffer[4] << 8))) {
+            clearResponseTimer();
+            var cb = state.pendingRequest.callback;
+            state.pendingRequest = null;
+            state.rxBuffer = [];
+            cb("Exception 0x" + toHex(state.rxBuffer[2]), null);
         }
         return;
     }

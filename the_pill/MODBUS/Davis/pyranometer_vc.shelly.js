@@ -50,7 +50,6 @@ var ENTITIES = [
     scale:    1,      // raw value is already in W/m2
     rights:   'R',
     vcId:     'number:200',
-    handle:   null,
     vcHandle: null,
   },
 ];
@@ -198,7 +197,7 @@ function processResponse() {
       var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
       var recvCrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
       if (excCrc === recvCrc) {
-        clearResponseTimeout();
+        clearResponseTimer();
         var exCode = state.rxBuffer[2];
         var cb = state.pendingRequest.callback;
         state.pendingRequest = null;
@@ -209,7 +208,6 @@ function processResponse() {
     return;
   }
 
-  if (state.rxBuffer.length < 3) return;
   var byteCount = state.rxBuffer[2];
   var expectedLen = 3 + byteCount + 2;
   if (state.rxBuffer.length < expectedLen) return;
@@ -220,7 +218,7 @@ function processResponse() {
   if (crc !== recvCrc) { debug('CRC error'); return; }
 
   debug('RX: ' + bytesToHex(frame));
-  clearResponseTimeout();
+  clearResponseTimer();
 
   var payload = frame.slice(3, 3 + byteCount);
   var cb = state.pendingRequest.callback;
@@ -229,7 +227,7 @@ function processResponse() {
   cb(null, payload);
 }
 
-function clearResponseTimeout() {
+function clearResponseTimer() {
   if (state.responseTimer) {
     Timer.clear(state.responseTimer);
     state.responseTimer = null;
