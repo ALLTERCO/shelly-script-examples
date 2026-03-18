@@ -448,6 +448,18 @@ the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js: WB-M1W2 v3 MODBUS
 ===
 MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter
 
+the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js: WB-MIR v3 MODBUS-RTU Reader
+===
+MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485. Reads DS18B20 temperature, button press counters, IR module presence, and supply voltages.
+
+the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js: WB-MIR v3 MODBUS Reconfiguration Utility
+===
+One-shot utility to change the WB-MIR v3 baud rate and slave ID over MODBUS-RTU. Connects at the current settings (115200 baud, slave 133), writes the new slave ID (62) to register 128, then writes the new baud rate code (96 = 9600 bps) to register 110. Power-cycle the device afterwards.
+
+the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js: WB-MIR v3 MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485 with Virtual Component updates. Reads DS18B20 temperature, module presence flags, and supply voltages, then pushes values to user-defined virtual components.
+
 the_pill/UART/uart_test.shelly.js: UART test
 ===
 Simple UART loopback test that sends periodic messages and prints received data.
