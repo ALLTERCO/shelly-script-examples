@@ -404,6 +404,14 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
+the_pill/MODBUS/Davis/pyranometer.shelly.js: Davis Pyranometer MODBUS example
+===
+Reads solar irradiance (W/m2) from a Davis-compatible RS-485
+
+the_pill/MODBUS/Davis/pyranometer_vc.shelly.js: Davis Pyranometer MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for a Davis-compatible RS-485 pyranometer with
+
 the_pill/MODBUS/Deye/deye.shelly.js: Deye SG02LP1 MODBUS-RTU
 ===
 MODBUS-RTU example for reading Deye SG02LP1 solar inverter
@@ -427,6 +435,10 @@ Modbus RTU master that simulates BMS (Building Management System)
 the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js: LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components
 ===
 Modbus RTU master that simulates BMS commands for the LinkedGo
+
+the_pill/MODBUS/utils/modbus_scan.shelly.js: Universal MODBUS-RTU Scanner
+===
+Discovers MODBUS-RTU slave devices by scanning all combinations
 
 the_pill/UART/uart_test.shelly.js: UART test
 ===

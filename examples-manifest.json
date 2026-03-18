@@ -459,6 +459,16 @@
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
   },
   {
+    "fname": "the_pill/MODBUS/Davis/pyranometer.shelly.js",
+    "title": "Davis Pyranometer MODBUS example",
+    "description": "Reads solar irradiance (W/m2) from a Davis-compatible RS-485"
+  },
+  {
+    "fname": "the_pill/MODBUS/Davis/pyranometer_vc.shelly.js",
+    "title": "Davis Pyranometer MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for a Davis-compatible RS-485 pyranometer with"
+  },
+  {
     "fname": "the_pill/MODBUS/Deye/deye.shelly.js",
     "title": "Deye SG02LP1 MODBUS-RTU",
     "description": "MODBUS-RTU example for reading Deye SG02LP1 solar inverter"
@@ -487,6 +497,11 @@
     "fname": "the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js",
     "title": "LinkedGo ST802 Thermostat - BMS Modbus RTU Client + Virtual Components",
     "description": "Modbus RTU master that simulates BMS commands for the LinkedGo"
+  },
+  {
+    "fname": "the_pill/MODBUS/utils/modbus_scan.shelly.js",
+    "title": "Universal MODBUS-RTU Scanner",
+    "description": "Discovers MODBUS-RTU slave devices by scanning all combinations"
   },
   {
     "fname": "the_pill/UART/uart_test.shelly.js",
