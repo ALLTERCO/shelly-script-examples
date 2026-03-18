@@ -440,6 +440,14 @@ the_pill/MODBUS/utils/modbus_scan.shelly.js: Universal MODBUS-RTU Scanner
 ===
 Discovers MODBUS-RTU slave devices by scanning all combinations
 
+the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js: WB-M1W2 v3 MODBUS-RTU Reader
+===
+MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter.
+
+the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js: WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components
+===
+MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter
+
 the_pill/UART/uart_test.shelly.js: UART test
 ===
 Simple UART loopback test that sends periodic messages and prints received data.

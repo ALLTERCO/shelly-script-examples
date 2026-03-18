@@ -504,6 +504,16 @@
     "description": "Discovers MODBUS-RTU slave devices by scanning all combinations"
   },
   {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter"
+  },
+  {
     "fname": "the_pill/UART/uart_test.shelly.js",
     "title": "UART test",
     "description": "Simple UART loopback test that sends periodic messages and prints received data."
