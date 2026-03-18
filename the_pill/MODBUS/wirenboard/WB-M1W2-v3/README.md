@@ -12,7 +12,7 @@ You have a WB-M1W2 v3 on the RS485 bus and want to read DS18B20 temperatures fro
 
 ## Files
 - [`wb_m1w2_v3.shelly.js`](wb_m1w2_v3.shelly.js): console reader (logs to print output)
-- [`wb_m1w2_scan.shelly.js`](wb_m1w2_scan.shelly.js): slave ID scanner — discovers the device address by probing IDs 1–30 at both 8N1 and 8N2
+- [`../../utils/modbus_scan.shelly.js`](../../utils/modbus_scan.shelly.js): universal MODBUS scanner — discovers any device by sweeping baud rates, modes, and slave IDs
 
 ## Register Blocks Polled
 | Block | FC | Addr | Qty | Data |
@@ -37,7 +37,7 @@ You have a WB-M1W2 v3 on the RS485 bus and want to read DS18B20 temperatures fro
 
 Default communication settings: `9600 baud`, `8N2`.
 **Slave ID is printed on the device label** (factory default is `1`, but individual units may differ).
-Use `wb_m1w2_scan.shelly.js` to discover the slave ID if the label is not readable.
+Use `modbus_scan.shelly.js` from `the_pill/MODBUS/utils/` to discover the slave ID if the label is not readable.
 
 ## References
 - [WB-M1W2 Product Page](https://wirenboard.com/en/product/WB-M1W2/)
