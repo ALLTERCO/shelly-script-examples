@@ -13,6 +13,28 @@ You have a WB-MIR v3 on the RS485 bus and want to read DS18B20 temperature, moni
 ## Files
 - [`wb_mir_v3.shelly.js`](wb_mir_v3.shelly.js): console reader (logs to print output)
 - [`wb_mir_v3_vc.shelly.js`](wb_mir_v3_vc.shelly.js): reader + Virtual Components
+- [`wb_mir_v3_ir.shelly.js`](wb_mir_v3_ir.shelly.js): dedicated IR utility for learning, playback, ROM dump, and erase operations
+
+## IR Utility (`wb_mir_v3_ir.shelly.js`)
+Dedicated IR operations for the WB-MIR v3:
+- learn one remote command into ROM
+- learn one remote command into RAM and dump the raw buffer
+- play a stored ROM command
+- play the current RAM buffer
+- dump an existing ROM slot into raw timings
+- erase all ROM-stored IR commands
+
+Important IR registers used by the script:
+- `5000`: erase all ROM commands
+- `5001`: learn into RAM
+- `5002`: play from RAM
+- `5500`: play from ROM slot
+- `5501`: open ROM slot for editing / dump via holding registers `2000+`
+- `5502`: learn into ROM slot
+
+The raw IR waveform buffer is exposed in holding registers starting at `2000`.
+Each value is a pulse duration in 10 us units, and the sequence ends with two
+consecutive zero words.
 
 ## Virtual Component Mapping (`wb_mir_v3_vc.shelly.js`)
 | Virtual Component | Name | Unit |
