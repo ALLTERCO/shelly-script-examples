@@ -11,7 +11,12 @@ You want a quick market snapshot on your Shelly dashboard, but most finance widg
 - Maker building simple finance-aware automations from HTTP data
 
 ## Files
-- [`stock-monitor.shelly.js`](stock-monitor.shelly.js): Yahoo Finance poller + Virtual Component updater
+- [`stock-monitor_vc.shelly.js`](stock-monitor_vc.shelly.js): Yahoo Finance poller + Virtual Component updater
+
+## Screenshot
+This screenshot shows the Stock Monitor Virtual Components group in the Shelly UI with current price, open/close, high/low, volume, daily change, and last update timestamp.
+
+![Stock Monitor screenshot](screenshot.png)
 
 ## What It Updates
 - `number:200` current price
@@ -31,5 +36,4 @@ You want a quick market snapshot on your Shelly dashboard, but most finance widg
 4. Repeats every 5 minutes
 
 ## Notes
-- Script status is currently under development.
 - The default symbol in the script is `SLYG.DE`; edit `STOCK_SYMBOL` to your preferred ticker.

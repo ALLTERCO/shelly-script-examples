@@ -2,8 +2,8 @@
  * @title Yahoo Finance stock monitor with virtual components
  * @description Polls Yahoo Finance chart API for a stock symbol and updates
  *   Virtual Components with current price, daily delta, and quote fields.
- * @status under development
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/finance-yahoo/stock-monitor.shelly.js
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/finance-yahoo/stock-monitor_vc.shelly.js
  */
 
 /**
@@ -96,17 +96,16 @@ function getTimestamp(ts) {
   return new Date(ts).toString().split('GMT')[0].trim();
 }
 
+function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
 function getDate(ts) {
   const date = new Date(ts);
-  return (
-    String(date.getDate()).padStart(2, "0") + "-" +
-    String(date.getMonth() + 1).padStart(2, "0")
-  );
+  return pad2(date.getDate()) + "-" + pad2(date.getMonth() + 1);
 }
 
 function formatNum(n) {
   const x = Number(n);
-  return Number.isFinite(x) ? Number(x.toFixed(2)) : 0;
+  return isFinite(x) ? Number(x.toFixed(2)) : 0;
 }
 
 function getComponentByKey(key) {

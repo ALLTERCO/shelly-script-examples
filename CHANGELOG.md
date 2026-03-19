@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Promote `http-integrations/finance-yahoo/stock-monitor_vc.shelly.js` to production: rename from `stock-monitor.shelly.js`, fix mJS compatibility (`Number.isFinite` → `isFinite`, `padStart` → `pad2` helper), add screenshot to README
 - Add `the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js`, a dedicated under-development IR utility for WB-MIR v3 learn/play/dump/erase operations
 - Promote all `the_pill/MODBUS/wirenboard/WB-MIR-v-3/*.shelly.js` scripts to production and add them to `examples-manifest.json`
 - Set WB-MIR v3 boolean Virtual Component labels to `OFF` and `ON` via `meta.ui.titles`
