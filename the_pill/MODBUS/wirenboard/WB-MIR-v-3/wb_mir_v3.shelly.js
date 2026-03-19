@@ -3,7 +3,7 @@
  * @description MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and
  *   environment sensor over RS485. Reads DS18B20 temperature, button press
  *   counters, IR module presence, and supply voltages.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js
  */
 
@@ -61,7 +61,7 @@
 var CONFIG = {
   BAUD_RATE: 9600,
   MODE: '8N2',             // WB-MIR v3 factory default: 8 data, no parity, 2 stop bits
-  SLAVE_ID: 1,
+  SLAVE_ID: 62,
   RESPONSE_TIMEOUT: 1000,  // ms
   INTER_READ_DELAY: 100,   // ms between chained block reads
   POLL_INTERVAL: 5000,     // ms between full poll cycles

@@ -6,7 +6,7 @@ HTTP endpoints, notifications, metrics, and external service integrations.
 Use these when you need Shelly to talk to external services or expose data via HTTP.
 ## Scripts
 
-- `finance-yahoo/stock-monitor.shelly.js` (see `finance-yahoo/README.md`)
+- `finance-yahoo/stock-monitor_vc.shelly.js` (see `finance-yahoo/README.md`)
 - `http_post_watts_to_thingspeak/http_post_watts_to_thingspeak.shelly.js`
 - `http-handlers/http-handlers.shelly.js`
 - `http-notify-on-power-threshold/http-notify-on-power-threshold.shelly.js`

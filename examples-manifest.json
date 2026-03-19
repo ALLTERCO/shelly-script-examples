@@ -190,6 +190,11 @@
     "description": "Example of reading Switch component's status."
   },
   {
+    "fname": "http-integrations/finance-yahoo/stock-monitor_vc.shelly.js",
+    "title": "Yahoo Finance stock monitor with virtual components",
+    "description": "Polls Yahoo Finance chart API for a stock symbol and updates"
+  },
+  {
     "fname": "http-integrations/http-handlers/http-handlers.shelly.js",
     "title": "Shelly HTTP script handling GET requests, query strings",
     "description": "This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for\nthose requests. Reconfiguration of a Switch component as an example is included"
@@ -502,6 +507,31 @@
     "fname": "the_pill/MODBUS/utils/modbus_scan.shelly.js",
     "title": "Universal MODBUS-RTU Scanner",
     "description": "Discovers MODBUS-RTU slave devices by scanning all combinations"
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter"
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js",
+    "title": "WB-MIR v3 MODBUS-RTU Reader",
+    "description": "MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485. Reads DS18B20 temperature, button press counters, IR module presence, and supply voltages."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js",
+    "title": "WB-MIR v3 MODBUS Reconfiguration Utility",
+    "description": "One-shot utility to change the WB-MIR v3 baud rate and slave ID over MODBUS-RTU. Connects at the current settings (115200 baud, slave 133), writes the new slave ID (62) to register 128, then writes the new baud rate code (96 = 9600 bps) to register 110. Power-cycle the device afterwards."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js",
+    "title": "WB-MIR v3 MODBUS-RTU Reader + Virtual Components",
+    "description": "MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485 with Virtual Component updates. Reads DS18B20 temperature, module presence flags, and supply voltages, then pushes values to user-defined virtual components."
   },
   {
     "fname": "the_pill/UART/uart_test.shelly.js",

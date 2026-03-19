@@ -14,6 +14,17 @@ Wirenboard devices expose environmental, input, and IR data over RS485 MODBUS-RT
 - [`WB-M1W2-v3/`](WB-M1W2-v3/): Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter — dual DS18B20 channel reader + slave scanner
 - [`WB-MIR-v-3/`](WB-MIR-v-3/): Wirenboard WB-MIR v3 IR transceiver + DS18B20 temperature + button input examples
 
+## Screenshots
+### WB-M1W2 v3
+This screenshot shows the WB-M1W2 v3 telemetry page with temperatures, supply voltage, counters, and discrete input states in the Shelly UI.
+
+![WB-M1W2 v3 screenshot](WB-M1W2-v3/screenshot.png)
+
+### WB-MIR v3
+This screenshot shows the WB-MIR v3 telemetry page with temperature, supply voltage, MCU temperature, and module status indicators in the Shelly UI.
+
+![WB-MIR v3 screenshot](WB-MIR-v-3/screenshot.png)
+
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 Use The Pill mapping from the MODBUS root README:
 - `IO1 (TX)` -> `B (D-)`

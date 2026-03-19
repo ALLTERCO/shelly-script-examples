@@ -14,6 +14,11 @@ You have a WB-M1W2 v3 on the RS485 bus and want to read DS18B20 temperatures fro
 - [`wb_m1w2_v3.shelly.js`](wb_m1w2_v3.shelly.js): console reader (logs to print output)
 - [`../../utils/modbus_scan.shelly.js`](../../utils/modbus_scan.shelly.js): universal MODBUS scanner — discovers any device by sweeping baud rates, modes, and slave IDs
 
+## Screenshot
+This screenshot shows the WB-M1W2 v3 telemetry page with both 1-Wire channels, supply voltage, counters, and input status in the Shelly UI.
+
+![WB-M1W2 v3 screenshot](screenshot.png)
+
 ## Register Blocks Polled
 | Block | FC | Addr | Qty | Data |
 |---|---|---|---|---|
