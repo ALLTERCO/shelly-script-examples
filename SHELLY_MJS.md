@@ -163,6 +163,10 @@ howto/switch-read.shelly.js: Example - Reading Switch status
 ===
 Example of reading Switch component's status.
 
+http-integrations/finance-yahoo/stock-monitor_vc.shelly.js: Yahoo Finance stock monitor with virtual components
+===
+Polls Yahoo Finance chart API for a stock symbol and updates
+
 http-integrations/http-handlers/http-handlers.shelly.js: Shelly HTTP script handling GET requests, query strings
 ===
 This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for

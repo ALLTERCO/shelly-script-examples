@@ -190,6 +190,11 @@
     "description": "Example of reading Switch component's status."
   },
   {
+    "fname": "http-integrations/finance-yahoo/stock-monitor_vc.shelly.js",
+    "title": "Yahoo Finance stock monitor with virtual components",
+    "description": "Polls Yahoo Finance chart API for a stock symbol and updates"
+  },
+  {
     "fname": "http-integrations/http-handlers/http-handlers.shelly.js",
     "title": "Shelly HTTP script handling GET requests, query strings",
     "description": "This script registers a HTTP handler endpoint and implements simple logic for requests and handlers for\nthose requests. Reconfiguration of a Switch component as an example is included"
