@@ -1,7 +1,5 @@
 # UART Test
 
-> **Under Development** - This example is currently under development and may not be fully functional.
-
 Simple UART loopback test for verifying wiring and communication with The Pill.
 
 ## Hardware Requirements
