@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Update `the_pill/README.md` to reflect accurate production/under-development statuses, expand MODBUS subtree with per-device links, and correct YS-IRTM and UART entries to production
+- Remove "Under Development" warning from `the_pill/UART/README.md` — script is production
+- Add missing `wb_m1w2_v3_vc.shelly.js` to Files and Virtual Component mapping table in `the_pill/MODBUS/wirenboard/WB-M1W2-v3/README.md`
+- Add missing `wb_mir_v3_reconfig.shelly.js` to Files in `the_pill/MODBUS/wirenboard/WB-MIR-v-3/README.md`; mark `wb_mir_v3_ir.shelly.js` as under development
 - Promote `http-integrations/finance-yahoo/stock-monitor_vc.shelly.js` to production: rename from `stock-monitor.shelly.js`, fix mJS compatibility (`Number.isFinite` → `isFinite`, `padStart` → `pad2` helper), add screenshot to README
 - Add `the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js`, a dedicated under-development IR utility for WB-MIR v3 learn/play/dump/erase operations
 - Promote all `the_pill/MODBUS/wirenboard/WB-MIR-v-3/*.shelly.js` scripts to production and add them to `examples-manifest.json`

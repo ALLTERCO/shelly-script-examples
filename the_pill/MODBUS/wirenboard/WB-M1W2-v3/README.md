@@ -12,7 +12,22 @@ You have a WB-M1W2 v3 on the RS485 bus and want to read DS18B20 temperatures fro
 
 ## Files
 - [`wb_m1w2_v3.shelly.js`](wb_m1w2_v3.shelly.js): console reader (logs to print output)
+- [`wb_m1w2_v3_vc.shelly.js`](wb_m1w2_v3_vc.shelly.js): reader + Virtual Components
 - [`../../utils/modbus_scan.shelly.js`](../../utils/modbus_scan.shelly.js): universal MODBUS scanner — discovers any device by sweeping baud rates, modes, and slave IDs
+
+## Virtual Component Mapping (`wb_m1w2_v3_vc.shelly.js`)
+| Virtual Component | Name | Unit |
+|---|---|---|
+| `number:200` | Ch1 Temperature | degC |
+| `number:201` | Ch2 Temperature | degC |
+| `number:202` | Supply Voltage | V |
+| `number:203` | Counter Ch1 | — |
+| `number:204` | Counter Ch2 | — |
+| `boolean:200` | Input #1 State | 0=open, 1=closed |
+| `boolean:201` | Input #2 State | 0=open, 1=closed |
+| `boolean:202` | Sensor #1 Status | 0=absent, 1=valid |
+| `boolean:203` | Sensor #2 Status | 0=absent, 1=valid |
+| `group:200` | WB-M1W2 v3 | group |
 
 ## Screenshot
 This screenshot shows the WB-M1W2 v3 telemetry page with both 1-Wire channels, supply voltage, counters, and input status in the Shelly UI.
