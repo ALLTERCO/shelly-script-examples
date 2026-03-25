@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Update `the_pill/README.md` to reflect accurate production/under-development statuses, expand MODBUS subtree with per-device links, and correct YS-IRTM and UART entries to production
+- Remove "Under Development" warning from `the_pill/UART/README.md` — script is production
+- Add missing `wb_m1w2_v3_vc.shelly.js` to Files and Virtual Component mapping table in `the_pill/MODBUS/wirenboard/WB-M1W2-v3/README.md`
+- Add missing `wb_mir_v3_reconfig.shelly.js` to Files in `the_pill/MODBUS/wirenboard/WB-MIR-v-3/README.md`; mark `wb_mir_v3_ir.shelly.js` as under development
+- Promote `http-integrations/finance-yahoo/stock-monitor_vc.shelly.js` to production: rename from `stock-monitor.shelly.js`, fix mJS compatibility (`Number.isFinite` → `isFinite`, `padStart` → `pad2` helper), add screenshot to README
+- Add `the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js`, a dedicated under-development IR utility for WB-MIR v3 learn/play/dump/erase operations
+- Promote all `the_pill/MODBUS/wirenboard/WB-MIR-v-3/*.shelly.js` scripts to production and add them to `examples-manifest.json`
+- Set WB-MIR v3 boolean Virtual Component labels to `OFF` and `ON` via `meta.ui.titles`
+- Round all WB-MIR v3 Virtual Component numeric values to one decimal place before updating Shelly VCs
+- Change WB-MIR v3 Virtual Component `Supply Voltage` from `mV` to `V` and update its runtime VC metadata so the Shelly UI unit matches
+- Remove unused WB-MIR v3 press-counter Virtual Components from `the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js` so its remaining VCs fit on The Pill and can be grouped under `group:200`
+- Add `the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js` Virtual Components variant of WB-M1W2 v3 reader; promote to production and register in manifest; add Shelly UI screenshot
+- Promote `the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js` to production and register in manifest
+- Update `the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js` to apply `meta.ui.unit` to existing number Virtual Components on startup so Shelly UI shows measurement units
+- Change `the_pill/MODBUS/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js` supply voltage Virtual Component from `mV` to `V` and scale MODBUS register 121 accordingly
+- Add universal MODBUS-RTU scanner (`the_pill/MODBUS/utils/modbus_scan.shelly.js`): two-phase scan (ping all baud/mode/ID combos) then identify found devices via configurable PROBE_REGS; remove device-specific `wb_m1w2_scan.shelly.js` in favour of this shared utility; add `utils/` README and update MODBUS root README index
+- Update `wb_m1w2_scan.shelly.js` scanner to probe all four baud rates (4800/9600/19200/38400) × both stop-bit modes (8N1/8N2), switch probe register to addr 121 (supply voltage, universally present on all Wirenboard devices), and reduce per-attempt timeout from 400 ms to 250 ms
+- Add Wirenboard WB-M1W2 v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-M1W2-v3/`): console reader and slave ID scanner utility; add `WB-M1W2-v3/` README; update wirenboard root README index
+- Add Wirenboard WB-MIR v3 MODBUS-RTU scripts (`the_pill/MODBUS/wirenboard/WB-MIR-v-3/`): console reader and Virtual Components variant; add `wirenboard/` and `WB-MIR-v-3/` READMEs; update MODBUS root README index
 - Add screenshot sections with descriptive captions to Deye, JK200, and ST802 MODBUS README files
 - Promote `the_pill/MODBUS/Deye/deye.shelly.js` to production and fix its header `@link` path
 - Promote `the_pill/MODBUS/Deye/deye_vc.shelly.js` to production and fix its header `@link` path

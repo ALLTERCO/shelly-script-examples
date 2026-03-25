@@ -30,3 +30,5 @@ RS485 reliability notes:
 - [`Deye/`](Deye/): Deye inverter readers (plain + VC)
 - [`JKESS/`](JKESS/): JK BMS examples
 - [`LinkedGo/`](LinkedGo/): LinkedGo thermostat and thermal pump examples
+- [`wirenboard/`](wirenboard/): Wirenboard industrial sensor examples
+- [`utils/`](utils/): Shared utility scripts (scanner, diagnostics)
