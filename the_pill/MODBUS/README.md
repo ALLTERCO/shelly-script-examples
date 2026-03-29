@@ -41,6 +41,7 @@ RS485 reliability notes:
 - [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
 - [`HTTP-Bridge/`](HTTP-Bridge/): MODBUS-RTU to HTTP bridge
 - [`JKESS/`](JKESS/): JK BMS examples
+- [`DFRobot/`](DFRobot/): DFRobot industrial sensor examples
 - [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
 - [`LinkedGo/`](LinkedGo/): LinkedGo thermostat and thermal pump examples
 - [`Marstek/`](Marstek/): Marstek VenusE energy-storage MODBUS examples
