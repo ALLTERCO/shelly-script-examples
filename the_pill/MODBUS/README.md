@@ -29,6 +29,7 @@ RS485 reliability notes:
 - [`ComWinTop/`](ComWinTop/): CWT-MB308V IO module examples
 - [`Deye/`](Deye/): Deye inverter readers (plain + VC)
 - [`JKESS/`](JKESS/): JK BMS examples
+- [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
 - [`LinkedGo/`](LinkedGo/): LinkedGo thermostat and thermal pump examples
 - [`wirenboard/`](wirenboard/): Wirenboard industrial sensor examples
 - [`utils/`](utils/): Shared utility scripts (scanner, diagnostics)
