@@ -10,6 +10,11 @@ Industrial distance sensing often requires a rugged, IP67-rated laser sensor wit
 - Installer monitoring fill levels, object presence, or conveyor positions
 - DIY user replacing cloud-dependent sensors with local RS485 telemetry
 
+## Screenshot
+
+![DFRobot SEN0492 VC Screenshot](screenshot.png)
+This screenshot shows the DFRobot SEN0492 Virtual Components page with the Distance reading (188 mm) grouped under the "DFRobot SEN0492" group in the Shelly UI.
+
 ## Device
 
 | Parameter | Value |
