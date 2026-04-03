@@ -56,30 +56,12 @@ var CONFIG = {
 
 /* === REGISTER MAP === */
 var ENTITIES = [
-    {
-        name:  "AC Output Power",
-        reg:   0x01,
-        units: "W",
-        scale: 0.1
-    },
-    {
-        name:  "Grid Voltage",
-        reg:   0x02,
-        units: "V",
-        scale: 0.1
-    },
-    {
-        name:  "DC Input Voltage",
-        reg:   0x03,
-        units: "V",
-        scale: 0.1
-    },
-    {
-        name:  "Temperature",
-        reg:   0x07,
-        units: "C",
-        scale: 1
-    }
+    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "GRID_VOLTAGE",      name: "Grid Voltage",      units: "V",  reg: { addr: 0x02, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 0x03, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "DAC_VALUE",         name: "DAC Value",         units: "-",  reg: { addr: 0x04, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "AC_POWER_MIRROR",   name: "AC Power Mirror",   units: "W",  reg: { addr: 0x06, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 0x07, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
 ];
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
@@ -282,7 +264,7 @@ function poll() {
         }
 
         var e = ENTITIES[index];
-        readRegister(e.reg, function(err, raw) {
+        readRegister(e.reg.addr, function(err, raw) {
             if (err) {
                 results.push(e.name + ": ERROR (" + err + ")");
             } else {

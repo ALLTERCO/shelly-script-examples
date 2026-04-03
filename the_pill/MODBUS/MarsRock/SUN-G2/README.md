@@ -29,11 +29,13 @@ Pre-create these Virtual Components before running `sun_g2_vc.shelly.js`:
 
 | VC ID | Name | Unit |
 |---|---|---|
-| `number:200` | AC Output Power | W |
-| `number:201` | Grid Voltage | V |
-| `number:202` | DC Input Voltage | V |
-| `number:203` | Temperature | C |
-| `group:200` | SUN-G2 Inverter | (group) |
+| `number:200` | AC Output Power  | W      |
+| `number:201` | Grid Voltage     | V      |
+| `number:202` | DC Input Voltage | V      |
+| `number:203` | Temperature      | C      |
+| `number:204` | DAC Value        | -      |
+| `number:205` | AC Power Mirror  | W      |
+| `group:200`  | SUN-G2 Inverter  | (group)|
 
 ## References
 - [MarsRock G2 User Manual](https://marsrock.com.cn/u_file/2405/09/file/G2SeriesMicroinverterSolarUserManual.pdf)
