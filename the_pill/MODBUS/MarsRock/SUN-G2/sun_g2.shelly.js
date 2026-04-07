@@ -1,6 +1,6 @@
 /**
  * @title MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU reader
- * @description Reads AC output power, grid voltage, DC input voltage, and
+ * @description Reads AC output power, AC grid voltage, DC input voltage, and
  *   temperature from a MarsRock G2 (Generation 2) SUN Series grid-tie
  *   micro-inverter over MODBUS-RTU and prints values to the console.
  * @status under development
@@ -18,16 +18,13 @@
  *
  * Register map (FC 0x03 – Read Holding Registers):
  *
- *   Addr  Name                  Type    Scale  Unit   Access  Notes
- *   ----  --------------------  ------  -----  -----  ------  ----------------------
- *   0x00  AC Power Setpoint     UINT16  ×10    W      W       Set inverter output power
- *   0x01  AC Output Power       UINT16  ×10    W      R       Displayed AC output power
- *   0x02  Grid Voltage          UINT16  ×10    V      R       Grid (AC) voltage
- *   0x03  DC Input Voltage      UINT16  ×10    V      R       Solar panel / DC bus voltage
- *   0x04  DAC Value             UINT16  raw    -      R/W     Analog control output (0–33187)
- *   0x05  Calibration Control   UINT16  -      -      W       Write 0x01 to start calibration
- *   0x06  AC Power Mirror       UINT16  ×10    W      R       Mirror of register 0x00 (FW ≥ 1.06)
- *   0x07  Temperature           UINT16  1      °C     R       Inverter temperature (FW ≥ 1.06)
+ *   Addr (dec)  Name                  Type    Scale  Unit   Access  Notes
+ *   ----------  --------------------  ------  -----  -----  ------  ----------------------
+ *   1  (0x01)   AC Output Power       UINT16  ×10    W      R       Displayed AC output power; byte order LE
+ *   4  (0x04)   DAC Value             UINT16  raw    -      R/W     Analog control output (0–33187)
+ *   63 (0x3F)   Temperature           UINT16  1      °C     R       Inverter temperature; subtract 2 for °C
+ *   70 (0x46)   AC Grid Voltage       UINT16  ×10    V      R       Grid (AC) voltage
+ *   109 (0x6D)  DC Input Voltage      UINT16  ×10    V      R       Solar panel / DC bus voltage
  *
  * Example frame (read AC output power, register 0x01, slave 0x01):
  *   TX: 01 03 00 01 00 01 D5 CA
@@ -56,12 +53,11 @@ var CONFIG = {
 
 /* === REGISTER MAP === */
 var ENTITIES = [
-    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "GRID_VOLTAGE",      name: "Grid Voltage",      units: "V",  reg: { addr: 0x02, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 0x03, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "LE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "AC_GRID_VOLTAGE",   name: "AC Grid Voltage",   units: "V",  reg: { addr: 70,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 109,  rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
     { key: "DAC_VALUE",         name: "DAC Value",         units: "-",  reg: { addr: 0x04, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
-    { key: "AC_POWER_MIRROR",   name: "AC Power Mirror",   units: "W",  reg: { addr: 0x06, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
-    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 0x07, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 63,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   offset: 2, rights: "R",  vcId: null, handle: null, vcHandle: null },
 ];
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
