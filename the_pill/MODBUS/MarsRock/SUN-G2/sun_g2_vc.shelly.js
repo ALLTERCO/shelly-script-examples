@@ -1,6 +1,6 @@
 /**
  * @title MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU + Virtual Components
- * @description Reads AC output power, grid voltage, DC input voltage, and
+ * @description Reads AC output power, AC grid voltage, DC input voltage, and
  *   temperature from a MarsRock G2 (Generation 2) SUN Series grid-tie
  *   micro-inverter over MODBUS-RTU and pushes values to Virtual Components.
  * @status under development
@@ -16,11 +16,10 @@
  *
  * Virtual Component mapping (pre-create before running):
  *   number:200  AC Output Power   W
- *   number:201  Grid Voltage      V
+ *   number:201  AC Grid Voltage   V
  *   number:202  DC Input Voltage  V
  *   number:203  Temperature       C
  *   number:204  DAC Value         -
- *   number:205  AC Power Mirror   W
  *   group:200   SUN-G2 Inverter   (group)
  */
 
@@ -36,12 +35,11 @@ var CONFIG = {
 
 /* === REGISTER MAP + VIRTUAL COMPONENT MAPPING === */
 var ENTITIES = [
-    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:200", handle: null, vcHandle: null },
-    { key: "GRID_VOLTAGE",      name: "Grid Voltage",      units: "V",  reg: { addr: 0x02, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:201", handle: null, vcHandle: null },
-    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 0x03, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:202", handle: null, vcHandle: null },
+    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "LE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:200", handle: null, vcHandle: null },
+    { key: "AC_GRID_VOLTAGE",   name: "AC Grid Voltage",   units: "V",  reg: { addr: 70,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:201", handle: null, vcHandle: null },
+    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 109,  rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:202", handle: null, vcHandle: null },
     { key: "DAC_VALUE",         name: "DAC Value",         units: "-",  reg: { addr: 0x04, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: "number:204", handle: null, vcHandle: null },
-    { key: "AC_POWER_MIRROR",   name: "AC Power Mirror",   units: "W",  reg: { addr: 0x06, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: "number:205", handle: null, vcHandle: null },
-    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 0x07, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "R",  vcId: "number:203", handle: null, vcHandle: null },
+    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 63,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   offset: 2, rights: "R",  vcId: "number:203", handle: null, vcHandle: null },
 ];
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */

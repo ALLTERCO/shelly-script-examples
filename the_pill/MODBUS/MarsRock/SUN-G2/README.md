@@ -3,7 +3,7 @@
 Read-only telemetry from a MarsRock G2 (Generation 2) SUN Series grid-tie micro-inverter over RS485 MODBUS-RTU using The Pill.
 
 ## Problem (The Story)
-A solar monitoring setup needs live AC output power, grid voltage, DC input voltage, and inverter temperature from a MarsRock G2 micro-inverter without relying on any cloud service or vendor app. These scripts read key registers locally and surface values to console logs or Virtual Components.
+A solar monitoring setup needs live AC output power, AC grid voltage, DC input voltage, and inverter temperature from a MarsRock G2 micro-inverter without relying on any cloud service or vendor app. These scripts read key registers locally and surface values to console logs or Virtual Components.
 
 ## Persona
 - Home solar enthusiast tracking micro-inverter output
@@ -30,11 +30,10 @@ Pre-create these Virtual Components before running `sun_g2_vc.shelly.js`:
 | VC ID | Name | Unit |
 |---|---|---|
 | `number:200` | AC Output Power  | W      |
-| `number:201` | Grid Voltage     | V      |
+| `number:201` | AC Grid Voltage  | V      |
 | `number:202` | DC Input Voltage | V      |
 | `number:203` | Temperature      | C      |
 | `number:204` | DAC Value        | -      |
-| `number:205` | AC Power Mirror  | W      |
 | `group:200`  | SUN-G2 Inverter  | (group)|
 
 ## References
