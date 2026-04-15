@@ -29,10 +29,16 @@
  *   - Delete or disable this script after a successful reconfiguration.
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> WB-MIR v3 RS485 B (D-)
- *   IO2 (RX)  ─── A (D+)  ──> WB-MIR v3 RS485 A (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> WB-MIR v3 GND
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  */
 
 /* === CONFIG === */

@@ -25,11 +25,16 @@
  *   group:200   MB308V Demo       -- groups all above
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> MB308V B (D-)
- *   IO2 (RX)  ─── A (D+)  ──> MB308V A (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> MB308V GND
- *   Power: 7-35VDC to MB308V (separate supply)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Default settings: 9600 baud, 8N1, Slave ID: 1
  *
