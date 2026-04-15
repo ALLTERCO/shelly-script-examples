@@ -95,6 +95,10 @@ blu-assistant/bthome-webhook.shelly.js: BTHome sensor webhook trigger
 ===
 Sends HTTP webhooks when BTHome sensor state changes (e.g. window open/close).
 
+blu-assistant/button-event-source.shelly.js: TODO: Add title
+===
+TODO: Add description
+
 blu-assistant/config-mqtt.shelly.js: BLU Assistant MQTT configuration
 ===
 Configures MQTT settings on Shelly BLU devices via BLE scanning and RPC.
@@ -122,6 +126,10 @@ Updates Shelly Gen3 devices to Matter firmware via BLE provisioning and OTA.
 blu-assistant/print-label-online.shelly.js: BLU device label printer
 ===
 Scans for Shelly BLU devices and sends device info to an online label printer.
+
+blu-assistant/wifi-provisioning.shelly.js: TODO: Add title
+===
+TODO: Add description
 
 cury/button-control/cury-btn-listener.shelly.js: Cury Button Listener
 ===
@@ -408,6 +416,22 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
+the_pill/MODBUS/ComWinTop/mb308v.shelly.js: TODO: Add title
+===
+TODO: Add description
+
+the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js: TODO: Add title
+===
+TODO: Add description
+
+the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js: TODO: Add title
+===
+TODO: Add description
+
+the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js: TODO: Add title
+===
+TODO: Add description
+
 the_pill/MODBUS/Davis/pyranometer.shelly.js: Davis Pyranometer MODBUS example
 ===
 Reads solar irradiance (W/m2) from a Davis-compatible RS-485
@@ -440,6 +464,14 @@ the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js: LinkedGo ST802 Thermostat
 ===
 Modbus RTU master that simulates BMS commands for the LinkedGo
 
+the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js: TODO: Add title
+===
+TODO: Add description
+
+the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js: TODO: Add title
+===
+TODO: Add description
+
 the_pill/MODBUS/utils/modbus_scan.shelly.js: Universal MODBUS-RTU Scanner
 ===
 Discovers MODBUS-RTU slave devices by scanning all combinations
@@ -455,6 +487,10 @@ MODBUS-RTU reader for Wirenboard WB-M1W2 v3 1-Wire to RS-485 converter
 the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js: WB-MIR v3 MODBUS-RTU Reader
 ===
 MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485. Reads DS18B20 temperature, button press counters, IR module presence, and supply voltages.
+
+the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js: TODO: Add title
+===
+TODO: Add description
 
 the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js: WB-MIR v3 MODBUS Reconfiguration Utility
 ===

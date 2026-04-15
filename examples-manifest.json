@@ -105,6 +105,11 @@
     "description": "Sends HTTP webhooks when BTHome sensor state changes (e.g. window open/close)."
   },
   {
+    "fname": "blu-assistant/button-event-source.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
     "fname": "blu-assistant/config-mqtt.shelly.js",
     "title": "BLU Assistant MQTT configuration",
     "description": "Configures MQTT settings on Shelly BLU devices via BLE scanning and RPC."
@@ -138,6 +143,11 @@
     "fname": "blu-assistant/print-label-online.shelly.js",
     "title": "BLU device label printer",
     "description": "Scans for Shelly BLU devices and sends device info to an online label printer."
+  },
+  {
+    "fname": "blu-assistant/wifi-provisioning.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
   },
   {
     "fname": "cury/button-control/cury-btn-listener.shelly.js",
@@ -464,6 +474,26 @@
     "description": "Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.\n Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo."
   },
   {
+    "fname": "the_pill/MODBUS/ComWinTop/mb308v.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
+    "fname": "the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
+    "fname": "the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
+    "fname": "the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
     "fname": "the_pill/MODBUS/Davis/pyranometer.shelly.js",
     "title": "Davis Pyranometer MODBUS example",
     "description": "Reads solar irradiance (W/m2) from a Davis-compatible RS-485"
@@ -504,6 +534,16 @@
     "description": "Modbus RTU master that simulates BMS commands for the LinkedGo"
   },
   {
+    "fname": "the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
+    "fname": "the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
+  },
+  {
     "fname": "the_pill/MODBUS/utils/modbus_scan.shelly.js",
     "title": "Universal MODBUS-RTU Scanner",
     "description": "Discovers MODBUS-RTU slave devices by scanning all combinations"
@@ -522,6 +562,11 @@
     "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js",
     "title": "WB-MIR v3 MODBUS-RTU Reader",
     "description": "MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485. Reads DS18B20 temperature, button press counters, IR module presence, and supply voltages."
+  },
+  {
+    "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js",
+    "title": "TODO: Add title",
+    "description": "TODO: Add description"
   },
   {
     "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js",
