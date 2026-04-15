@@ -9,10 +9,16 @@
 
 /*
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  --- B (D-)   --> Inverter RS485 B
- *   IO2 (RX)  --- A (D+)   --> Inverter RS485 A
- *   IO3       --- DE/RE        direction control (automatic)
- *   GND       --- GND      --> Inverter GND
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Virtual Component mapping (pre-create before running):
  *   number:200  AC Output Power   W
