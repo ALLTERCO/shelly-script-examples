@@ -3,7 +3,7 @@
  * @description Reads AC output power, AC grid voltage, DC input voltage, and
  *   temperature from a MarsRock G2 (Generation 2) SUN Series grid-tie
  *   micro-inverter over MODBUS-RTU and pushes values to Virtual Components.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js
  */
 

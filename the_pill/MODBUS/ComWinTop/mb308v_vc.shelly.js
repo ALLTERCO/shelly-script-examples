@@ -4,7 +4,7 @@
  *   MODBUS-RTU with Virtual Component integration. Exposes 2 relay buttons,
  *   2 digital input displays, 2 analog output sliders, and 2 analog input
  *   progress bars grouped in the Shelly web UI.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js
  */
 
