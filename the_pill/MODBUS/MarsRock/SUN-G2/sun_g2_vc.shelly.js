@@ -3,16 +3,22 @@
  * @description Reads AC output power, AC grid voltage, DC input voltage, and
  *   temperature from a MarsRock G2 (Generation 2) SUN Series grid-tie
  *   micro-inverter over MODBUS-RTU and pushes values to Virtual Components.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js
  */
 
 /*
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  --- B (D-)   --> Inverter RS485 B
- *   IO2 (RX)  --- A (D+)   --> Inverter RS485 A
- *   IO3       --- DE/RE        direction control (automatic)
- *   GND       --- GND      --> Inverter GND
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Virtual Component mapping (pre-create before running):
  *   number:200  AC Output Power   W

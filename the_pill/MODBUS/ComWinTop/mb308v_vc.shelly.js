@@ -4,7 +4,7 @@
  *   MODBUS-RTU with Virtual Component integration. Exposes 2 relay buttons,
  *   2 digital input displays, 2 analog output sliders, and 2 analog input
  *   progress bars grouped in the Shelly web UI.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js
  */
 
@@ -25,11 +25,16 @@
  *   group:200   MB308V Demo       -- groups all above
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> MB308V B (D-)
- *   IO2 (RX)  ─── A (D+)  ──> MB308V A (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> MB308V GND
- *   Power: 7-35VDC to MB308V (separate supply)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Default settings: 9600 baud, 8N1, Slave ID: 1
  *

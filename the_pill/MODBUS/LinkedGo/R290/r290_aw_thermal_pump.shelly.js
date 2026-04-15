@@ -25,11 +25,17 @@
  *   - TEMP1 values are signed 16-bit with 0.1 degC scale
  *   - Value 32767 indicates sensor failure
  *
- * The Pill 5-Terminal Add-on wiring for RS485:
- *   IO1 (TX)  -> RS485 B (D-)
- *   IO2 (RX)  -> RS485 A (D+)
- *   IO3       -> DE/RE direction control (automatic by UART stack)
- *   GND       -> Device GND
+ * The Pill 5-Terminal Add-on wiring:
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Example API calls from this script console:
  *   setPower(true);        // register 1011

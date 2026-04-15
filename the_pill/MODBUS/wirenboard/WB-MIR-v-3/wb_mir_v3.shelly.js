@@ -20,11 +20,16 @@
  * NOTE: factory default stop-bits = 2, so mode is "8N2" not "8N1".
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> WB-MIR v3 RS485 B (D-)
- *   IO2 (RX)  ─── A (D+)  ──> WB-MIR v3 RS485 A (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> WB-MIR v3 GND
- *   12V ext   ──────────> WB-MIR v3 PWR (requires 12 V supply)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Register blocks read per poll cycle:
  *   Block A - Temperature:    FC 0x04, addr    7, qty  1  (1-Wire DS18B20)

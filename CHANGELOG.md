@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-04
+- Replace per-device text wiring descriptions with a unified ASCII art diagram in all 23 `the_pill/MODBUS/**/*.shelly.js` examples
+- Promote `the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js`, `sun_g2_vc.shelly.js`, `wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js`, `ComWinTop/mb308v.shelly.js`, and `mb308v_vc.shelly.js` to production
+- Refactor `the_pill/MODBUS/ComWinTop/mb308v.shelly.js`: replace verbose `ENTITIES` array, `FC` map, and `CRC_TABLE` with compact count variables; update `SLAVE_ID` to 2
+
 ## 2026-03
 - Promote `the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js` and `sen0492_vc.shelly.js` to production
 - Add `the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js` and `sen0492_vc.shelly.js`: MODBUS-RTU console reader and Virtual Component variant for DFRobot SEN0492 RS485 laser ranging sensor (40–4000 mm); add device README and DFRobot vendor README; update MODBUS root README index

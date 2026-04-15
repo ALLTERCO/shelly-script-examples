@@ -22,11 +22,16 @@
  *   number:200  Solar Irradiance    W/m2
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  --- B (D-)  --> Sensor B (D-)
- *   IO2 (RX)  --- A (D+)  --> Sensor A (D+)
- *   IO3       --- DE/RE       direction control (automatic)
- *   GND       --- GND     --> Sensor GND
- *   Power: 9-24 VDC to sensor (separate supply)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Reference: https://www.meteo-shopping.com/en/sensors/90-pyranometer-for-measuring-solar-radiation.html
  */
