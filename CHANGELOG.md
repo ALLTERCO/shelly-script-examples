@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-03
+- Promote `the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js` and `sen0492_vc.shelly.js` to production
+- Add `the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js` and `sen0492_vc.shelly.js`: MODBUS-RTU console reader and Virtual Component variant for DFRobot SEN0492 RS485 laser ranging sensor (40–4000 mm); add device README and DFRobot vendor README; update MODBUS root README index
+- Add `the_pill/MODBUS/GACIA/AICB2SP/aicb2sp.shelly.js`: MODBUS-RTU reader and switch controller for GACIA AICB2SP Smart IoT MCB over RS485; add device README and GACIA vendor README; update MODBUS root README index
 - Update `the_pill/README.md` to reflect accurate production/under-development statuses, expand MODBUS subtree with per-device links, and correct YS-IRTM and UART entries to production
 - Remove "Under Development" warning from `the_pill/UART/README.md` — script is production
 - Add missing `wb_m1w2_v3_vc.shelly.js` to Files and Virtual Component mapping table in `the_pill/MODBUS/wirenboard/WB-M1W2-v3/README.md`
