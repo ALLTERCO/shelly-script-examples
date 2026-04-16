@@ -47,11 +47,16 @@
  *   - For coils: value 0 = OFF, any non-zero = ON.
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX) --- B (D-)  --> Device RS485 B (D-)
- *   IO2 (RX) --- A (D+)  --> Device RS485 A (D+)
- *   IO3      --- DE/RE   --  direction control
- *   GND      --- GND     --> Device GND
- *   5V       --- 5V      --> Device VCC (if needed)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  */
 
 /* === CONFIG === */

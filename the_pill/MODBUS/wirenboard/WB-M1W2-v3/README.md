@@ -47,13 +47,18 @@ This screenshot shows the WB-M1W2 v3 telemetry page with both 1-Wire channels, s
 > this script reads external 1-Wire channels only (addr 7–8).
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | WB-M1W2 v3 Side |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | RS485 B |
-| `IO2 (RX)` -> `A (D+)` | RS485 A |
-| `IO3` -> `DE/RE` | transceiver direction (automatic) |
-| `GND` -> `GND` | common reference |
-| `9–28 V ext` -> `V+` | device supply (9–28 V DC) |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication settings: `9600 baud`, `8N2`.
 **Slave ID is printed on the device label** (factory default is `1`, but individual units may differ).

@@ -18,11 +18,16 @@
  *   Default: 9600 baud, 8N1.
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> BMS RS485 B (D-)
- *   IO2 (RX)  ─── A (D+)  ──> BMS RS485 A (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> BMS GND
- *   5V        ─── 5V      ──> BMS VCC (if 5V powered)
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Addressing scheme (actual JK BMS RS485 Modbus V1.0 at 115200 baud):
  *   - Supports only FC 0x03 (Read Holding Registers).

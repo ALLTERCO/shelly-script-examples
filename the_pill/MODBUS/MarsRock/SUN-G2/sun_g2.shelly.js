@@ -1,21 +1,34 @@
 /**
- * @title Davis Pyranometer MODBUS example
- * @description Reads solar irradiance (W/m2) from a Davis-compatible RS-485
- *   pyranometer over MODBUS-RTU.
+ * @title MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU reader
+ * @description Reads AC output power, AC grid voltage, DC input voltage, and
+ *   temperature from a MarsRock G2 (Generation 2) SUN Series grid-tie
+ *   micro-inverter over MODBUS-RTU and prints values to the console.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Davis/pyranometer.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js
  */
 
 /**
- * Davis Pyranometer MODBUS-RTU Reader
+ * MarsRock G2 (Generation 2) SUN Series Grid-Tie Micro-Inverter
+ * MODBUS-RTU Reader
  *
- * Discovered parameters (use modbus_scan to re-confirm):
- *   Slave ID : 1
- *   Baud rate: 9600
- *   Mode     : 8N1
+ * Communication parameters (factory defaults):
+ *   Slave ID  : 1  (configurable 1–16 via jumpers J1–J4 on the RS485 module)
+ *   Baud rate : 9600
+ *   Mode      : 8N1
  *
- * Register map (FC 0x04 - Read Input Registers):
- *   Addr 0x0000 - Solar Irradiance  UINT16  W/m2   (0 - 2000)
+ * Register map (FC 0x03 – Read Holding Registers):
+ *
+ *   Addr (dec)  Name                  Type    Scale  Unit   Access  Notes
+ *   ----------  --------------------  ------  -----  -----  ------  ----------------------
+ *   1  (0x01)   AC Output Power       UINT16  ×10    W      R       Displayed AC output power; byte order LE
+ *   4  (0x04)   DAC Value             UINT16  raw    -      R/W     Analog control output (0–33187)
+ *   63 (0x3F)   Temperature           UINT16  1      °C     R       Inverter temperature; subtract 2 for °C
+ *   70 (0x46)   AC Grid Voltage       UINT16  ×10    V      R       Grid (AC) voltage
+ *   109 (0x6D)  DC Input Voltage      UINT16  ×10    V      R       Solar panel / DC bus voltage
+ *
+ * Example frame (read AC output power, register 0x01, slave 0x01):
+ *   TX: 01 03 00 01 00 01 D5 CA
+ *   RX: 01 03 02 03 E8 xx xx  -> 0x03E8 = 1000 → 100.0 W
  *
  * The Pill 5-Terminal Add-on wiring:
  *
@@ -28,6 +41,10 @@
  *                    |    | +5V       A |              |              |
  *                    \====|           B |              |              |
  *                         |=============|              |==============|
+ *
+ * Reference:
+ *   https://marsrock.com.cn/u_file/2405/09/file/G2SeriesMicroinverterSolarUserManual.pdf
+ *   https://github.com/trucki-eu/RS485-Interface-for-Sun-GTIL2-1000
  */
 
 /* === CONFIG === */
@@ -36,9 +53,18 @@ var CONFIG = {
     MODE: "8N1",
     SLAVE_ID: 1,
     RESPONSE_TIMEOUT: 1000,
-    POLL_INTERVAL: 5000,
+    POLL_INTERVAL: 10000,
     DEBUG: false
 };
+
+/* === REGISTER MAP === */
+var ENTITIES = [
+    { key: "AC_OUTPUT_POWER",   name: "AC Output Power",   units: "W",  reg: { addr: 0x01, rtype: 0x03, itype: "u16", bo: "LE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "AC_GRID_VOLTAGE",   name: "AC Grid Voltage",   units: "V",  reg: { addr: 70,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "DC_INPUT_VOLTAGE",  name: "DC Input Voltage",  units: "V",  reg: { addr: 109,  rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 0.1, rights: "R",  vcId: null, handle: null, vcHandle: null },
+    { key: "DAC_VALUE",         name: "DAC Value",         units: "-",  reg: { addr: 0x04, rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   rights: "RW", vcId: null, handle: null, vcHandle: null },
+    { key: "TEMPERATURE",       name: "Temperature",       units: "C",  reg: { addr: 63,   rtype: 0x03, itype: "u16", bo: "BE", wo: "BE" }, scale: 1,   offset: 2, rights: "R",  vcId: null, handle: null, vcHandle: null },
+];
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
 var CRC_TABLE = [
@@ -103,7 +129,7 @@ function bytesToHex(bytes) {
 }
 
 function debug(msg) {
-    if (CONFIG.DEBUG) print("[PYR] " + msg);
+    if (CONFIG.DEBUG) print("[SUN-G2] " + msg);
 }
 
 function calcCRC(bytes) {
@@ -134,11 +160,11 @@ function buildFrame(slaveAddr, fc, regAddr, qty) {
     return frame;
 }
 
-function sendRequest(fc, regAddr, qty, callback) {
+function sendRequest(regAddr, qty, callback) {
     if (!state.isReady) { callback("Not ready", null); return; }
     if (state.pendingRequest) { callback("Busy", null); return; }
 
-    var frame = buildFrame(CONFIG.SLAVE_ID, fc, regAddr, qty);
+    var frame = buildFrame(CONFIG.SLAVE_ID, 0x03, regAddr, qty);
     debug("TX: " + bytesToHex(frame));
 
     state.pendingRequest = { callback: callback };
@@ -168,18 +194,24 @@ function processResponse() {
     if (state.rxBuffer.length < 5) return;
 
     var fc = state.rxBuffer[1];
+
     if (fc & 0x80) {
-        var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
-        if (excCrc === (state.rxBuffer[3] | (state.rxBuffer[4] << 8))) {
-            clearResponseTimer();
-            var cb = state.pendingRequest.callback;
-            state.pendingRequest = null;
-            state.rxBuffer = [];
-            cb("Exception 0x" + toHex(state.rxBuffer[2]), null);
+        if (state.rxBuffer.length >= 5) {
+            var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
+            var recvCrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
+            if (excCrc === recvCrc) {
+                clearResponseTimer();
+                var exCode = state.rxBuffer[2];
+                var cb = state.pendingRequest.callback;
+                state.pendingRequest = null;
+                state.rxBuffer = [];
+                cb("Exception 0x" + toHex(exCode), null);
+            }
         }
         return;
     }
 
+    if (state.rxBuffer.length < 3) return;
     var byteCount = state.rxBuffer[2];
     var expectedLen = 3 + byteCount + 2;
     if (state.rxBuffer.length < expectedLen) return;
@@ -206,39 +238,56 @@ function clearResponseTimer() {
     }
 }
 
-/* === PYRANOMETER API === */
+/* === SUN-G2 API === */
 
 /**
- * Read solar irradiance.
- * @param {function} callback - callback(error, irradiance_Wm2)
+ * Read a single holding register (FC 0x03).
+ * @param {number} addr - Register address
+ * @param {function} callback - callback(error, rawValue)
  */
-function readIrradiance(callback) {
-    sendRequest(0x04, 0x0000, 1, function(err, data) {
+function readRegister(addr, callback) {
+    sendRequest(addr, 1, function(err, data) {
         if (err) { callback(err, null); return; }
-        var raw = (data[0] << 8) | data[1];
-        callback(null, raw);
+        callback(null, (data[0] << 8) | data[1]);
     });
 }
 
-
-/* === POLLING === */
+/* === POLL === */
 
 function poll() {
-    readIrradiance(function(err, irr) {
-        if (err) {
-            print("[PYR] Error: " + err);
-        } else {
-            print("[PYR] Irradiance: " + irr + " W/m2");
+    var results = [];
+
+    function readNext(index) {
+        if (index >= ENTITIES.length) {
+            print("--- MarsRock SUN-G2 ---");
+            for (var i = 0; i < results.length; i++) print(results[i]);
+            print("");
+            return;
         }
-    });
+
+        var e = ENTITIES[index];
+        readRegister(e.reg.addr, function(err, raw) {
+            if (err) {
+                results.push(e.name + ": ERROR (" + err + ")");
+            } else {
+                var val = raw * e.scale;
+                results.push(e.name + ": " + val + " " + e.units);
+            }
+            Timer.set(50, false, function() { readNext(index + 1); });
+        });
+    }
+
+    readNext(0);
 }
 
 /* === INIT === */
 
 function init() {
-    print("Davis Pyranometer");
-    print("=================");
-    print("Slave: " + CONFIG.SLAVE_ID + "  Baud: " + CONFIG.BAUD_RATE + "  Mode: " + CONFIG.MODE);
+    print("MarsRock G2 SUN Series Grid-Tie Inverter");
+    print("=========================================");
+    print("Slave: " + CONFIG.SLAVE_ID +
+          "  Baud: " + CONFIG.BAUD_RATE +
+          "  Mode: " + CONFIG.MODE);
     print("");
 
     state.uart = UART.get();
@@ -252,7 +301,7 @@ function init() {
     state.uart.recv(onReceive);
     state.isReady = true;
 
-    print("Polling every " + (CONFIG.POLL_INTERVAL / 1000) + "s");
+    print("Polling " + ENTITIES.length + " parameters every " + (CONFIG.POLL_INTERVAL / 1000) + "s");
     print("");
 
     Timer.set(500, false, poll);

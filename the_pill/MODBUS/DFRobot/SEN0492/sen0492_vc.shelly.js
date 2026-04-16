@@ -1,21 +1,46 @@
 /**
- * @title Davis Pyranometer MODBUS example
- * @description Reads solar irradiance (W/m2) from a Davis-compatible RS-485
- *   pyranometer over MODBUS-RTU.
+ * @title DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU reader + Virtual Components
+ * @description Reads distance and status from a DFRobot SEN0492 RS485 laser
+ *   ranging sensor over MODBUS-RTU and updates Virtual Components on The Pill.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Davis/pyranometer.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js
  */
 
 /**
- * Davis Pyranometer MODBUS-RTU Reader
+ * DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU Reader + Virtual Components
  *
- * Discovered parameters (use modbus_scan to re-confirm):
- *   Slave ID : 1
- *   Baud rate: 9600
- *   Mode     : 8N1
+ * Sensor parameters (factory defaults):
+ *   Slave ID  : 0x50 (80)
+ *   Baud rate : 115200
+ *   Mode      : 8N1
  *
- * Register map (FC 0x04 - Read Input Registers):
- *   Addr 0x0000 - Solar Irradiance  UINT16  W/m2   (0 - 2000)
+ * Register map (FC 0x03 - Read Holding Registers):
+ *
+ *   Addr  Name                 Type    Unit   Access  Notes
+ *   ----  -------------------  ------  -----  ------  ------------------
+ *   0x00  System Recovery      UINT16  -      W       Write 0x01 to reset
+ *   0x02  Alarm Threshold      UINT16  mm     W       Range: 40–4000
+ *   0x04  Baud Rate Index      UINT16  -      W       0=2400 … 9=921600
+ *   0x07  Timing Preset        UINT16  ms     W       Range: 20–1000
+ *   0x08  Measurement Interval UINT16  ms     W       Range: 1–1000
+ *   0x1A  Slave Address        UINT16  -      W       Range: 0x00–0xFE
+ *   0x34  Distance             UINT16  mm     R       Range: 0–4000
+ *   0x35  Output State         UINT16  -      R       See STATUS_* constants
+ *   0x36  Measurement Mode     UINT16  -      W       1=≤1.3m 2=≤3m 3=≤4m
+ *   0x37  Calibration Mode     UINT16  -      R/W     Write 0x04 to enter
+ *
+ * Status codes (register 0x35):
+ *   0x00  Valid measurement
+ *   0x01  Sigma Fail
+ *   0x02  Signal Fail
+ *   0x03  Min Range Fail
+ *   0x04  Phase Fail
+ *   0x05  Hardware Fail
+ *   0x07  No Update
+ *
+ * Virtual Component mapping (pre-create in the Shelly UI before running):
+ *   number:200  Distance   mm
+ *   group:200   DFRobot SEN0492
  *
  * The Pill 5-Terminal Add-on wiring:
  *
@@ -28,16 +53,41 @@
  *                    |    | +5V       A |              |              |
  *                    \====|           B |              |              |
  *                         |=============|              |==============|
+ *
+ * Reference: https://wiki.dfrobot.com/Laser_Ranging_Sensor_RS485_4m_SKU_SEN0492
  */
 
 /* === CONFIG === */
 var CONFIG = {
-    BAUD_RATE: 9600,
-    MODE: "8N1",
-    SLAVE_ID: 1,
-    RESPONSE_TIMEOUT: 1000,
+    BAUD_RATE: 115200,
+    MODE: '8N1',
+    SLAVE_ID: 0x50,
+    RESPONSE_TIMEOUT: 500,
     POLL_INTERVAL: 5000,
     DEBUG: false
+};
+
+/* === ENTITIES === */
+var ENTITIES = [
+    {
+        name:     'Distance',
+        units:    'mm',
+        regAddr:  0x34,
+        scale:    1,
+        vcId:     'number:200',
+        vcHandle: null
+    }
+];
+
+/* === STATUS CODES === */
+var STATUS = {
+    0x00: 'Valid',
+    0x01: 'Sigma Fail',
+    0x02: 'Signal Fail',
+    0x03: 'Min Range Fail',
+    0x04: 'Phase Fail',
+    0x05: 'Hardware Fail',
+    0x07: 'No Update'
 };
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
@@ -90,20 +140,20 @@ var state = {
 
 function toHex(n) {
     n = n & 0xFF;
-    return (n < 16 ? "0" : "") + n.toString(16).toUpperCase();
+    return (n < 16 ? '0' : '') + n.toString(16).toUpperCase();
 }
 
 function bytesToHex(bytes) {
-    var s = "";
+    var s = '';
     for (var i = 0; i < bytes.length; i++) {
-        if (i > 0) s += " ";
+        if (i > 0) s += ' ';
         s += toHex(bytes[i]);
     }
     return s;
 }
 
 function debug(msg) {
-    if (CONFIG.DEBUG) print("[PYR] " + msg);
+    if (CONFIG.DEBUG) print('[SEN0492] ' + msg);
 }
 
 function calcCRC(bytes) {
@@ -115,9 +165,22 @@ function calcCRC(bytes) {
 }
 
 function bytesToStr(bytes) {
-    var s = "";
+    var s = '';
     for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i] & 0xFF);
     return s;
+}
+
+function statusName(code) {
+    var name = STATUS[code];
+    return name !== undefined ? name : 'Unknown (0x' + toHex(code) + ')';
+}
+
+/* === VIRTUAL COMPONENT === */
+
+function updateVc(entity, value) {
+    if (!entity || !entity.vcHandle) return;
+    entity.vcHandle.setValue(value);
+    debug(entity.name + ' -> ' + value + ' ' + entity.units);
 }
 
 /* === MODBUS CORE === */
@@ -135,11 +198,11 @@ function buildFrame(slaveAddr, fc, regAddr, qty) {
 }
 
 function sendRequest(fc, regAddr, qty, callback) {
-    if (!state.isReady) { callback("Not ready", null); return; }
-    if (state.pendingRequest) { callback("Busy", null); return; }
+    if (!state.isReady) { callback('Not ready', null); return; }
+    if (state.pendingRequest) { callback('Busy', null); return; }
 
     var frame = buildFrame(CONFIG.SLAVE_ID, fc, regAddr, qty);
-    debug("TX: " + bytesToHex(frame));
+    debug('TX: ' + bytesToHex(frame));
 
     state.pendingRequest = { callback: callback };
     state.rxBuffer = [];
@@ -148,8 +211,8 @@ function sendRequest(fc, regAddr, qty, callback) {
         if (!state.pendingRequest) return;
         var cb = state.pendingRequest.callback;
         state.pendingRequest = null;
-        debug("Timeout");
-        cb("Timeout", null);
+        debug('Timeout');
+        cb('Timeout', null);
     });
 
     state.uart.write(bytesToStr(frame));
@@ -168,14 +231,19 @@ function processResponse() {
     if (state.rxBuffer.length < 5) return;
 
     var fc = state.rxBuffer[1];
+
     if (fc & 0x80) {
-        var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
-        if (excCrc === (state.rxBuffer[3] | (state.rxBuffer[4] << 8))) {
-            clearResponseTimer();
-            var cb = state.pendingRequest.callback;
-            state.pendingRequest = null;
-            state.rxBuffer = [];
-            cb("Exception 0x" + toHex(state.rxBuffer[2]), null);
+        if (state.rxBuffer.length >= 5) {
+            var excCrc = calcCRC(state.rxBuffer.slice(0, 3));
+            var recvCrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
+            if (excCrc === recvCrc) {
+                clearResponseTimer();
+                var exCode = state.rxBuffer[2];
+                var cb = state.pendingRequest.callback;
+                state.pendingRequest = null;
+                state.rxBuffer = [];
+                cb('Exception 0x' + toHex(exCode), null);
+            }
         }
         return;
     }
@@ -187,9 +255,9 @@ function processResponse() {
     var frame = state.rxBuffer.slice(0, expectedLen);
     var crc = calcCRC(frame.slice(0, expectedLen - 2));
     var recvCrc = frame[expectedLen - 2] | (frame[expectedLen - 1] << 8);
-    if (crc !== recvCrc) { debug("CRC error"); return; }
+    if (crc !== recvCrc) { debug('CRC error'); return; }
 
-    debug("RX: " + bytesToHex(frame));
+    debug('RX: ' + bytesToHex(frame));
     clearResponseTimer();
 
     var payload = frame.slice(3, 3 + byteCount);
@@ -206,54 +274,76 @@ function clearResponseTimer() {
     }
 }
 
-/* === PYRANOMETER API === */
+/* === SEN0492 API === */
 
 /**
- * Read solar irradiance.
- * @param {function} callback - callback(error, irradiance_Wm2)
+ * Read distance in mm (register 0x34).
+ * @param {function} callback - callback(error, distance_mm)
  */
-function readIrradiance(callback) {
-    sendRequest(0x04, 0x0000, 1, function(err, data) {
+function readDistance(callback) {
+    var ent = ENTITIES[0];
+    sendRequest(0x03, ent.regAddr, 1, function(err, data) {
         if (err) { callback(err, null); return; }
-        var raw = (data[0] << 8) | data[1];
-        callback(null, raw);
+        callback(null, ((data[0] << 8) | data[1]) * ent.scale);
     });
 }
 
+/**
+ * Read output state / status code (register 0x35).
+ * @param {function} callback - callback(error, status_code)
+ */
+function readStatus(callback) {
+    sendRequest(0x03, 0x35, 1, function(err, data) {
+        if (err) { callback(err, null); return; }
+        callback(null, (data[0] << 8) | data[1]);
+    });
+}
 
-/* === POLLING === */
+/* === POLL === */
 
 function poll() {
-    readIrradiance(function(err, irr) {
-        if (err) {
-            print("[PYR] Error: " + err);
-        } else {
-            print("[PYR] Irradiance: " + irr + " W/m2");
-        }
+    readDistance(function(err, dist) {
+        if (err) { print('[SEN0492] Distance error: ' + err); return; }
+        readStatus(function(err, st) {
+            if (err) { print('[SEN0492] Status error: ' + err); return; }
+            print('[SEN0492] Distance: ' + dist + ' mm  Status: ' + statusName(st));
+            if (st === 0x00) {
+                updateVc(ENTITIES[0], dist);
+            }
+        });
     });
 }
 
 /* === INIT === */
 
 function init() {
-    print("Davis Pyranometer");
-    print("=================");
-    print("Slave: " + CONFIG.SLAVE_ID + "  Baud: " + CONFIG.BAUD_RATE + "  Mode: " + CONFIG.MODE);
-    print("");
+    print('DFRobot SEN0492 Laser Ranging Sensor + Virtual Components');
+    print('==========================================================');
+
+    for (var i = 0; i < ENTITIES.length; i++) {
+        var ent = ENTITIES[i];
+        if (ent.vcId) {
+            ent.vcHandle = Virtual.getHandle(ent.vcId);
+            debug('VC ' + ent.name + ' -> ' + ent.vcId);
+        }
+    }
 
     state.uart = UART.get();
-    if (!state.uart) { print("ERROR: UART not available"); return; }
+    if (!state.uart) { print('ERROR: UART not available'); return; }
 
     if (!state.uart.configure({ baud: CONFIG.BAUD_RATE, mode: CONFIG.MODE })) {
-        print("ERROR: UART configure failed");
+        print('ERROR: UART configure failed');
         return;
     }
 
     state.uart.recv(onReceive);
     state.isReady = true;
 
-    print("Polling every " + (CONFIG.POLL_INTERVAL / 1000) + "s");
-    print("");
+    print('Slave: 0x' + toHex(CONFIG.SLAVE_ID) +
+          '  Baud: ' + CONFIG.BAUD_RATE +
+          '  Mode: ' + CONFIG.MODE);
+    print('Poll: ' + (CONFIG.POLL_INTERVAL / 1000) + 's');
+    print('');
 
     Timer.set(500, false, poll);
     state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, poll);

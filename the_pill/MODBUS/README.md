@@ -11,24 +11,34 @@ You have field devices (BMS, inverter, thermostat, IO module, thermal pump) that
 - Advanced DIY user needing readable, modifiable MODBUS scripts
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | RS485 Role | Remote Device Pin |
-|---|---|---|
-| `GND` | Common ground | `GND` |
-| `IO1 (TX)` | Data B / D- | `B` / `D-` |
-| `IO2 (RX)` | Data A / D+ | `A` / `D+` |
-| `IO3` | DE/RE direction control | `DE` + `RE` |
-| `5V` | Optional transceiver power | `VCC` |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 RS485 reliability notes:
 - Use twisted pair for `A/B` on longer runs.
 - Add 120 ohm termination at bus ends for longer cables.
-- Always share `GND` between nodes.
+- Always share `GND` between nodes if you share power.
 
 ## Structure
 - [`modbus_rtu.shelly.js`](modbus_rtu.shelly.js): reusable MODBUS master core
 - [`ComWinTop/`](ComWinTop/): CWT-MB308V IO module examples
+- [`Davis/`](Davis/): Davis pyranometer solar irradiance reader
 - [`Deye/`](Deye/): Deye inverter readers (plain + VC)
+- [`DFRobot/`](DFRobot/): DFRobot industrial sensor examples
+- [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
+- [`HTTP-Bridge/`](HTTP-Bridge/): MODBUS-RTU to HTTP bridge
 - [`JKESS/`](JKESS/): JK BMS examples
 - [`LinkedGo/`](LinkedGo/): LinkedGo thermostat and thermal pump examples
+- [`MarsRock/`](MarsRock/): MarsRock G2 SUN Series grid-tie inverter examples
 - [`wirenboard/`](wirenboard/): Wirenboard industrial sensor examples
 - [`utils/`](utils/): Shared utility scripts (scanner, diagnostics)

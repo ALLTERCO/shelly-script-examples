@@ -1,17 +1,18 @@
-# JKESS MODBUS Examples
+# DFRobot MODBUS Examples
 
-JKESS area for battery-related MODBUS examples on The Pill.
+DFRobot industrial RS485 sensor examples for MODBUS-RTU on The Pill.
 
 ## Problem (The Story)
-Battery systems often expose internal state over RS485 but remain isolated from the rest of automation logic. This folder groups scripts that convert those battery registers into usable local telemetry/control.
+DFRobot produces a range of IP-rated industrial sensors with RS485/MODBUS-RTU interfaces suitable for outdoor, wet, or harsh environments. These examples provide direct local integration via The Pill without any cloud dependency.
 
 ## Persona
-- Off-grid or hybrid power user
-- BMS-focused integrator
-- Technician troubleshooting battery pack behavior
+- Automation engineer adding industrial-grade sensing to Shelly local control
+- Installer deploying distance, environmental, or process sensors over RS485
+- DIY user integrating DFRobot hardware into a local home-automation stack
 
-## Available Device Folders
-- [`JK200-MBS/`](JK200-MBS/): JK-PB (JK200-class) BMS examples
+## Device Folders
+
+- [`SEN0492/`](SEN0492/): SEN0492 Laser Ranging Sensor RS485 (40–4000 mm)
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 

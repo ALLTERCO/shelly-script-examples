@@ -40,10 +40,16 @@
  *     0x211A       Alarm          bit0 = room sensor failure
  *
  * The Pill 5-Terminal Add-on wiring:
- *   IO1 (TX)  ─── B (D-)  ──> Thermostat B2 (D-)
- *   IO2 (RX)  ─── A (D+)  ──> Thermostat A2 (D+)
- *   IO3       ─── DE/RE   ──  direction control (automatic)
- *   GND       ─── GND     ──> Thermostat GND
+ *
+ *                         |=============|              |==============|
+ *                    /====|         VCC |              |              |
+ *                    |    | GND     GND |              | SLAVE DEVICE |
+ * /========\         |    | TX      +5V |              |              |
+ * |The Pill|-----=||||    | RX        A |------\/------| A            |
+ * \========/         |    | RE/DE     B |------/\------| B            |
+ *                    |    | +5V       A |              |              |
+ *                    \====|           B |              |              |
+ *                         |=============|              |==============|
  *
  * Virtual Component mapping (pre-create with skills/modbus-vc-deploy.md):
  *   number:200  Room Temperature  degC

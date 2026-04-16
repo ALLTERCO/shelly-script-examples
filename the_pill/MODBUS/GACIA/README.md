@@ -1,17 +1,18 @@
-# JKESS MODBUS Examples
+# GACIA MODBUS Examples
 
-JKESS area for battery-related MODBUS examples on The Pill.
+Gacia Electrical Appliance smart circuit breaker examples for RS485 MODBUS-RTU on The Pill.
 
 ## Problem (The Story)
-Battery systems often expose internal state over RS485 but remain isolated from the rest of automation logic. This folder groups scripts that convert those battery registers into usable local telemetry/control.
+GACIA smart MCBs combine traditional overcurrent protection with built-in metering and IoT connectivity. These examples provide local RS485 MODBUS-RTU integrations — monitoring and control without cloud dependency.
 
 ## Persona
-- Off-grid or hybrid power user
-- BMS-focused integrator
-- Technician troubleshooting battery pack behavior
+- Electrician or installer commissioning GACIA smart breakers
+- Building automation engineer integrating per-circuit metering into a local BMS
+- Energy monitoring enthusiast replacing Tuya cloud control with local logic
 
-## Available Device Folders
-- [`JK200-MBS/`](JK200-MBS/): JK-PB (JK200-class) BMS examples
+## Device Folders
+
+- [`AICB2SP/`](AICB2SP/): AICB2SP Smart IoT MCB reader and switch control
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 

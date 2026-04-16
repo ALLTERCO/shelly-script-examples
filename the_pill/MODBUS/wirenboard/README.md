@@ -26,8 +26,15 @@ This screenshot shows the WB-MIR v3 telemetry page with temperature, supply volt
 ![WB-MIR v3 screenshot](WB-MIR-v-3/screenshot.png)
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-Use The Pill mapping from the MODBUS root README:
-- `IO1 (TX)` -> `B (D-)`
-- `IO2 (RX)` -> `A (D+)`
-- `IO3` -> `DE/RE`
-- `GND` shared
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
