@@ -14,7 +14,15 @@ MarsRock G2 micro-inverters expose live AC power, grid voltage, DC input voltage
 - [`SUN-G2/`](SUN-G2/): G2 (Generation 2) SUN Series grid-tie micro-inverter examples
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-- `IO1 (TX)` -> `B (D-)`
-- `IO2 (RX)` -> `A (D+)`
-- `IO3` -> `DE/RE` for half-duplex direction
-- `GND` shared
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```

@@ -19,11 +19,17 @@ Energy dashboards and automations need live PV, battery, and grid values. Many i
 This screenshot shows the Deye Virtual Components dashboard for PV, battery, grid, voltage, current, frequency, and SOC monitoring.
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | Deye RS485 |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | `B` / `D-` |
-| `IO2 (RX)` -> `A (D+)` | `A` / `D+` |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | recommended |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication in examples: `9600`, `8N1`.

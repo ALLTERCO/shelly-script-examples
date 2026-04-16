@@ -97,14 +97,17 @@ This screenshot shows the DFRobot SEN0492 Virtual Components page with the Dista
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 
-| The Pill Pin | Wire Color | Sensor Signal |
-|---|---|---|
-| `IO1 (TX)` → `B` | Green | RS485 B |
-| `IO2 (RX)` → `A` | Yellow | RS485 A |
-| `IO3` → `DE/RE` | — | transceiver direction (automatic) |
-| `GND` | Black | GND |
-| `5–36 V` (separate supply) | Red | VCC |
-| not connected | White | ALARM (open-collector, active LOW) |
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 ## Reference
 

@@ -19,11 +19,17 @@ You need reliable pack voltage/current/SOC/cell telemetry and alarm visibility f
 This view shows the JK200 Virtual Components page with pack-level telemetry, temperatures, alarm bitmask, balance current, and SOC values.
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | JK BMS Side |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | RS485 B |
-| `IO2 (RX)` -> `A (D+)` | RS485 A |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication in JK examples: `115200`, `8N1`.

@@ -14,11 +14,17 @@ A thermal pump has rich runtime, temperature, and fault information in its MODBU
 - [`r290_aw_thermal_pump.shelly.js`](r290_aw_thermal_pump.shelly.js): FC03 polling + FC06 helper writes
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | R290 Controller Side |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | RS485 B |
-| `IO2 (RX)` -> `A (D+)` | RS485 A |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Protocol defaults from the provided document: slave `0x10` (16), `9600`, `8N1`.
