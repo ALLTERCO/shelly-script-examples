@@ -15,12 +15,18 @@ A solar monitoring setup needs live AC output power, AC grid voltage, DC input v
 - [`sun_g2_vc.shelly.js`](sun_g2_vc.shelly.js): telemetry + Virtual Components
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | Inverter RS485 |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | `B` / `D-` |
-| `IO2 (RX)` -> `A (D+)` | `A` / `D+` |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication parameters: `9600`, `8N1`, slave `1` (configurable 1–16 via jumpers J1–J4).
 

@@ -29,12 +29,16 @@ Solar monitoring systems need live irradiance readings to correlate PV output wi
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 
-| The Pill Pin | Sensor |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | `B` / `D-` |
-| `IO2 (RX)` -> `A (D+)` | `A` / `D+` |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | recommended |
-| `9–24 VDC` | sensor power supply (separate) |
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication parameters: slave `1`, `9600 baud`, `8N1`.

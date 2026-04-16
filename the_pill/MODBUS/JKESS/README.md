@@ -14,8 +14,15 @@ Battery systems often expose internal state over RS485 but remain isolated from 
 - [`JK200-MBS/`](JK200-MBS/): JK-PB (JK200-class) BMS examples
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-Use The Pill mapping from the MODBUS root README:
-- `IO1 (TX)` -> `B (D-)`
-- `IO2 (RX)` -> `A (D+)`
-- `IO3` -> `DE/RE`
-- `GND` shared
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```

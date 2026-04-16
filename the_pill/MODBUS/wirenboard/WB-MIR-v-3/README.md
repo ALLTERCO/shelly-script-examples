@@ -55,13 +55,18 @@ consecutive zero words.
 | `group:200` | WB-MIR v3 | group |
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | WB-MIR v3 Side |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | RS485 B |
-| `IO2 (RX)` -> `A (D+)` | RS485 A |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
-| `12V ext` -> `PWR` | 12 V supply (required) |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication settings: `9600 baud`, `8N2`, Slave ID `1`.
 
