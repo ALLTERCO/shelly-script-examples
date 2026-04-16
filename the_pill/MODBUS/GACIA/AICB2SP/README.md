@@ -62,12 +62,17 @@ Smart circuit breakers combine traditional overcurrent protection with IoT monit
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 
-| The Pill Pin | Breaker Terminal |
-|---|---|
-| `IO1 (TX)` → `B (D-)` | RS485 `B` / `D-` |
-| `IO2 (RX)` → `A (D+)` | RS485 `A` / `D+` |
-| `IO3` → `DE/RE` | transceiver direction (automatic) |
-| `GND` → `GND` | common ground |
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 > The breaker requires its own AC supply (110/230 V). The RS485 interface is
 > powered internally from the breaker; no separate 5 V is needed on the RS485 side.

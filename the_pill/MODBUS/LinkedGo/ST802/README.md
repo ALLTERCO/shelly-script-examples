@@ -19,11 +19,17 @@ A central automation controller needs to enforce operating mode, setpoint, and f
 This screen shows the ST802 Virtual Components with room/floor temperature, humidity, relay/alarm status, mode, fan speed, setpoint, and power state.
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | ST802 Side |
-|---|---|
-| `IO1 (TX)` -> `B2 (D-)` | RS485-2 B |
-| `IO2 (RX)` -> `A2 (D+)` | RS485-2 A |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Common defaults: `9600`, `8N1`, slave `1`.

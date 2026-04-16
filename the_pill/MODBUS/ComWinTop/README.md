@@ -15,11 +15,17 @@ A project needs many analog/digital channels, but The Pill has limited local IO.
 - [`mb308v_vc.shelly.js`](mb308v_vc.shelly.js): same integration with Virtual Components
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-| The Pill Pin | MB308V Side |
-|---|---|
-| `IO1 (TX)` -> `B (D-)` | RS485 B |
-| `IO2 (RX)` -> `A (D+)` | RS485 A |
-| `IO3` -> `DE/RE` | transceiver direction |
-| `GND` -> `GND` | common reference |
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default communication: `9600`, `8N1`, slave `1`.

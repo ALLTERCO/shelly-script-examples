@@ -15,7 +15,15 @@ LinkedGo controllers expose important operating data and controls, but installer
 - [`R290/`](R290/): R290 air-to-water thermal pump example
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
-- `IO1 (TX)` -> `B (D-)`
-- `IO2 (RX)` -> `A (D+)`
-- `IO3` -> `DE/RE` for half-duplex direction
-- `GND` shared
+
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```

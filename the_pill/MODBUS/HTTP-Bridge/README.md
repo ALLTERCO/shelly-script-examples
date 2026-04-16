@@ -18,13 +18,17 @@ Many MODBUS RTU devices are buried on an RS485 bus with no network access. Exter
 
 ## RS485 Wiring (The Pill 5-Terminal Add-on)
 
-| The Pill Pin | RS485 Bus |
-|---|---|
-| `IO1 (TX)` | `B (D-)` |
-| `IO2 (RX)` | `A (D+)` |
-| `IO3` | `DE/RE` (transceiver direction) |
-| `GND` | `GND` |
-| `5V` | `VCC` (optional, if device needs power) |
+```
+                        |=============|              |==============|
+                   /====|         VCC |              |              |
+                   |    | GND     GND |              | SLAVE DEVICE |
+/========\         |    | TX      +5V |              |              |
+|The Pill|-----=||||    | RX        A |------\/------| A            |
+\========/         |    | RE/DE     B |------/\------| B            |
+                   |    | +5V       A |              |              |
+                   \====|           B |              |              |
+                        |=============|              |==============|
+```
 
 Default UART: `9600 baud`, `8N1`.
 
