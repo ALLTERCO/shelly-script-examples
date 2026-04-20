@@ -637,5 +637,17 @@
     "fname": "weather-env/turn-on-weather.shelly.js",
     "title": "turn-on-weather.shelly.js",
     "description": "Turn on when temperature is below CONFIG.tempBelowTurnOn.\n\nTurn off when temperature is above CONFIG.tempAboveTurnOff.\n\nFor getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy\nthe key and paste it here."
+  },
+  {
+    "fname": "lora/lora-wired-dw-state/lora-wired-dw-sender.shelly.js",
+    "title": "Detect and send Door/Window state over LoRa",
+    "description": "Example script with status handler that listens for DW sensor status changes - state: true/false\n\nconnected to one of the inptuts of I4DC Gen4.",
+    "doc": "lora/lora-wired-dw-state/README.md"
+  },
+  {
+    "fname": "lora/lora-wired-dw-state/lora-wired-dw-reciever.shelly.js",
+    "title": "Recieve and display Door/Window state over LoRa",
+    "description": "Example script with event handler that listens for lora messages with 'user' payload type\n\nIf doorWindowComponent is in the recieved data - show the result in virtual boolean component.",
+    "doc": "lora/lora-wired-dw-state/README.md"
   }
 ]
