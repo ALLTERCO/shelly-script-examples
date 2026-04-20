@@ -106,8 +106,8 @@
   },
   {
     "fname": "blu-assistant/button-event-source.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "BLU Assistant physical button event source",
+    "description": "Routes press events from the two physical buttons (\"one\" and \"two\")"
   },
   {
     "fname": "blu-assistant/config-mqtt.shelly.js",
@@ -146,8 +146,8 @@
   },
   {
     "fname": "blu-assistant/wifi-provisioning.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "BLU Assistant WiFi provisioning",
+    "description": "Scans for Shelly devices matching a configurable list of model IDs and"
   },
   {
     "fname": "cury/button-control/cury-btn-listener.shelly.js",
@@ -475,23 +475,23 @@
   },
   {
     "fname": "the_pill/MODBUS/ComWinTop/mb308v.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "CWT-MB308V MODBUS example",
+    "description": "Example integration for the ComWinTop MB308V IO module over MODBUS-RTU."
   },
   {
     "fname": "the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "CWT-MB308V MODBUS example + Virtual Components",
+    "description": "Example integration for the ComWinTop MB308V IO module over"
   },
   {
     "fname": "the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU reader",
+    "description": "Reads distance and status from a DFRobot SEN0492 RS485 laser"
   },
   {
     "fname": "the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU reader + Virtual Components",
+    "description": "Reads distance and status from a DFRobot SEN0492 RS485 laser"
   },
   {
     "fname": "the_pill/MODBUS/Davis/pyranometer.shelly.js",
@@ -535,13 +535,13 @@
   },
   {
     "fname": "the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU reader",
+    "description": "Reads AC output power, AC grid voltage, DC input voltage, and"
   },
   {
     "fname": "the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU + Virtual Components",
+    "description": "Reads AC output power, AC grid voltage, DC input voltage, and"
   },
   {
     "fname": "the_pill/MODBUS/utils/modbus_scan.shelly.js",
@@ -565,8 +565,8 @@
   },
   {
     "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js",
-    "title": "TODO: Add title",
-    "description": "TODO: Add description"
+    "title": "WB-MIR v3 IR Utility",
+    "description": "Dedicated MODBUS-RTU utility for WB-MIR v3 infrared functions."
   },
   {
     "fname": "the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js",

@@ -95,9 +95,9 @@ blu-assistant/bthome-webhook.shelly.js: BTHome sensor webhook trigger
 ===
 Sends HTTP webhooks when BTHome sensor state changes (e.g. window open/close).
 
-blu-assistant/button-event-source.shelly.js: TODO: Add title
+blu-assistant/button-event-source.shelly.js: BLU Assistant physical button event source
 ===
-TODO: Add description
+Routes press events from the two physical buttons ("one" and "two")
 
 blu-assistant/config-mqtt.shelly.js: BLU Assistant MQTT configuration
 ===
@@ -127,9 +127,9 @@ blu-assistant/print-label-online.shelly.js: BLU device label printer
 ===
 Scans for Shelly BLU devices and sends device info to an online label printer.
 
-blu-assistant/wifi-provisioning.shelly.js: TODO: Add title
+blu-assistant/wifi-provisioning.shelly.js: BLU Assistant WiFi provisioning
 ===
-TODO: Add description
+Scans for Shelly devices matching a configurable list of model IDs and
 
 cury/button-control/cury-btn-listener.shelly.js: Cury Button Listener
 ===
@@ -416,21 +416,21 @@ switch-input/shelly2p-domo-coverfix.shelly.js: Shelly Plus 2PM cover fix for Dom
 Simple fix for outgoing Domoticz MQTTAD command 'GoToPosition'.
  Shelly firmware 0.x supported. Developed for ShellyTeacher4Domo.
 
-the_pill/MODBUS/ComWinTop/mb308v.shelly.js: TODO: Add title
+the_pill/MODBUS/ComWinTop/mb308v.shelly.js: CWT-MB308V MODBUS example
 ===
-TODO: Add description
+Example integration for the ComWinTop MB308V IO module over MODBUS-RTU.
 
-the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js: TODO: Add title
+the_pill/MODBUS/ComWinTop/mb308v_vc.shelly.js: CWT-MB308V MODBUS example + Virtual Components
 ===
-TODO: Add description
+Example integration for the ComWinTop MB308V IO module over
 
-the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js: TODO: Add title
+the_pill/MODBUS/DFRobot/SEN0492/sen0492.shelly.js: DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU reader
 ===
-TODO: Add description
+Reads distance and status from a DFRobot SEN0492 RS485 laser
 
-the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js: TODO: Add title
+the_pill/MODBUS/DFRobot/SEN0492/sen0492_vc.shelly.js: DFRobot SEN0492 Laser Ranging Sensor - MODBUS-RTU reader + Virtual Components
 ===
-TODO: Add description
+Reads distance and status from a DFRobot SEN0492 RS485 laser
 
 the_pill/MODBUS/Davis/pyranometer.shelly.js: Davis Pyranometer MODBUS example
 ===
@@ -464,13 +464,13 @@ the_pill/MODBUS/LinkedGo/ST802/st802_bms_vc.shelly.js: LinkedGo ST802 Thermostat
 ===
 Modbus RTU master that simulates BMS commands for the LinkedGo
 
-the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js: TODO: Add title
+the_pill/MODBUS/MarsRock/SUN-G2/sun_g2.shelly.js: MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU reader
 ===
-TODO: Add description
+Reads AC output power, AC grid voltage, DC input voltage, and
 
-the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js: TODO: Add title
+the_pill/MODBUS/MarsRock/SUN-G2/sun_g2_vc.shelly.js: MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU + Virtual Components
 ===
-TODO: Add description
+Reads AC output power, AC grid voltage, DC input voltage, and
 
 the_pill/MODBUS/utils/modbus_scan.shelly.js: Universal MODBUS-RTU Scanner
 ===
@@ -488,9 +488,9 @@ the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js: WB-MIR v3 MODBUS-RTU 
 ===
 MODBUS-RTU reader for Wirenboard WB-MIR v3 IR transceiver and environment sensor over RS485. Reads DS18B20 temperature, button press counters, IR module presence, and supply voltages.
 
-the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js: TODO: Add title
+the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js: WB-MIR v3 IR Utility
 ===
-TODO: Add description
+Dedicated MODBUS-RTU utility for WB-MIR v3 infrared functions.
 
 the_pill/MODBUS/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js: WB-MIR v3 MODBUS Reconfiguration Utility
 ===
