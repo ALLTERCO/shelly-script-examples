@@ -59,12 +59,16 @@ function setWifiIP() {
 // @param {string} method Control method
 // @param {object} body 
 function remoteControl(ip, method, body, cb) {
-  const postData = {
-    url: "http://" + ip + "/rpc/" + method,
-    body: JSON.stringify(body),
-  };
-
-  Shelly.call("HTTP.POST", postData, cb);
+  try {
+    const postData = {
+      url: "http://" + ip + "/rpc/" + method,
+      body: JSON.stringify(body),
+    };
+  
+    Shelly.call("HTTP.POST", postData, cb);
+  } catch (err) {
+    console.log("Remote control exception: ", err)
+  }
 }
 
 // ***********************************************************************
