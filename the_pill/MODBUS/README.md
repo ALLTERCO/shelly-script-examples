@@ -24,6 +24,8 @@ You have field devices (BMS, inverter, thermostat, IO module, thermal pump) that
                         |=============|              |==============|
 ```
 
+![RS485 Wiring Diagram](rs485-diagram.png)
+
 RS485 reliability notes:
 - Use twisted pair for `A/B` on longer runs.
 - Add 120 ohm termination at bus ends for longer cables.

@@ -14,6 +14,10 @@ Solar monitoring systems need live irradiance readings to correlate PV output wi
 - [`pyranometer.shelly.js`](pyranometer.shelly.js): console irradiance reader
 - [`pyranometer_vc.shelly.js`](pyranometer_vc.shelly.js): irradiance + Virtual Components
 
+## Screenshot
+![Davis Pyranometer Screenshot](screenshot.png)
+This screenshot shows the Davis Pyranometer Virtual Components dashboard with solar irradiance readings in the Shelly UI.
+
 ## Register Map
 
 | Address | FC | Type | Unit | Range | Description |
