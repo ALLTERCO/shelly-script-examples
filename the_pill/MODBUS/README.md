@@ -24,8 +24,6 @@ You have field devices (BMS, inverter, thermostat, IO module, thermal pump) that
                         |=============|              |==============|
 ```
 
-![RS485 Wiring Diagram](rs485-diagram.png)
-
 RS485 reliability notes:
 - Use twisted pair for `A/B` on longer runs.
 - Add 120 ohm termination at bus ends for longer cables.
@@ -41,8 +39,6 @@ RS485 reliability notes:
 - [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
 - [`HTTP-Bridge/`](HTTP-Bridge/): MODBUS-RTU to HTTP bridge
 - [`JKESS/`](JKESS/): JK BMS examples
-- [`DFRobot/`](DFRobot/): DFRobot industrial sensor examples
-- [`GACIA/`](GACIA/): GACIA smart circuit breaker examples
 - [`LinkedGo/`](LinkedGo/): LinkedGo thermostat and thermal pump examples
 - [`Marstek/`](Marstek/): Marstek VenusE energy-storage MODBUS examples
 - [`MarsRock/`](MarsRock/): MarsRock G2 SUN Series grid-tie inverter examples
