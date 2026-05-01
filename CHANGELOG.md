@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add Sigenergy SigenStor MODBUS-RTU plant monitor for Shelly Pro RS485 Addon with Virtual Component setup
 
 ## 2026-05
+<<<<<<< HEAD
 - Promote Marstek VenusE read-only MODBUS telemetry scripts to production after hardware validation on The Pill
 - Add `venus_e_status_vc.shelly.js`, a status-focused Marstek VenusE Virtual Components layout for SOC, limits, temperatures, daily energy, operating state, and alarm/fault count
 - Add label-backed Marstek VenusE Virtual Component min/max ranges to the VC setup script and device README
