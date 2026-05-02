@@ -245,9 +245,9 @@ function getComponentSpecs() {
     var persisted = false;
 
     if (i < 2) {
-      min = 125;
-      max = 500;
-      defaultValue = 125;
+      min = 0;
+      max = 600;
+      defaultValue = 0;
       persisted = true;
       ui.icon = ICONS.pv1;
     } else if (i === 2) {
