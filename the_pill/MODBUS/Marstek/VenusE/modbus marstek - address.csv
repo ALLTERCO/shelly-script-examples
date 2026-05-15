@@ -1,0 +1,88 @@
+功能码/function,ID(DEC),ID(HEX),name,bytes,vlaue type,gain/unit,Description,Read out,mean
+0x03,30200,75F8,ems app version,2,u16,/,,124(DEC),
+,30201,75F9,ems boot version,2,u16,/,,17(DEC),boot ver 103
+,30202,75FA,inverter app version,2,u16,/,,111(DEC),
+,30203,75FB,inverter boot version,2,u16,/,,105(DEC),
+,30204,75FC,bms version,2,u16,/,,103(DEC),
+,30300,765C,WIFI status,2,u16,/,0: disconnect 1:connect,,
+,30301,765D,BLE status,2,u16,/,0: disconnect 1:broadcasting 2:connect,,
+,30302,765E,MQTT status,2,u16,/,0: disconnect 1:connect,,
+,30303,765F,WIFI signal strength,2,u16,db,wifi sign strength,,
+,30304,7660,mac,12,u8,/,mac code 12bytes,,
+,31000,7918,device name,20,char,/,,,
+,32100,7D64,battery voltage,2,u16,0.01V,,5120(DEC),51.2V
+,32101,7D65,battery current,2,s16,0.01A,,1502(DEC),15.02A
+,32102,7D66,battery power,4,s32,1W,,2500(DEC),2500W
+,32104,7D68,battery SOC,2,u16,1%,,50(DEC),50%
+,32105,7D69,battery total energy,2,u16 ,0.001kwh,,2500(DEC),2.5kwh
+,32200,7DC8,AC voltage,2,u16,0.1V,,2200(DEC),220V
+,32202,7DCA,AC power,4,s32,W,positive vlaue means feeds power into the grid,1000(DEC),1000W
+,32204,7DCC,AC frequency,2,u16,0.01hz,,5000(DEC),50HZ
+,32300,7E2C,AC offgrid voltage,2,u16,0.1V,,2200(DEC),220V
+,32302,7E2E,AC offgrid power,4,s32,W,,1000(DEC),1000W
+,33000,80E8,total charging energy,4,u32,0.01kWh,,10000(DEC),100kWh
+,33002,80EA,total discharging energy,4,u32,0.01kWh,,10000(DEC),100kWh
+,33004,80EC,daily charging energy,4,u32,0.01kWh,updated daily at 00:00,500(DEC),5kWh
+,33006,80EE,daily discharging energy,4,u32,0.01kWh,updated daily at 00:00,2000(DEC),20kWh
+,33008,80F0,monthly charging energy,4,u32,0.01kWh,updated on 1st of each month,10000(DEC),100kWh
+,33010,80F2,monthly discharging energy,4,u32,0.01kWh,updated on 1st of each month,10000(DEC),100kWh
+,35000,88B8,internal temperature,2,s16,0.1°C,,373(DEC),37.3°C
+,35001,88B9,internal max MOS temperature,2,s16,0.1°C,,257(DEC),25.7°C
+,35010,88C2,max cell temperature,2,s16,0.1°C,,-32(DEC),-3.2°C
+,35011,88C3,min cell temperature,2,s16,0.1°C,,400(DEC),40°C
+,35100,891C,inverter state,2,u16,/,"0:sleep  1:standby  2:charge  3:discharge
+4:backup mode  5:OTA upgrade 6：Bypass",2,charge
+,35110,8926,battery charge voltage limit,2,u16,100mv,,120(DEC),12V
+,35111,8927,battery charge current limit,2,u16,100ma,,50(DEC),5A
+,35112,8928,battery discharge current limit,2,u16,100ma,,50(DEC),5A
+,36000,8CA0,alarm word,2,bit,/,see at ex_info,,
+,36100,8D04,fault word,4,bit,/,see at ex_info,,
+0x03/0x06/0x10,41000,A028,device restart,2,u16,/,0x55aa: reset,,
+,41100,A08C,modbus address,2,u16,/,"modbus address [1,255]",,
+,41200,A0F0,backup function ,2,u16,/,"whether to enable the backup function
+0: enable  1: disable",,
+,41500,A21C,WIFI name,32,char,/,Write the Wi-Fi name and append a \0 character to indicate the end of the string,0x4d61 0x7273 0x0000,"wifi name ""Mars"""
+,41600,A280,WIFI password(only write),64,char,/,"Write the Wi-Fi name, and after writing the \0 character, it indicates the configuration of the Wi-Fi is completed",0x3132 0x3334 0x3536 0x3738 0x3900 ,"wifi password ""123456789"""
+,42000,A410,rs485 control mode,2,u16,/,"reg 42000-42999 only work before enable this reg
+0x55aa: enable 485 control mode // 0x55bb: disable 485 control mode ",0x55bb(HEX),enable 485 control mode
+,42010,A41A,forcible charge/discharge,2,u16,/,0:stop  1:charge  2:Discharge,,
+,42011,A41B,charge to SOC,2,u16,1%,"Force charge and discharge to the target SOC, and turn off the SOC when finished.[10,100%].
+(Enabling this mode turns off the forced charge and discharge mode)",500(DEC),0.5
+,42020,A424,forcible charge power,2,u16,W,"range:[0, 2.5kW]  ",2000(DEC),2000W
+,42021,A425,forcible discharge power,2,u16,W,"range:[0, 2.5kW]  ",2000(DEC),2000W
+,43000,A7F8,user work mode,2,u16,W,0:manual  1:anti-feed  2:eco mode(AI mode),,
+,43100,A85C,discharge time1 week,2,bit,/,"bit1: Monday  bit2:Tuesday  bit3: Wednesday
+bit4: Thursday bit5:Friday  bit6: Saturday  bit7:Sunday",3(HEX),work at Monday and Tuesday
+,43101,A85D,discharge time1 start,2,u16,hour:min,"range:[0,2359]",800(DEC),start at 8:00
+,43102,A85E,discharge time1 end,2,u16,hour:min,"range:[0,2359]
+the end time must be longer than the start time",1730(DEC),end at 17:30
+,43103,A85F,discharge time1 power,2,s16,W,"range[-2500,2500] postive means discharge",2000(DEC),2000W
+,43104,A860,discharge time1 enable,2,u16,/,0: disable  1:enable,,
+,43105,A861,discharge time2 week,2,bit,/,same as time1,,
+,43106,A862,discharge time2 start,2,u16,/,same as time1,,
+,43107,A863,discharge time2 end,2,u16,/,same as time1,,
+,43108,A864,discharge time2 power,2,s16,/,same as time1,,
+,43109,A865,discharge time2 enable,2,u16,/,same as time1,,
+,43110,A866,discharge time3 week,2,bit,/,same as time1,,
+,43111,A867,discharge time3 start,2,u16,/,same as time1,,
+,43112,A868,discharge time3 end,2,u16,/,same as time1,,
+,43113,A869,discharge time3 power,2,s16,/,same as time1,,
+,43114,A86A,discharge time3 enable,2,u16,/,same as time1,,
+,43115,A86B,discharge time4 week,2,bit,/,same as time1,,
+,43116,A86C,discharge time4 start,2,u16,/,same as time1,,
+,43117,A86D,discharge time4 end,2,u16,/,same as time1,,
+,43118,A86E,discharge time4 power,2,s16,/,same as time1,,
+,43119,A86F,discharge time4 enable,2,u16,/,same as time1,,
+,43120,A870,discharge time5 week,2,bit,/,same as time1,,
+,43121,A871,discharge time5 start,2,u16,/,same as time1,,
+,43122,A872,discharge time5 end,2,u16,/,same as time1,,
+,43123,A873,discharge time5 power,2,s16,/,same as time1,,
+,43124,A874,discharge time5 enable,2,u16,/,same as time1,,
+,43125,A875,discharge time6 week,2,bit,/,same as time1,,
+,43126,A876,discharge time6 start,2,u16,/,same as time1,,
+,43127,A877,discharge time6 end,2,u16,/,same as time1,,
+,43128,A878,discharge time6 power,2,s16,/,same as time1,,
+,43129,A879,discharge time6 enable,2,u16,/,same as time1,,
+,44001,ABE1,discharging cutoff capacity,2,u16,0.1%,"range:[12,30%]",150(DEC),15.0%
+,44002,ABE2,max charge power,2,u16,W,"range:[0,2.5kW]  ",800(DEC),800W
+,44003,ABE3,max discharge power,2,u16,W,"range:[0,2.5kW]  ",2000(DEC),2000W

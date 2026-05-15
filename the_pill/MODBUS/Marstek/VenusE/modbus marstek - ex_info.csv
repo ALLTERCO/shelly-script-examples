@@ -1,0 +1,41 @@
+ID,bit,describs,value,,ID,bit,describs,value,,,,,,,,,,
+"36000
+alarm code",Bit 0,PLL Abnormal Restart,0：Normal  1：Abnormal,,"36001
+alarm code",Bit 0,WIFI abnormal,0：Normal  1：Abnormal,,,,,,,,,,
+,Bit 1,Overtemperature Limit,0：Normal  1：Abnormal,,,Bit 1 ,BLE abnormal,0：Normal  2：Abnormal,,,,,,,,,,
+,Bit 2,Low Temperature Limit,0：Normal  1：Abnormal,,,Bit 2,Network abnormal,0：Normal  3：Abnormal,,,,,,,,,,
+,Bit 3,Fan Abnormal Warning,0：Normal  1：Abnormal,,,Bit 3,CT connection abnormal,0：Normal  3：Abnormal,,,,,,,,,,
+,Bit 4,Low Battery SOC Warning,0：Normal  1：Abnormal,,,Bit 4,Reserve,Reserve,,,,,,,,,,
+,Bit 5,Output Overcurrent Warning,0：Normal  1：Abnormal,,,Bit 5,Reserve,Reserve,,,,,,,,,,
+,Bit 6,Abnormal Line Sequence Detection,0：Normal  1：Abnormal,,,Bit 6,Reserve,Reserve,,,,,,,,,,
+,Bit 7,Reserve,Reserve,,,Bit 7,Reserve,Reserve,,,,,,,,,,
+,Bit 8,Reserve,Reserve,,,Bit 8,Reserve,Reserve,,,,,,,,,,
+,Bit 9,Reserve,Reserve,,,Bit 9,Reserve,Reserve,,,,,,,,,,
+,Bit 10,Reserve,Reserve,,,Bit 10,Reserve,Reserve,,,,,,,,,,
+,Bit 11,Reserve,Reserve,,,Bit 11,Reserve,Reserve,,,,,,,,,,
+,Bit 12,Reserve,Reserve,,,Bit 12,Reserve,Reserve,,,,,,,,,,
+,Bit 13,Reserve,Reserve,,,Bit 13,Reserve,Reserve,,,,,,,,,,
+,Bit 14,Reserve,Reserve,,,Bit 14,Reserve,Reserve,,,,,,,,,,
+,Bit 15,Reserve,Reserve,,,Bit 15,Reserve,Reserve,,,,,,,,,,
+ID,bit,describs,value,,ID,bit,describs,value,,ID,bit,describs,value,,ID,bit,describs,value
+"36100
+fault word",Bit 0,Grid overvoltage,0：Normal  1：Abnormal,,"36101
+fault word",Bit 0,BAT overvoltage,0：Normal  1：Abnormal,,"36103
+fault word",Bit 0,hardware Bus overvoltage,0：Normal  1：Abnormal,,"36104
+fault word
+",Bit 0,self-test fault,0：Normal  1：Abnormal
+,Bit 1,Grid undervoltage,0：Normal  1：Abnormal,,,Bit 1,BAT undervoltage,0：Normal  1：Abnormal,,,Bit 1,hardware Output overcurrent,0：Normal  1：Abnormal,,,Bit 1 ,eeprom fault,0：Normal  1：Abnormal
+,Bit 2,Grid overfrequency,0：Normal  1：Abnormal,,,Bit 2,BAT overcurrent,0：Normal  1：Abnormal,,,Bit 2,hardware trans overcurrent,0：Normal  1：Abnormal,,,Bit 2,other system fault,0：Normal  1：Abnormal
+,Bit 3,Grid underfrequency,0：Normal  1：Abnormal,,,Bit 3,BAT low SOC,0：Normal  1：Abnormal,,,Bit 3,hardware Battery overcurrent,0：Normal  1：Abnormal,,,Bit 3,Reserve,Reserve
+,Bit 4,Grid peak voltage abnormal,0：Normal  1：Abnormal,,,Bit 4,BAT communication failure,0：Normal  1：Abnormal,,,Bit 4,Hardware protection,0：Normal  1：Abnormal,,,Bit 4,Reserve,Reserve
+,Bit 5,Current Dcover,0：Normal  1：Abnormal,,,Bit 5,BMS protect,0：Normal  1：Abnormal,,,Bit 5,Output overcurrent,0：Normal  1：Abnormal,,,Bit 5,Reserve,Reserve
+,Bit 6,Voltage Dcover,0：Normal  1：Abnormal,,,Bit 6,Reserve,Reserve,,,Bit 6,High voltage bus overvoltage,0：Normal  1：Abnormal,,,Bit 6,Reserve,Reserve
+,Bit 7,Reserve,Reserve,,,Bit 7,Reserve,Reserve,,,Bit 7,High voltage bus udnervoltage,0：Normal  1：Abnormal,,,Bit 7,Reserve,Reserve
+,Bit 8,Reserve,Reserve,,,Bit 8,Reserve,Reserve,,,Bit 8,Overpower protection,0：Normal  1：Abnormal,,,Bit 8,Reserve,Reserve
+,Bit 9,Reserve,Reserve,,,Bit 9,Reserve,Reserve,,,Bit 9,FSM abnormal,0：Normal  1：Abnormal,,,Bit 9,Reserve,Reserve
+,Bit 10,Reserve,Reserve,,,Bit 10,Reserve,Reserve,,,Bit 10,Overtemperature protection,0：Normal  1：Abnormal,,,Bit 10,Reserve,Reserve
+,Bit 11,Reserve,Reserve,,,Bit 11,Reserve,Reserve,,,Bit 11,Inverter soft start timeout,0：Normal  1：Abnormal,,,Bit 11,Reserve,Reserve
+,Bit 12,Reserve,Reserve,,,Bit 12,Reserve,Reserve,,,Bit 12,Reserve,Reserve,,,Bit 12,Reserve,Reserve
+,Bit 13,Reserve,Reserve,,,Bit 13,Reserve,Reserve,,,Bit 13,Reserve,Reserve,,,Bit 13,Reserve,Reserve
+,Bit 14,Reserve,Reserve,,,Bit 14,Reserve,Reserve,,,Bit 14,Reserve,Reserve,,,Bit 14,Reserve,Reserve
+,Bit 15,Reserve,Reserve,,,Bit 15,Reserve,Reserve,,,Bit 15,Reserve,Reserve,,,Bit 15,Reserve,Reserve
