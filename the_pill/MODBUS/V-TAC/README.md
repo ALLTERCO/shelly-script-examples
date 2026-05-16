@@ -23,6 +23,6 @@ V-TAC devices may expose useful local telemetry and controls over RS485, but the
 |The Pill|-----=||||    | RX        A |------\/------| A            |
 \========/         |    | RE/DE     B |------/\------| B            |
                    |    | +5V       A |              |              |
-                   \====|           B |------/\------| B            |
+                   \====|           B |              |              |
                         |=============|              |==============|
 ```
