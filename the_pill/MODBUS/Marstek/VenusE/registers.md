@@ -28,7 +28,7 @@ The register map appears to use holding-register addresses directly. Multi-regis
 | 32105 | `0x7D69` | Battery total energy | 1 | `u16` | `0.001 kWh` | Example `2500` = `2.5 kWh` |
 | 32200 | `0x7DC8` | AC voltage | 1 | `u16` | `0.1 V` | Example `2200` = `220 V` |
 | 32202 | `0x7DCA` | AC power | 2 | `s32` | `1 W` | Positive value means feeds power into the grid |
-| 32204 | `0x7DCC` | AC frequency | 1 | `u16` | `0.01 Hz` | Example `5000` = `50 Hz` |
+| 32204 | `0x7DCC` | AC frequency | 1 | `u16` | `0.1 Hz` | Live-tested raw `499` = `49.9 Hz`; vendor CSV example says `0.01 Hz` / `5000` |
 | 32300 | `0x7E2C` | AC offgrid voltage | 1 | `u16` | `0.1 V` | Example `2200` = `220 V` |
 | 32302 | `0x7E2E` | AC offgrid power | 2 | `s32` | `1 W` |  |
 | 33000 | `0x80E8` | Total charging energy | 2 | `u32` | `0.01 kWh` |  |
