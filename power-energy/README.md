@@ -11,6 +11,7 @@ Use these to monitor consumption and automatically manage loads to stay within p
 - `failure-monitor.shelly.js`
 - `load-shedding.shelly.js`
 - `monitor-production.shelly.js`
+- `plus-plug-s-led-power-states.shelly.js`
 - `power-outages.shelly.js`
 - `power-threshold-limit-output.shelly.js`
 - `victron-mppt-solar-controller.shelly.js`
