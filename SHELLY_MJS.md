@@ -335,9 +335,9 @@ power-energy/monitor-production.shelly.js: Add Additional Meter to the Advanced 
 ===
 Use this script paired with advanced-load-shedding.shelly.js to add a second source - example, grid, PV, generator, etc.
 
-power-energy/plus-plug-s-led-power-states.shelly.js: Shelly Plus Plug S LED power states
+power-energy/plus-plug-s-led-power-states.shelly.js: Shelly Plus Plug S LED power visualization
 ===
-Shows current power consumption as clear LED ring states on a Shelly Plus Plug S. Useful for visual homelab, workstation, charger, and appliance power usage feedback without opening an app.
+Shows current power consumption as clear LED ring states or a green-to-red gradient on a Shelly Plus Plug S. Useful for visual homelab, workstation, charger, and appliance power usage feedback without opening an app.
 
 power-energy/power-outages.shelly.js: Monitor Power Outages or Crashed Services
 ===
