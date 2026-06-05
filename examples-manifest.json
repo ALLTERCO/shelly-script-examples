@@ -389,6 +389,11 @@
     "description": "Use this script paired with advanced-load-shedding.shelly.js to add a second source - example, grid, PV, generator, etc."
   },
   {
+    "fname": "power-energy/plus-plug-s-led-power-states.shelly.js",
+    "title": "Shelly Plus Plug S LED power visualization",
+    "description": "Shows current power consumption as clear LED ring states or a green-to-red gradient on a Shelly Plus Plug S. Useful for visual homelab, workstation, charger, and appliance power usage feedback without opening an app."
+  },
+  {
     "fname": "power-energy/power-outages.shelly.js",
     "title": "Monitor Power Outages or Crashed Services",
     "description": "Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics."
