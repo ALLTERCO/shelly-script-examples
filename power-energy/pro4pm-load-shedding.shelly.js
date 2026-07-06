@@ -29,6 +29,14 @@
  *   - Only one switch is acted on per decision cycle. Consecutive sheds are
  *     spaced by CONFIG.minShedMs; consecutive restores by CONFIG.minRestoreMs.
  *
+ * Manual control from the device's display/app:
+ *   - Turning a switch OFF manually takes it out of the shedding rotation.
+ *     This script never restores a switch it didn't shed itself, so it stays
+ *     off (effectively "disabled") until turned back on by hand - including
+ *     across a script/device restart.
+ *   - Turning a switch back ON manually re-enters it into the rotation, so it
+ *     can be shed again later if the combined current requires it.
+ *
  * @see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch
  */
 
@@ -135,7 +143,13 @@ Shelly.addStatusHandler(function(msg) {
 
   if (typeof msg.delta.output === 'boolean') {
     channelOutput[id] = msg.delta.output;
-    if (!msg.delta.output) channelCurrent[id] = 0.0;
+    if (!msg.delta.output) {
+      channelCurrent[id] = 0.0;
+    } else {
+      // Switch is on (manually or restored by us) - it's back in the
+      // rotation and eligible to be shed again if current requires it.
+      shedByUs[id] = false;
+    }
   }
   if (typeof msg.delta.current === 'number') {
     channelCurrent[id] = msg.delta.current;
@@ -150,18 +164,27 @@ Shelly.addStatusHandler(function(msg) {
 
 function initChannel(idx) {
   if (idx >= 4) {
-    // Treat every switch as shed on startup so the restore logic re-enables
-    // them one by one (minRestoreMs apart), respecting the 16A fuse limit
+    // Switches already OFF at startup are left alone - they're treated as
+    // manually disabled (whether via the device display, app, or a prior
+    // shed) and won't be auto-restored. Switches that are ON get shed and
+    // then restored one by one (minRestoreMs apart) so all loads don't
+    // inrush simultaneously, respecting the 16A fuse limit.
+    let anyOn = false;
     for (let i = 0; i < 4; i++) {
-      shedByUs[i] = true;
       if (channelOutput[i]) {
+        anyOn = true;
+        shedByUs[i] = true;
         channelOutput[i] = false;
         channelCurrent[i] = 0.0;
         setSwitchOutput(i, false);
       }
     }
-    lastRestoreMs = Date.now();
-    print('Pro 4PM load shedding ready – restoring outputs in sequence');
+    if (anyOn) {
+      lastRestoreMs = Date.now();
+      print('Pro 4PM load shedding ready – restoring outputs in sequence');
+    } else {
+      print('Pro 4PM load shedding ready – all outlets off/disabled at start');
+    }
     return;
   }
   Shelly.call('Switch.GetStatus', { id: idx }, function(res, err) {
