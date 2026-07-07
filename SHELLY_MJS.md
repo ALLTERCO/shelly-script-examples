@@ -254,6 +254,10 @@ lora/lora-send-no-encryption.shelly.js: Send message over lora without encryptio
 ===
 This script demonstrates how to send unencrypted LoRa messages using Shelly scripting. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)
 
+modbus/Sigenergy/SigenStor/sigenstor_plant_vc.shelly.js: Sigenergy SigenStor MODBUS-RTU plant monitor
+===
+Reads SigenStor plant PV, battery, grid, load, SOC, grid state, and status values into Virtual Components with cloud logging.
+
 mqtt/control-ha-light-entity-with-boolean.shelly.js: Control Light entity from HA via virtual boolean component
 ===
 This script will control a light entity in Home Assistant via a virtual boolean component in Shelly. The script will listen for changes in the boolean component and will turn on or off the light entity in Home Assistant accordingly.

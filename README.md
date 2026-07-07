@@ -41,6 +41,7 @@ This repository is designed for:
 - [howto/](howto/README.md) - Minimal examples and tutorials
 - [http-integrations/](http-integrations/README.md) - HTTP endpoints, notifications, and external services
 - [lora/](lora/README.md) - LoRa send/receive and device control examples
+- [modbus/](modbus/README.md) - MODBUS examples for RS485 add-ons and native MODBUS clients
 - [mqtt/](mqtt/README.md) - MQTT and Home Assistant integrations
 - [networking/](networking/README.md) - Provisioning and watchdog scripts
 - [power-energy/](power-energy/README.md) - Load management, power thresholds, and monitoring
