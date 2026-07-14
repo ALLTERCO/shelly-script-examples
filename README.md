@@ -22,7 +22,7 @@ This repository is designed for:
 
 ## Documentation
 
-- [Script Index](SHELLY_MJS.md) - Full list of all example scripts with descriptions
+- [Example Manifest](examples-manifest.json) - Machine-readable list of production examples, descriptions, and tags
 - [Changelog](CHANGELOG.md) - See what's new
 - [Contributing](CONTRIBUTING.md) - How to contribute to this project
 - [Tools](tools/README.md) - Helper utilities for uploading scripts and validation
