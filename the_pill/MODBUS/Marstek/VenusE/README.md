@@ -81,19 +81,19 @@ clip/latch orientation matching a normal RJ45 numbering reference:
 
 | RJ45 pin | Function | Connect to The Pill |
 |---:|---|---|
-| 1 | RS485 B | `B` |
-| 2 | RS485 A | `A` |
-| 3 | Not documented | leave open |
+| 1 | RS485 A | `A` |
+| 2 | RS485 B | `B` |
+| 3 | NC | leave open |
 | 4 | +5 V | leave open |
 | 5 | +5 V | leave open |
-| 6 | Not documented | leave open |
+| 6 | NC | leave open |
 | 7 | GND | `GND` recommended |
 | 8 | GND | `GND` recommended |
 
 Do not connect the Venus-E `+5 V` pins to The Pill unless you intentionally
 need that supply for an isolated adapter and have verified the current limits.
-If the bus is silent, swap only `A` and `B`; do not experiment with the `+5 V`
-pins.
+If the bus is silent, verify the RJ45 plug/socket viewing orientation and all
+connections against the table; do not experiment with the `+5 V` pins.
 
 This RJ45 pinout has been confirmed for the device used in this integration.
 Keep this section as the connector reference for future wiring diagrams and

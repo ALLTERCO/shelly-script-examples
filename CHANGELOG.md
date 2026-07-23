@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-07
+- Correct the Marstek Venus-E RJ45 pinout to pin 1=A, pin 2=B, pins 3/6=NC, pins 4/5=+5V, and pins 7/8=GND
 - Clarify Sigenergy SigenStor installation-specific power limits and enum label metadata
 - Update Sigenergy SigenStor Virtual Component display order and enum labels for Shelly app rendering
 - Add Shelly Cloud measurement/log metadata to the Sigenergy SigenStor Virtual Components
