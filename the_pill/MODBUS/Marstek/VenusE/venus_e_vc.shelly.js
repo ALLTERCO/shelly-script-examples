@@ -11,6 +11,20 @@
  *
  * Firmware requirements: Shelly Gen2/Gen3 with scripting, UART, and Virtual
  * Components support.
+ * Device compatibility: The Pill with 5-terminal RS485 add-on.
+ * External hardware: Marstek Venus-E 3.0 connected through its RS485 RJ45
+ * port. Use normal RJ45 pin numbering while looking into the device socket.
+ *
+ * Hardware Connection:
+ * - Venus RJ45 pin 1 (RS485 A) -> The Pill A
+ * - Venus RJ45 pin 2 (RS485 B) -> The Pill B
+ * - Venus RJ45 pin 7 or 8 (GND) -> The Pill GND (recommended)
+ * - Venus RJ45 pins 3 and 6 -> Leave disconnected
+ * - Venus RJ45 pins 4 and 5 (+5 V) -> Leave disconnected
+ *
+ * Do not connect either Venus +5 V pin to The Pill. If the MODBUS bus is
+ * silent, verify the RJ45 viewing orientation and wiring against this pinout;
+ * do not experiment with the +5 V pins.
  *
  * Virtual Components created:
  * - group:220   Marstek VenusE
