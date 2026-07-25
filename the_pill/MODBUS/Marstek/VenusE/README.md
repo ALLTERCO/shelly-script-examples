@@ -23,7 +23,7 @@ power, AC frequency, internal temperature, and inverter state.
 - [`venus_e.shelly.js`](venus_e.shelly.js): console telemetry reader for key live/status registers
 - [`venus_e_vc.shelly.js`](venus_e_vc.shelly.js): telemetry reader that creates and updates Shelly Virtual Components with label-backed UI ranges
 - [`venus_e_status_vc.shelly.js`](venus_e_status_vc.shelly.js): status-focused Virtual Components reader for SOC, limits, temperatures, daily energy, operating state, and alarm/fault count
-- [`venus_e_control_vc.shelly.js`](venus_e_control_vc.shelly.js): charge/stop/discharge Virtual Component controller with adjustable power and SOC, battery-power, and operating-state telemetry (under development)
+- [`venus_e_control_vc.shelly.js`](venus_e_control_vc.shelly.js): charge/stop/discharge Virtual Component controller with adjustable power and SOC, battery-power, and operating-state telemetry
 - [`screenshot.png`](screenshot.png): Shelly UI screenshot of the Virtual Components view
 - [`registers/README.md`](registers/README.md): cross-linked register document index
 - [`registers/runtime_information_04.md`](registers/runtime_information_04.md): read-only runtime/status register map
@@ -41,15 +41,16 @@ power, AC frequency, internal temperature, and inverter state.
 The read-only VenusE telemetry scripts are marked `production` after hardware
 validation on The Pill. They do not write control registers.
 
-The control script is marked `under development` until its Virtual Component
-setup and complete write sequence are validated on The Pill. The underlying
-FC06 control sequence has been validated through a USB-RS485 adapter.
+The control script is marked `production` after its Virtual Component setup,
+embedded-web button rendering, and runtime telemetry were validated on The
+Pill. The underlying FC06 charge, stop, and discharge sequence was validated
+through a USB-RS485 adapter.
 
 Open validation items:
 - 32-bit word order under non-zero load
 - signed direction for current and power
 - alarm/fault bit behavior during real warning or fault conditions
-- full control-script validation on The Pill
+- extended control-script soak testing on The Pill
 
 ## Protocol And Register Reference
 The register documentation lives in the cross-linked [`registers/`](registers/README.md) folder. Start with the index, then follow the document-specific links for runtime registers, writable parameters, bitfields, enum tables, faults, and protocol change history.
@@ -183,7 +184,7 @@ tested firmware supports only 10 Virtual Components.
 
 ## Notes
 - The production telemetry scripts intentionally do not write registers.
-- The under-development control script writes only the documented RS485
+- The control script writes only the documented RS485
   control, forced-power, and forced-mode registers.
 - Register-level semantics, scale exceptions, alarm/fault bits, and open validation items are centralized in [`registers/`](registers/README.md).
 - The RJ45 RS485 pinout has been confirmed on the device used for this integration.
