@@ -1264,6 +1264,11 @@
     ]
   },
   {
+    "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js",
+    "title": "Marstek VenusE charge/discharge control + Virtual Components",
+    "description": "Monitors Marstek VenusE SOC, power, and operating state, and"
+  },
+  {
     "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_status_vc.shelly.js",
     "title": "Marstek VenusE status MODBUS-RTU reader + Virtual Components",
     "description": "Reads Marstek VenusE SOC, charge/discharge limits,",

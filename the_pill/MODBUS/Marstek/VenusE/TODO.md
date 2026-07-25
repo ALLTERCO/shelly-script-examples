@@ -6,4 +6,4 @@
 - Confirm alarm/fault bit behavior on hardware and capture at least one non-zero example if possible.
 - Validate `venus_e_control_vc.shelly.js` on The Pill, including VC creation, power persistence, queued Stop behavior, write-echo handling, and charge/discharge state changes.
 - Decide whether schedule programming should be added as a separate guarded script.
-- Promote scripts to `production` only after hardware validation and manifest verification pass.
+- Complete extended control-script soak testing on The Pill.

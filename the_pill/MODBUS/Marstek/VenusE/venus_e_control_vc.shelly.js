@@ -2,7 +2,7 @@
  * @title Marstek VenusE charge/discharge control + Virtual Components
  * @description Monitors Marstek VenusE SOC, power, and operating state, and
  *   provides guarded Virtual Component controls for charge, stop, and discharge.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js
  */
 
