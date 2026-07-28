@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-07
+- Add reusable Virtual Components helper snippet for creating, repairing, grouping, and returning VC handles from one setup call
 - Add a production Marstek Venus-E Virtual Components controller with embedded-web Force Charge, Stop, and Discharge buttons, adjustable power, and SOC telemetry
 - Correct the Marstek Venus-E RJ45 pinout to pin 1=A, pin 2=B, pins 3/6=NC, pins 4/5=+5V, and pins 7/8=GND
 - Clarify Sigenergy SigenStor installation-specific power limits and enum label metadata
