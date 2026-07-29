@@ -1245,7 +1245,16 @@
   {
     "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js",
     "title": "Marstek VenusE charge/discharge control + Virtual Components",
-    "description": "Monitors Marstek VenusE SOC, power, and operating state, and"
+    "description": "Monitors Marstek VenusE SOC, power, and operating state, and",
+    "tags": [
+      "the-pill",
+      "modbus-rtu",
+      "virtual-components",
+      "energy",
+      "battery",
+      "control",
+      "marstek"
+    ]
   },
   {
     "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_status_vc.shelly.js",
