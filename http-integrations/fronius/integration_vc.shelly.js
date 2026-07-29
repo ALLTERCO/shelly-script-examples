@@ -1,20 +1,20 @@
 /**
- * @title Yahoo Finance stock monitor with virtual components
- * @description Polls Yahoo Finance chart API for a stock symbol and updates
- *   Virtual Components with current price, daily delta, and quote fields.
- * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/finance-yahoo/stock-monitor_vc.shelly.js
+ * @title Fronius grid flow integration
+ * @description Polls the Fronius Solar API and updates Virtual Components with
+ *   grid import/export power and accumulated energy values.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/fronius/integration_vc.shelly.js
  */
 
 /**
- * Stock Price Monitor
- *
- * Fetches one-day quote data for STOCK_SYMBOL and writes values to Virtual
- * Components.
+ * Reads `GetPowerFlowRealtimeData.fcgi` from a local Fronius inverter and
+ * creates Shelly number Virtual Components and writes the result into them.
  *
  * Script-owned Virtual Components:
- * - number:200..205  Price, volume, open, close, low, high
- * - text:200..202    Symbol, daily change, last updated
+ * - number:200 Grid import power in W
+ * - number:201 Grid export power in W
+ * - number:202 Grid import energy in kWh
+ * - number:203 Grid export energy in kWh
  */
 
 // ============================================================================
@@ -353,199 +353,141 @@ function ensureVirtualComponents(manifest, done) {
 }
 
 
-const STOCK_SYMBOL = 'SLYG.DE';
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-const vcComponents = {
-  group: {
-    id: 200,
-    key: 'stock_monitor',
-    name: 'Stock Monitor',
-    type: 'group'
-  },
+let CONFIG = {
+  froniusIp: '192.168.178.32',
+  intervalMs: 5000,
+  vc: {
+    gridImportW: 'number:200',
+    gridExportW: 'number:201',
+    gridImportKWh: 'number:202',
+    gridExportKWh: 'number:203'
+  }
+};
+
+// ============================================================================
+// STATE
+// ============================================================================
+
+let state = {
+  lastTs: Date.now(),
+  importKWh: 0,
+  exportKWh: 0,
+  missingVc: {}
+};
+
+let vc = {};
+
+var VIRTUAL_COMPONENTS = {
   components: [
-    {
-      id: 200,
-      key: 'price',
-      type: 'number',
-      name: 'Current Price',
-      unit: '€'
-    },
-    {
-      id: 201,
-      key: 'volume',
-      type: 'number',
-      name: 'Volume',
-      unit: 'shares'
-    },
-    {
-      id: 202,
-      key: 'open',
-      type: 'number',
-      name: 'Open',
-      unit: '€'
-    },
-    {
-      id: 203,
-      key: 'close',
-      type: 'number',
-      name: 'Close',
-      unit: '€'
-    },
-    {
-      id: 204,
-      key: 'low',
-      type: 'number',
-      name: 'Low',
-      unit: '€'
-    },
-    {
-      id: 205,
-      key: 'high',
-      type: 'number',
-      name: 'High',
-      unit: '€'
-    },
-    {
-      id: 200,
-      key: 'symbol',
-      type: 'text',
-      name: 'Stock Symbol',
-      default: STOCK_SYMBOL
-    },
-    {
-      id: 201,
-      key: 'delta',
-      type: 'text',
-      name: 'Change today'
-    },
-    {
-      id: 202,
-      key: 'time',
-      type: 'text',
-      name: 'Last Updated',
-      webIcon: 13
-    }
+    { key: 'gridImportW', type: 'number', id: 200, config: { name: 'Grid Import Power', default_value: 0, min: 0, max: 100000, meta: { ui: { view: 'label', unit: 'W', step: 1 }, cloud: ['measurement'] } } },
+    { key: 'gridExportW', type: 'number', id: 201, config: { name: 'Grid Export Power', default_value: 0, min: 0, max: 100000, meta: { ui: { view: 'label', unit: 'W', step: 1 }, cloud: ['measurement'] } } },
+    { key: 'gridImportKWh', type: 'number', id: 202, config: { name: 'Grid Import Energy', default_value: 0, min: 0, max: 999999, meta: { ui: { view: 'label', unit: 'kWh', step: 0.001 }, cloud: ['measurement'] } } },
+    { key: 'gridExportKWh', type: 'number', id: 203, config: { name: 'Grid Export Energy', default_value: 0, min: 0, max: 999999, meta: { ui: { view: 'label', unit: 'kWh', step: 0.001 }, cloud: ['measurement'] } } }
+  ],
+  groups: [
+    { id: 200, name: 'Fronius Grid Flow', components: ['gridImportW', 'gridExportW', 'gridImportKWh', 'gridExportKWh'] }
   ]
 };
 
-var vcHandles = {};
-
-function vcConfig(comp) {
-  var ui = { view: comp.type === 'number' ? 'label' : 'label' };
-  if (comp.unit) ui.unit = comp.unit;
-  if (comp.webIcon !== undefined) ui.webIcon = comp.webIcon;
-
-  if (comp.type === 'text') {
-    return {
-      name: comp.name,
-      default_value: comp.default || '',
-      persisted: false,
-      meta: { ui: ui, cloud: ['log'] }
-    };
-  }
-
-  return {
-    name: comp.name,
-    default_value: 0,
-    min: comp.min !== undefined ? comp.min : -999999999999999,
-    max: comp.max !== undefined ? comp.max : 999999999999999,
-    meta: { ui: ui, cloud: ['measurement'] }
-  };
-}
-
-function buildVirtualComponentsManifest() {
-  var manifest = { components: [], groups: [] };
-  var members = [];
-  var i;
-  var comp;
-
-  for (i = 0; i < vcComponents.components.length; i++) {
-    comp = vcComponents.components[i];
-    manifest.components.push({ key: comp.key, type: comp.type, id: comp.id, config: vcConfig(comp) });
-    members.push(comp.key);
-  }
-
-  manifest.groups = [
-    { id: vcComponents.group.id, name: vcComponents.group.name, components: members }
-  ];
-
-  return manifest;
-}
-
 function bindVirtualComponents(readyVc) {
-  vcHandles = readyVc.handles;
+  vc = readyVc.handles;
 }
 
-function getTimestamp(ts) {
-  return new Date(ts).toString().split('GMT')[0].trim();
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function setVcValue(handle, key, value) {
+  if (!handle) {
+    if (!state.missingVc[key]) {
+      state.missingVc[key] = true;
+      print('Missing virtual component: ' + key);
+    }
+    return;
+  }
+
+  handle.setValue(value);
 }
 
-function pad2(n) { return (n < 10 ? "0" : "") + n; }
-
-function getDate(ts) {
-  const date = new Date(ts);
-  return pad2(date.getDate()) + "-" + pad2(date.getMonth() + 1);
+function updateVirtualComponents(importW, exportW) {
+  setVcValue(vc.gridImportW, CONFIG.vc.gridImportW, importW);
+  setVcValue(vc.gridExportW, CONFIG.vc.gridExportW, exportW);
+  setVcValue(vc.gridImportKWh, CONFIG.vc.gridImportKWh, state.importKWh);
+  setVcValue(vc.gridExportKWh, CONFIG.vc.gridExportKWh, state.exportKWh);
 }
 
-function formatNum(n) {
-  const x = Number(n);
-  return isFinite(x) ? Number(x.toFixed(2)) : 0;
+// ============================================================================
+// MAIN LOGIC
+// ============================================================================
+
+function update() {
+  let url = 'http://' + CONFIG.froniusIp + '/solar_api/v1/GetPowerFlowRealtimeData.fcgi';
+
+  Shelly.call('HTTP.GET', { url: url }, function(res, errorCode, errorMessage) {
+    let now;
+    let dt;
+    let data;
+    let pGrid;
+    let importW;
+    let exportW;
+
+    if (errorCode !== 0) {
+      print('HTTP error [' + errorCode + ']: ' + errorMessage);
+      return;
+    }
+
+    if (!res || res.code !== 200) {
+      print('Unexpected HTTP response');
+      return;
+    }
+
+    try {
+      data = JSON.parse(res.body);
+      pGrid = data.Body.Data.Site.P_Grid;
+    } catch (err) {
+      print('JSON parse error: ' + err);
+      return;
+    }
+
+    if (typeof pGrid !== 'number') {
+      print('Missing Site.P_Grid in Fronius response');
+      return;
+    }
+
+    now = Date.now();
+    dt = (now - state.lastTs) / 1000;
+    state.lastTs = now;
+
+    importW = 0;
+    exportW = 0;
+
+    if (pGrid > 0) {
+      importW = pGrid;
+      state.importKWh += (importW * dt) / 3600000;
+    } else if (pGrid < 0) {
+      exportW = Math.abs(pGrid);
+      state.exportKWh += (exportW * dt) / 3600000;
+    }
+
+    updateVirtualComponents(importW, exportW);
+  });
 }
 
-function setValue(key, value) {
-  if (!vcHandles[key]) return;
-  vcHandles[key].setValue(value);
-}
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 
-function updateStockPrice() {
-  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + STOCK_SYMBOL + '?interval=1d&range=1d';
-  Shelly.call('HTTP.GET',
-    {
-      url: url,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    },
-    function (response) {
-      if (!response || response.code !== 200) {
-        console.log('Error: HTTP', response);
-        return;
-      }
-      try {
-        const data = JSON.parse(response.body);
-        const meta = data.chart.result[0].meta;
-        const price = meta.regularMarketPrice;
-        const prev = meta.chartPreviousClose;
-        const ts = meta.regularMarketTime * 1000;
-        const delta = price - prev;
-        const deltaPct = prev !== 0 ? (delta / prev) * 100 : 0;
-        const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
-        const trend = delta > 0 ? '⬆️ ' : delta < 0 ? '🔻 ' : '';
-        const deltaText =
-                  trend  + sign +
-                formatNum(Math.abs(delta)) + '€ (' +
-                sign + formatNum(Math.abs(deltaPct)) + '%) / ' + getDate(ts);
-        const quote = data.chart.result[0].indicators.quote[0];
-        setValue('price', formatNum(price));
-        setValue('time', getTimestamp(ts));
-        setValue('delta', deltaText);
-        setValue('open', formatNum(quote.open[0]));
-        setValue('close', formatNum(quote.close[0]));
-        setValue('high', formatNum(quote.high[0]));
-        setValue('low', formatNum(quote.low[0]));
-        setValue('volume', quote.volume[0]);
-      } catch (err) {
-        console.log('Error parsing JSON:', err);
-      }
-    },
-  );
-}
-
-ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
+ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
   if (!ok) {
-    console.log('Virtual component setup failed');
+    print('ERROR: Virtual component setup failed');
     return;
   }
 
   bindVirtualComponents(readyVc);
-  updateStockPrice();
-  Timer.set(5 * 60 * 1000, true, updateStockPrice);
+  Timer.set(CONFIG.intervalMs, true, update);
+  update();
 });
