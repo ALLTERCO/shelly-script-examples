@@ -23,7 +23,7 @@ Test every script that uses one of these patterns:
 
 Do not refactor all scripts at once. First validate the helper on three representative scripts:
 
-- Simple telemetry script with pre-created handles, for example `the_pill/SDS011/sds011-vc-cycle.shelly.js`.
+- Simple telemetry script with fixed VC IDs, for example `the_pill/SDS011/sds011-vc-cycle.shelly.js`.
 - MODBUS telemetry script with multiple `vcId` bindings, for example `the_pill/MODBUS/V-TAC/VT6607103/vtac_six_register_example_vc.shelly.js`.
 - Complex controller/dashboard script that creates VCs and groups, for example `the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js`.
 
@@ -55,7 +55,7 @@ Do not migrate all scripts in one pass. Convert and test a few representative sc
 
 For each script, classify how it uses VCs today:
 
-- Manual/pre-created handles only: uses `Virtual.getHandle(...)` and assumes VCs already exist.
+- Legacy manual handles only: uses `Virtual.getHandle(...)` and assumes VCs already exist.
 - Setup script pattern: a separate script or block calls `Virtual.Add` before the runtime script starts.
 - Dynamic setup pattern: runtime script creates some VCs itself.
 - Group dashboard pattern: script creates VCs and puts them into one or more groups.
