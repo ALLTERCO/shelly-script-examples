@@ -1,20 +1,19 @@
 /**
- * @title Yahoo Finance stock monitor with virtual components
- * @description Polls Yahoo Finance chart API for a stock symbol and updates
- *   Virtual Components with current price, daily delta, and quote fields.
- * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/finance-yahoo/stock-monitor_vc.shelly.js
+ * @title BLE open windows monitor
+ * @description Scans Shelly BLU DoorWindow advertisements, tracks open windows,
+ *   and updates Virtual Components with aggregate open-state information.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-open-windows_vc.shelly.js
  */
 
 /**
- * Stock Price Monitor
+ * BLE Open Windows Monitor
  *
- * Fetches one-day quote data for STOCK_SYMBOL and writes values to Virtual
- * Components.
- *
- * Script-owned Virtual Components:
- * - number:200..205  Price, volume, open, close, low, high
- * - text:200..202    Symbol, daily change, last updated
+ * Watches configured BLU DoorWindow devices and creates/publishes:
+ * - boolean:200  true if any configured window is open
+ * - number:200   count of open windows
+ * - text:200     last update timestamp
+ * - text:201     most recently opened window name (or None)
  */
 
 // ============================================================================
@@ -353,199 +352,265 @@ function ensureVirtualComponents(manifest, done) {
 }
 
 
-const STOCK_SYMBOL = 'SLYG.DE';
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-const vcComponents = {
-  group: {
-    id: 200,
-    key: 'stock_monitor',
-    name: 'Stock Monitor',
-    type: 'group'
-  },
+const DEVICES = {
+  // Replace sample MAC addresses with your real BLU DoorWindow addresses.
+  'xx:xx:xx:xx:xx:01': { res: {}, name: 'Living Room Back Window', date: null },
+  'xx:xx:xx:xx:xx:02': { res: {}, name: 'Children Room Front Window', date: null }
+};
+
+var VIRTUAL_COMPONENTS = {
   components: [
-    {
-      id: 200,
-      key: 'price',
-      type: 'number',
-      name: 'Current Price',
-      unit: '€'
-    },
-    {
-      id: 201,
-      key: 'volume',
-      type: 'number',
-      name: 'Volume',
-      unit: 'shares'
-    },
-    {
-      id: 202,
-      key: 'open',
-      type: 'number',
-      name: 'Open',
-      unit: '€'
-    },
-    {
-      id: 203,
-      key: 'close',
-      type: 'number',
-      name: 'Close',
-      unit: '€'
-    },
-    {
-      id: 204,
-      key: 'low',
-      type: 'number',
-      name: 'Low',
-      unit: '€'
-    },
-    {
-      id: 205,
-      key: 'high',
-      type: 'number',
-      name: 'High',
-      unit: '€'
-    },
-    {
-      id: 200,
-      key: 'symbol',
-      type: 'text',
-      name: 'Stock Symbol',
-      default: STOCK_SYMBOL
-    },
-    {
-      id: 201,
-      key: 'delta',
-      type: 'text',
-      name: 'Change today'
-    },
-    {
-      id: 202,
-      key: 'time',
-      type: 'text',
-      name: 'Last Updated',
-      webIcon: 13
-    }
+    { key: 'anyOpen', type: 'boolean', id: 200, config: { name: 'Any Window Open', default_value: false, meta: { ui: { view: 'label', titles: { 'false': 'closed', 'true': 'open' } }, cloud: ['log'] } } },
+    { key: 'openCount', type: 'number', id: 200, config: { name: 'Open Window Count', default_value: 0, min: 0, max: 64, meta: { ui: { view: 'label', step: 1 }, cloud: ['measurement'] } } },
+    { key: 'lastUpdate', type: 'text', id: 200, config: { name: 'Last Update', default_value: '', persisted: false, meta: { ui: { view: 'label', maxLength: 64 }, cloud: ['log'] } } },
+    { key: 'lastOpenName', type: 'text', id: 201, config: { name: 'Last Open Window', default_value: 'None', persisted: false, meta: { ui: { view: 'label', maxLength: 128 }, cloud: ['log'] } } }
+  ],
+  groups: [
+    { id: 200, name: 'BLE Open Windows', components: ['anyOpen', 'openCount', 'lastUpdate', 'lastOpenName'] }
   ]
 };
 
-var vcHandles = {};
+var vcHandles = null;
 
-function vcConfig(comp) {
-  var ui = { view: comp.type === 'number' ? 'label' : 'label' };
-  if (comp.unit) ui.unit = comp.unit;
-  if (comp.webIcon !== undefined) ui.webIcon = comp.webIcon;
+const BTHOME_SVC_ID_STR = 'fcd2';
 
-  if (comp.type === 'text') {
-    return {
-      name: comp.name,
-      default_value: comp.default || '',
-      persisted: false,
-      meta: { ui: ui, cloud: ['log'] }
-    };
-  }
-
-  return {
-    name: comp.name,
-    default_value: 0,
-    min: comp.min !== undefined ? comp.min : -999999999999999,
-    max: comp.max !== undefined ? comp.max : 999999999999999,
-    meta: { ui: ui, cloud: ['measurement'] }
-  };
-}
-
-function buildVirtualComponentsManifest() {
-  var manifest = { components: [], groups: [] };
-  var members = [];
-  var i;
-  var comp;
-
-  for (i = 0; i < vcComponents.components.length; i++) {
-    comp = vcComponents.components[i];
-    manifest.components.push({ key: comp.key, type: comp.type, id: comp.id, config: vcConfig(comp) });
-    members.push(comp.key);
-  }
-
-  manifest.groups = [
-    { id: vcComponents.group.id, name: vcComponents.group.name, components: members }
-  ];
-
-  return manifest;
-}
-
-function bindVirtualComponents(readyVc) {
-  vcHandles = readyVc.handles;
-}
-
-function getTimestamp(ts) {
-  return new Date(ts).toString().split('GMT')[0].trim();
-}
-
-function pad2(n) { return (n < 10 ? "0" : "") + n; }
-
-function getDate(ts) {
-  const date = new Date(ts);
-  return pad2(date.getDate()) + "-" + pad2(date.getMonth() + 1);
-}
-
-function formatNum(n) {
-  const x = Number(n);
-  return isFinite(x) ? Number(x.toFixed(2)) : 0;
-}
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 function setValue(key, value) {
-  if (!vcHandles[key]) return;
-  vcHandles[key].setValue(value);
+  if (vcHandles && vcHandles[key]) {
+    vcHandles[key].setValue(value);
+  }
 }
 
-function updateStockPrice() {
-  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + STOCK_SYMBOL + '?interval=1d&range=1d';
-  Shelly.call('HTTP.GET',
-    {
-      url: url,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    },
-    function (response) {
-      if (!response || response.code !== 200) {
-        console.log('Error: HTTP', response);
-        return;
-      }
-      try {
-        const data = JSON.parse(response.body);
-        const meta = data.chart.result[0].meta;
-        const price = meta.regularMarketPrice;
-        const prev = meta.chartPreviousClose;
-        const ts = meta.regularMarketTime * 1000;
-        const delta = price - prev;
-        const deltaPct = prev !== 0 ? (delta / prev) * 100 : 0;
-        const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
-        const trend = delta > 0 ? '⬆️ ' : delta < 0 ? '🔻 ' : '';
-        const deltaText =
-                  trend  + sign +
-                formatNum(Math.abs(delta)) + '€ (' +
-                sign + formatNum(Math.abs(deltaPct)) + '%) / ' + getDate(ts);
-        const quote = data.chart.result[0].indicators.quote[0];
-        setValue('price', formatNum(price));
-        setValue('time', getTimestamp(ts));
-        setValue('delta', deltaText);
-        setValue('open', formatNum(quote.open[0]));
-        setValue('close', formatNum(quote.close[0]));
-        setValue('high', formatNum(quote.high[0]));
-        setValue('low', formatNum(quote.low[0]));
-        setValue('volume', quote.volume[0]);
-      } catch (err) {
-        console.log('Error parsing JSON:', err);
-      }
-    },
-  );
+function getTimestamp(date) {
+  return date.toString().split('GMT')[0];
 }
 
-ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
-  if (!ok) {
-    console.log('Virtual component setup failed');
+function getByteSize(type) {
+  if (type === uint8 || type === int8) {
+    return 1;
+  }
+  if (type === uint16 || type === int16) {
+    return 2;
+  }
+  if (type === uint24 || type === int24) {
+    return 3;
+  }
+  return 255;
+}
+
+// ============================================================================
+// EVENT PROCESSING
+// ============================================================================
+
+function onEvent(res) {
+  const addr = res.addr;
+  const device = DEVICES[addr];
+  if (!device) {
     return;
   }
 
-  bindVirtualComponents(readyVc);
-  updateStockPrice();
-  Timer.set(5 * 60 * 1000, true, updateStockPrice);
+  const date = new Date();
+  device.res = res;
+  device.date = date;
+
+  let isOpenWindow = false;
+  let openWindowsCount = 0;
+  let lastOpenWindowDevice = null;
+
+  for (const dev in DEVICES) {
+    const trackedDevice = DEVICES[dev];
+    if (trackedDevice.res.window === 1) {
+      openWindowsCount += 1;
+      isOpenWindow = true;
+      if (!lastOpenWindowDevice || lastOpenWindowDevice.date <= trackedDevice.date) {
+        lastOpenWindowDevice = trackedDevice;
+      }
+    }
+  }
+
+  setValue('anyOpen', isOpenWindow);
+  setValue('openCount', openWindowsCount);
+  setValue('lastUpdate', getTimestamp(date));
+  setValue('lastOpenName', lastOpenWindowDevice ? lastOpenWindowDevice.name : 'None');
+}
+
+function scanCB(ev, res) {
+  if (
+    ev !== BLE.Scanner.SCAN_RESULT ||
+    !res ||
+    !DEVICES[res.addr] ||
+    !res.service_data ||
+    !res.service_data[BTHOME_SVC_ID_STR]
+  ) {
+    return;
+  }
+
+  const bthomeData = ShellyBLUParser.getData(res);
+  if (bthomeData) {
+    onEvent(bthomeData);
+    return;
+  }
+
+  print('Failed to parse BTH data:', JSON.stringify(res));
+}
+
+function startBleScan() {
+  const success = BLE.Scanner.Start(
+    { duration_ms: BLE.Scanner.INFINITE_SCAN, active: false },
+    scanCB
+  );
+  print('BLE scanner running:', success !== false);
+}
+
+function startApp() {
+  const bleConfig = Shelly.getComponentConfig('ble');
+  if (bleConfig.enable === false) {
+    print('Error: BLE not enabled');
+    return;
+  }
+
+  startBleScan();
+}
+
+// ============================================================================
+// BTHOME PARSER
+// ============================================================================
+
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
+
+const BTH = [];
+BTH[0x00] = { n: 'pid', t: uint8 };
+BTH[0x01] = { n: 'battery', t: uint8, u: '%' };
+BTH[0x02] = { n: 'temperature', t: int16, f: 0.01, u: 'tC' };
+BTH[0x03] = { n: 'humidity', t: uint16, f: 0.01, u: '%' };
+BTH[0x05] = { n: 'illuminance', t: uint24, f: 0.01 };
+BTH[0x21] = { n: 'motion', t: uint8 };
+BTH[0x2d] = { n: 'window', t: uint8 };
+BTH[0x3a] = { n: 'button', t: uint8 };
+BTH[0x3f] = { n: 'rotation', t: int16, f: 0.1 };
+
+const ShellyBLUParser = {
+  getData: function(res) {
+    const result = BTHomeDecoder.unpack(res.service_data[BTHOME_SVC_ID_STR]);
+    if (result) {
+      result.addr = res.addr;
+      result.rssi = res.rssi;
+    }
+    return result;
+  }
+};
+
+const BTHomeDecoder = {
+  utoi: function(num, bitsz) {
+    const mask = 1 << (bitsz - 1);
+    return num & mask ? num - (1 << bitsz) : num;
+  },
+  getUInt8: function(buffer) {
+    return buffer.at(0);
+  },
+  getInt8: function(buffer) {
+    return this.utoi(this.getUInt8(buffer), 8);
+  },
+  getUInt16LE: function(buffer) {
+    return 0xffff & ((buffer.at(1) << 8) | buffer.at(0));
+  },
+  getInt16LE: function(buffer) {
+    return this.utoi(this.getUInt16LE(buffer), 16);
+  },
+  getUInt24LE: function(buffer) {
+    return 0x00ffffff & ((buffer.at(2) << 16) | (buffer.at(1) << 8) | buffer.at(0));
+  },
+  getInt24LE: function(buffer) {
+    return this.utoi(this.getUInt24LE(buffer), 24);
+  },
+  getBufValue: function(type, buffer) {
+    if (buffer.length < getByteSize(type)) {
+      return null;
+    }
+
+    let res = null;
+    if (type === uint8) {
+      res = this.getUInt8(buffer);
+    }
+    if (type === int8) {
+      res = this.getInt8(buffer);
+    }
+    if (type === uint16) {
+      res = this.getUInt16LE(buffer);
+    }
+    if (type === int16) {
+      res = this.getInt16LE(buffer);
+    }
+    if (type === uint24) {
+      res = this.getUInt24LE(buffer);
+    }
+    if (type === int24) {
+      res = this.getInt24LE(buffer);
+    }
+    return res;
+  },
+  unpack: function(buffer) {
+    if (typeof buffer !== 'string' || buffer.length === 0) {
+      return null;
+    }
+
+    const result = {};
+    const dib = buffer.at(0);
+    result.encryption = dib & 0x1 ? true : false;
+    result.BTHome_version = dib >> 5;
+
+    // Encrypted data is not handled.
+    if (result.BTHome_version !== 2 || result.encryption) {
+      return null;
+    }
+
+    buffer = buffer.slice(1);
+    while (buffer.length > 0) {
+      const bth = BTH[buffer.at(0)];
+      if (typeof bth === 'undefined') {
+        return null;
+      }
+
+      buffer = buffer.slice(1);
+      let value = this.getBufValue(bth.t, buffer);
+      if (value === null) {
+        return null;
+      }
+
+      if (typeof bth.f !== 'undefined') {
+        value = value * bth.f;
+      }
+
+      result[bth.n] = value;
+      buffer = buffer.slice(getByteSize(bth.t));
+    }
+
+    return result;
+  }
+};
+
+// ============================================================================
+// STARTUP
+// ============================================================================
+
+ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+  if (!ok) {
+    print('ERROR: Virtual component setup failed');
+    return;
+  }
+
+  vcHandles = readyVc.handles;
+  startApp();
 });
