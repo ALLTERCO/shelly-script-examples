@@ -32,7 +32,7 @@
  *                    \====|           B |              |              |
  *                         |=============|              |==============|
  *
- * Virtual Component mapping (pre-create via Shelly UI or scripts):
+ * Script-owned Virtual Component mapping:
  *   number:200   Ch1 Temperature   degC  (1-Wire channel 1 DS18B20)
  *   number:201   Ch2 Temperature   degC  (1-Wire channel 2 DS18B20)
  *   number:202   Supply Voltage    V
@@ -52,7 +52,346 @@
  *   WB-M1W2 Wiki (EN):     https://wiki.wirenboard.com/wiki/WB-M1W2_1-Wire_to_Modbus_Temperature_Measurement_Module/en
  */
 
+// ============================================================================
+// VIRTUAL COMPONENT STANDARD HELPER
+// ============================================================================
+//
+// Usage:
+//
+// var VIRTUAL_COMPONENTS = {
+//   components: [
+//     {
+//       key: "soc",
+//       type: "number",
+//       id: 200, // optional; when omitted the helper creates the next free one
+//       config: {
+//         name: "Battery SOC",
+//         min: 0,
+//         max: 100,
+//         unit: "%",
+//         meta: { ui: { view: "progressbar" }, cloud: ["measurement"] }
+//       }
+//     },
+//     {
+//       key: "status",
+//       type: "text",
+//       config: {
+//         name: "Status",
+//         default_value: "",
+//         persisted: false,
+//         meta: { ui: { view: "label", maxLength: 255 }, cloud: ["log"] }
+//       }
+//     }
+//   ],
+//   groups: [
+//     { id: 200, name: "Battery", components: ["soc", "status"] }
+//   ]
+// };
+//
+// ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, vc) {
+//   if (!ok) {
+//     print("Virtual Component setup failed");
+//     return;
+//   }
+//
+//   vc.handles.soc.setValue(73);
+//   vc.handles.status.setValue("ready");
+// });
+//
+// Notes:
+// - `key` is only the logical name inside your script.
+// - `type` is a Shelly dynamic component type: number, boolean, text, enum,
+//   button, group.
+// - For fixed IDs, the helper checks whether the existing component config
+//   matches. If not, it deletes and recreates it.
+// - Without fixed IDs, the helper searches by type + config.name. If a matching
+//   component exists and fits the config, it reuses it. If not, it creates a new
+//   component and stores the assigned id.
+// - The callback receives `vc.ids[key]`, `vc.keys[key]`, and `vc.handles[key]`.
+// ============================================================================
+
+function ensureVirtualComponents(manifest, done) {
+  var VC_HELPER_DELAY_MS = 150;
+  var state = {
+    existing: [],
+    ids: {},
+    keys: {},
+    handles: {},
+    ok: true
+  };
+
+  function log(msg) {
+    print("[VC] " + msg);
+  }
+
+  function componentKey(type, id) {
+    return type + ":" + String(id);
+  }
+
+
+  function shallowConfigMatches(desired, current) {
+    var k;
+
+    if (!desired || !current) return false;
+
+    for (k in desired) {
+      if (k === "meta") {
+        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
+      } else if (typeof desired[k] === "object" && desired[k] !== null) {
+        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
+      } else if (desired[k] !== current[k]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function normalizeComponent(spec) {
+    if (!spec.config) spec.config = {};
+    if (!spec.config.name) spec.config.name = spec.key;
+    return spec;
+  }
+
+  function findExistingByName(type, name) {
+    var i;
+    var c;
+    for (i = 0; i < state.existing.length; i++) {
+      c = state.existing[i];
+      if (c.type === type && c.name === name) return c;
+    }
+    return null;
+  }
+
+  function remember(spec, id) {
+    var key = componentKey(spec.type, id);
+    state.ids[spec.key] = id;
+    state.keys[spec.key] = key;
+    state.handles[spec.key] = Virtual.getHandle(key);
+  }
+
+  function getConfig(type, id) {
+    return Shelly.getComponentConfig(type, id);
+  }
+
+  function deleteComponent(key, cb) {
+    Shelly.call("Virtual.Delete", { key: key }, function(res, errCode, errMsg) {
+      if (errCode !== 0) {
+        log("Virtual.Delete skipped for " + key + ": " + String(errCode) + " " + String(errMsg));
+      }
+      Timer.set(VC_HELPER_DELAY_MS, false, cb);
+    });
+  }
+
+  function addComponent(spec, cb) {
+    var params = { type: spec.type, config: spec.config };
+    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
+
+    Shelly.call("Virtual.Add", params, function(res, errCode, errMsg) {
+      var id;
+
+      if (errCode !== 0) {
+        log("Virtual.Add failed for " + spec.key + ": " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      id = spec.id;
+      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
+      if (id === undefined || id === null) {
+        log("Virtual.Add did not return id for " + spec.key);
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      remember(spec, id);
+      log("Created " + state.keys[spec.key] + " " + spec.config.name);
+      Timer.set(VC_HELPER_DELAY_MS, false, function() { cb(true); });
+    });
+  }
+
+  function ensureOne(spec, cb) {
+    var current;
+    var existing;
+    var key;
+
+    spec = normalizeComponent(spec);
+
+    if (spec.id !== undefined && spec.id !== null) {
+      current = getConfig(spec.type, spec.id);
+      key = componentKey(spec.type, spec.id);
+
+      if (current) {
+        if (shallowConfigMatches(spec.config, current)) {
+          remember(spec, spec.id);
+          cb(true);
+          return;
+        }
+
+        log("Recreating mismatched " + key + " " + spec.config.name);
+        deleteComponent(key, function() { addComponent(spec, cb); });
+        return;
+      }
+
+      addComponent(spec, cb);
+      return;
+    }
+
+    existing = findExistingByName(spec.type, spec.config.name);
+    if (existing && shallowConfigMatches(spec.config, existing.config)) {
+      remember(spec, existing.id);
+      cb(true);
+      return;
+    }
+
+    if (existing) {
+      log("Existing " + existing.key + " does not fit " + spec.config.name + "; creating a new one");
+    }
+    addComponent(spec, cb);
+  }
+
+  function ensureList(index, cb) {
+    var list = manifest.components || [];
+    if (index >= list.length) {
+      cb();
+      return;
+    }
+
+    ensureOne(list[index], function() {
+      Timer.set(VC_HELPER_DELAY_MS, false, function() {
+        ensureList(index + 1, cb);
+      });
+    });
+  }
+
+  function createGroupConfig(name) {
+    return { name: name, meta: { ui: { view: "group" } } };
+  }
+
+  function groupMembers(group) {
+    var members = [];
+    var i;
+    var logicalKey;
+
+    for (i = 0; i < group.components.length; i++) {
+      logicalKey = group.components[i];
+      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
+    }
+
+    return members;
+  }
+
+  function ensureGroup(index, cb) {
+    var groups = manifest.groups || [];
+    var group;
+    var cfg;
+    var current;
+    var key;
+
+    if (index >= groups.length) {
+      cb();
+      return;
+    }
+
+    group = groups[index];
+    cfg = createGroupConfig(group.name);
+    key = componentKey("group", group.id);
+    current = getConfig("group", group.id);
+
+    function setMembersAndContinue() {
+      Shelly.call("Group.Set", { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Group.Set failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+        }
+        Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+      });
+    }
+
+    if (current && shallowConfigMatches(cfg, current)) {
+      setMembersAndContinue();
+      return;
+    }
+
+    function addGroup() {
+      Shelly.call("Virtual.Add", { type: "group", id: group.id, config: cfg }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Virtual.Add group failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+          Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+          return;
+        }
+        setMembersAndContinue();
+      });
+    }
+
+    if (current) {
+      deleteComponent(key, addGroup);
+    } else {
+      addGroup();
+    }
+  }
+
+  function readExistingPage(offset, cb) {
+    Shelly.call("Shelly.GetComponents", { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
+      var raw;
+      var total;
+      var i;
+      var c;
+      var cfg;
+      var keyParts;
+
+      if (errCode !== 0) {
+        log("Shelly.GetComponents failed: " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb();
+        return;
+      }
+
+      raw = (res && res.components) ? res.components : [];
+      total = res ? (res.total || raw.length) : raw.length;
+
+      for (i = 0; i < raw.length; i++) {
+        c = raw[i];
+        cfg = c.config || {};
+        keyParts = (c.key || "").split(":");
+        state.existing.push({
+          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
+          type: c.type || keyParts[0],
+          id: cfg.id,
+          name: cfg.name,
+          config: cfg
+        });
+      }
+
+      if (offset + raw.length < total && raw.length > 0) {
+        readExistingPage(offset + raw.length, cb);
+      } else {
+        cb();
+      }
+    });
+  }
+
+  readExistingPage(0, function() {
+    ensureList(0, function() {
+      ensureGroup(0, function() {
+        done(state.ok, {
+          ids: state.ids,
+          keys: state.keys,
+          handles: state.handles
+        });
+      });
+    });
+  });
+}
+
+
 /* === CONFIG === */
+var AUTO_VC_GROUP_ID = 200;
+var AUTO_VC_GROUP_NAME = 'WB-M1W2 v3        (group containing all above)';
+
 var CONFIG = {
   BAUD_RATE: 9600,
   MODE: '8N2',            // WB-M1W2 v3 factory default: 8 data, no parity, 2 stop bits
@@ -60,7 +399,7 @@ var CONFIG = {
   RESPONSE_TIMEOUT: 1000, // ms
   INTER_READ_DELAY: 100,  // ms between chained block reads
   POLL_INTERVAL: 5000,    // ms between full poll cycles
-  DEBUG: true,
+  DEBUG: true
 };
 
 /* === REGISTER MAP (for reference) === */
@@ -74,7 +413,7 @@ var REG = {
   // Block C - Supply voltage
   SUPPLY:   { addr: 121, qty: 1,  fc: 0x04 },
   // Block D - Pulse counters for both inputs
-  COUNTERS: { addr: 277, qty: 2,  fc: 0x04 },
+  COUNTERS: { addr: 277, qty: 2,  fc: 0x04 }
 };
 
 /* === ENTITIES (full register map with VC binding) === */
@@ -105,7 +444,7 @@ var ENTITIES = [
   { name: 'Reset',            units: '-',    reg: { addr: 120, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
   { name: 'Slave Address',    units: '-',    reg: { addr: 128, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
   { name: 'Input #1 Mode',    units: '-',    reg: { addr: 275, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
-  { name: 'Input #2 Mode',    units: '-',    reg: { addr: 276, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null },
+  { name: 'Input #2 Mode',    units: '-',    reg: { addr: 276, rtype: 0x03, itype: 'u16',  bo: 'BE', wo: 'BE' }, scale: 1,      rights: 'RW', vcId: null,          handle: null, vcHandle: null }
 ];
 
 // Entity index constants for convenient access
@@ -119,7 +458,7 @@ var E = {
   CH2_TEMP: 6,
   SUPPLY_V: 7,
   COUNTER1: 8,
-  COUNTER2: 9,
+  COUNTER2: 9
 };
 
 /* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
@@ -155,7 +494,7 @@ var CRC_TABLE = [
   0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40,
   0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
   0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
-  0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040,
+  0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 ];
 
 /* === STATE === */
@@ -165,7 +504,7 @@ var state = {
   isReady: false,
   pendingRequest: null,
   responseTimer: null,
-  pollTimer: null,
+  pollTimer: null
 };
 
 /* === HELPERS === */
@@ -243,7 +582,7 @@ function parseVcId(vcId) {
   if (parts.length !== 2) return null;
   return {
     type: parts[0],
-    id: +parts[1],
+    id: +parts[1]
   };
 }
 
@@ -276,6 +615,91 @@ function configureVcMetadata(entity) {
   });
 }
 
+
+// ============================================================================
+// VIRTUAL COMPONENT MANIFEST
+// ============================================================================
+
+function parseVcKey(key) {
+  var parts = String(key).split(':');
+  return { type: parts[0], id: Number(parts[1]) };
+}
+
+function entityVcKey(index) {
+  return 'entity' + String(index);
+}
+
+function entityVcConfig(entity, type) {
+  var unit = entity.units || entity.unit || '';
+  var ui = {
+    view: type === 'boolean' ? 'label' : 'label'
+  };
+
+  if (unit && unit !== '-') ui.unit = unit;
+
+  if (type === 'boolean') {
+    ui.titles = { 'false': 'off', 'true': 'on' };
+    return {
+      name: entity.name,
+      default_value: false,
+      meta: { ui: ui, cloud: ['log'] }
+    };
+  }
+
+  return {
+    name: entity.name,
+    default_value: 0,
+    min: entity.min !== undefined ? entity.min : -999999999999999,
+    max: entity.max !== undefined ? entity.max : 999999999999999,
+    meta: { ui: ui, cloud: ['measurement'] }
+  };
+}
+
+function buildVirtualComponentsManifest() {
+  var manifest = { components: [] };
+  var groupMembers = [];
+  var i;
+  var entity;
+  var parsed;
+  var key;
+
+  for (i = 0; i < ENTITIES.length; i++) {
+    entity = ENTITIES[i];
+    if (!entity.vcId) continue;
+
+    parsed = parseVcKey(entity.vcId);
+    key = entityVcKey(i);
+    entity.vcKey = key;
+    manifest.components.push({
+      key: key,
+      type: parsed.type,
+      id: parsed.id,
+      config: entityVcConfig(entity, parsed.type)
+    });
+    groupMembers.push(key);
+  }
+
+  if (AUTO_VC_GROUP_ID !== null && groupMembers.length > 0) {
+    manifest.groups = [
+      { id: AUTO_VC_GROUP_ID, name: AUTO_VC_GROUP_NAME, components: groupMembers }
+    ];
+  }
+
+  return manifest;
+}
+
+function bindEntityVirtualComponents(readyVc) {
+  var i;
+  var entity;
+
+  for (i = 0; i < ENTITIES.length; i++) {
+    entity = ENTITIES[i];
+    if (!entity.vcKey) continue;
+    entity.vcHandle = readyVc.handles[entity.vcKey];
+    debug('VC handle for ' + entity.name + ' -> ' + entity.vcId);
+  }
+}
+
 /* === MODBUS CORE === */
 
 function sendRequest(functionCode, startAddr, qty, callback) {
@@ -292,7 +716,7 @@ function sendRequest(functionCode, startAddr, qty, callback) {
     (startAddr >> 8) & 0xFF,
     startAddr & 0xFF,
     (qty >> 8) & 0xFF,
-    qty & 0xFF,
+    qty & 0xFF
   ];
 
   var frame = buildFrame(CONFIG.SLAVE_ID, functionCode, data);
@@ -424,7 +848,7 @@ function writeSingleRegister(addr, value, callback) {
 
   var data = [
     (addr >> 8) & 0xFF, addr & 0xFF,
-    (value >> 8) & 0xFF, value & 0xFF,
+    (value >> 8) & 0xFF, value & 0xFF
   ];
   var frame = buildFrame(CONFIG.SLAVE_ID, 0x06, data);
   debug('TX: ' + bytesToHex(frame));
@@ -458,7 +882,7 @@ function parseTempBlock(regs) {
 function parseDiscreteBlock(bits) {
   return {
     input1: bits[0] === 1,  // true = closed to GND
-    input2: bits[1] === 1,
+    input2: bits[1] === 1
   };
 }
 
@@ -466,7 +890,7 @@ function parseDiscreteBlock(bits) {
 function parsePresenceBlock(bits) {
   return {
     sensor1: bits[0] === 1,  // true = data valid / sensor present
-    sensor2: bits[1] === 1,
+    sensor2: bits[1] === 1
   };
 }
 
@@ -538,7 +962,7 @@ function pollDevice() {
     presence: null,
     supplyV: null,
     counter1: null,
-    counter2: null,
+    counter2: null
   };
 
   // Block A: 1-Wire temperatures ch1 + ch2
@@ -612,19 +1036,9 @@ function pollDevice() {
 
 /* === INIT === */
 
-function init() {
+function startApp() {
   print('WB-M1W2 v3 - MODBUS-RTU Reader + Virtual Components');
   print('====================================================');
-
-  // Bind virtual component handles
-  for (var i = 0; i < ENTITIES.length; i++) {
-    var ent = ENTITIES[i];
-    if (ent.vcId) {
-      ent.vcHandle = Virtual.getHandle(ent.vcId);
-      debug('VC handle for ' + ent.name + ' -> ' + ent.vcId);
-      configureVcMetadata(ent);
-    }
-  }
 
   state.uart = UART.get();
   if (!state.uart) {
@@ -650,4 +1064,12 @@ function init() {
   state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, pollDevice);
 }
 
-init();
+ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
+  if (!ok) {
+    print('ERROR: Virtual component setup failed');
+    return;
+  }
+
+  bindEntityVirtualComponents(readyVc);
+  startApp();
+});
