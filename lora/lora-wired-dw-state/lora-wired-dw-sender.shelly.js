@@ -1,9 +1,13 @@
 /**
- * Script with status handler that listens for DW sensor status changes - state: true/false
- * connected to one of the inptuts of I4DC Gen4
- * 1. Using the command "openssl rand -base64 16" generate AES 128 bits base64 key
- * 2. Put previously generated key to at least one of the keys of the sender and the reciever
- * 3. At least one of the keys in the receiver should be the same as tx_key of the sender
+ * @title Detect and send Door/Window state over LoRa
+ * @description Example script with status handler that listens for DW sensor status changes - state: true/false
+ *   connected to one of the inptuts of I4DC Gen4.
+ *   1. Using the command "openssl rand -base64 16" generate AES 128 bits base64 key
+ *   2. Put previously generated key to at least one of the keys of the sender and the reciever
+ *   3. At least one of the keys in the receiver should be the same as tx_key of the sender
+ *   Check README.md before use. (Requires firmware version: 2.1.1 or newer and LoRa Add-on hardware installed)
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/lora/lora-wired-dw-state/lora-wired-dw-sender.shelly.js
  */
 
 const CONFIG = {
@@ -19,7 +23,7 @@ const CONFIG = {
   //Enable/disable status handler (send on state change)
   useStatusHandler: true,
   //Enable/disable timer (send periodically)
-  useTimer: true,
+  useTimer: false,
   //Timer interval in milliseconds
   interval: 3000,
 };
