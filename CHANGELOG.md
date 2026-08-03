@@ -1,8 +1,22 @@
 # Changelog
 
+## 2026-08
+- Update `http-integrations/tasmota/mitsubishi-heavy-ac/mitsubishi_heavy_ac_vc.shelly.js` to the new Mitsubishi Heavy AC auto-send workflow, target mapping, and reduced VC set; refresh its README and manifest description
+- Anonymize Mitsubishi Heavy AC example Tasmota target IP addresses to TEST-NET placeholders in the script and README
+
+## 2026-07-29
+
+- Remove setup-only Virtual Component scripts after merging VC creation into the runtime applications
+- Merge BLU assistant demo VC creation into `add-to-wifi.shelly.js`, `full-config.shelly.js`, and `config-mqtt.shelly.js`
+- Add `_vc.shelly.js` self-provisioning variants for BLE open windows, Fronius grid/dashboard, Victron MPPT, Roomba, and YS-IRTM examples
+- Move EcoFlow STREAM Ultra static VC script onto the shared Virtual Component helper so it creates, verifies, groups, and reuses dashboard components consistently
+
 All notable changes to this project will be documented in this file.
 
 ## 2026-07
+- Migrate runtime Virtual Component examples to self-create, verify, repair, group, and bind their own VCs through the standard helper mechanism
+- Start Virtual Components helper transition by migrating the SDS011 cycle reader and V-TAC six-register VC example to self-create, verify, and bind their own VCs at startup
+- Add reusable Virtual Components helper snippet for creating, repairing, grouping, and returning VC handles from one setup call
 - Add a production Marstek Venus-E Virtual Components controller with embedded-web Force Charge, Stop, and Discharge buttons, adjustable power, and SOC telemetry
 - Correct the Marstek Venus-E RJ45 pinout to pin 1=A, pin 2=B, pins 3/6=NC, pins 4/5=+5V, and pins 7/8=GND
 - Clarify Sigenergy SigenStor installation-specific power limits and enum label metadata

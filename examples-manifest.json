@@ -252,15 +252,6 @@
     ]
   },
   {
-    "fname": "blu-assistant/create-demo-virtual-components.shelly.js",
-    "title": "Virtual component auto-setup from manifest",
-    "description": "Creates virtual components and groups on boot based on a manifest definition.",
-    "tags": [
-      "blu-assistant",
-      "virtual-components"
-    ]
-  },
-  {
     "fname": "blu-assistant/delete-all-vcomponents.shelly.js",
     "title": "Delete all virtual components",
     "description": "Removes all dynamic virtual components and groups with throttled RPC calls.",
@@ -507,7 +498,7 @@
   {
     "fname": "http-integrations/tasmota/mitsubishi-heavy-ac/mitsubishi_heavy_ac_vc.shelly.js",
     "title": "Mitsubishi Heavy AC control via Tasmota IR bridge",
-    "description": "Creates Virtual Components for Mitsubishi Heavy HVAC control",
+    "description": "Creates Virtual Components for Mitsubishi Heavy HVAC control and automatically sends IRHVAC commands to one or more Tasmota IR bridges over HTTP.",
     "tags": [
       "http",
       "virtual-components",
@@ -793,7 +784,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_grid_backup_controller.shelly.js",
     "title": "iATS two-channel grid/backup automatic transfer switch controller",
-    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot — this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
+    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot \u2014 this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",
@@ -807,7 +798,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_sensor_addon_manual_control.shelly.js",
     "title": "iATS Sensor Add-on manual control helper",
-    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs — iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
+    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs \u2014 iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",
@@ -881,7 +872,7 @@
     ]
   },
   {
-    "fname": "power-energy/victron-mppt-solar-controller.shelly.js",
+    "fname": "power-energy/victron-mppt-solar-controller_vc.shelly.js",
     "title": "Victron's Smartsolar charge controller data monitoring",
     "description": "This script allows the decryption of Victron's Smartsolar charge controller data and update the virtual components with live solar charger values.",
     "tags": [
@@ -889,18 +880,6 @@
       "virtual-components",
       "solar",
       "victron-energy"
-    ]
-  },
-  {
-    "fname": "power-energy/victron-virtual-components-setup.shelly.js",
-    "title": "Victron Energy virtual Number components provisioning",
-    "description": "One-shot script that creates and configures nine virtual Number components (IDs 220–228) for live Victron telemetry and groups them under \"Victron Energy\" (group 219). Each component is configured with a progressbar UI hint. Safe to re-run — Virtual.Add skips components that already exist. Calls die() on completion to free memory.",
-    "tags": [
-      "energy",
-      "virtual-components",
-      "provisioning",
-      "victron-energy",
-      "utility"
     ]
   },
   {
@@ -1266,7 +1245,16 @@
   {
     "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js",
     "title": "Marstek VenusE charge/discharge control + Virtual Components",
-    "description": "Monitors Marstek VenusE SOC, power, and operating state, and"
+    "description": "Monitors Marstek VenusE SOC, power, and operating state, and",
+    "tags": [
+      "the-pill",
+      "modbus-rtu",
+      "virtual-components",
+      "energy",
+      "battery",
+      "control",
+      "marstek"
+    ]
   },
   {
     "fname": "the_pill/MODBUS/Marstek/VenusE/venus_e_status_vc.shelly.js",
@@ -1452,9 +1440,9 @@
     ]
   },
   {
-    "fname": "the_pill/ys_irtm/ysirtm.shelly.js",
-    "title": "YS-IRTM infrared UART library",
-    "description": "UART protocol implementation for YS-IRTM to send and receive NEC IR codes.",
+    "fname": "the_pill/ys_irtm/ysirtm_vc.shelly.js",
+    "title": "YS-IRTM infrared UART library + Virtual Components",
+    "description": "UART protocol implementation for YS-IRTM to send and receive NEC IR codes with self-created Shelly Virtual Components.",
     "tags": [
       "the-pill",
       "uart",
