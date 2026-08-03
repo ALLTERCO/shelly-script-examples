@@ -1,35 +1,49 @@
 /**
- * @title Marstek VenusE status MODBUS-RTU reader + Virtual Components
- * @description Reads Marstek VenusE SOC, charge/discharge limits,
- *   temperatures, daily energy, operating state, and alarm/fault count.
+ * @title Marstek VenusE charge/discharge control + Virtual Components
+ * @description Monitors Marstek VenusE SOC, power, and operating state, and
+ *   provides guarded Virtual Component controls for charge, stop, and discharge.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Marstek/VenusE/venus_e_status_vc.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Marstek/VenusE/venus_e_control_vc.shelly.js
  */
 
 /**
- * Marstek VenusE Status MODBUS-RTU Reader + Virtual Components
+ * Marstek VenusE Charge/Discharge Control + Virtual Components
  *
  * Firmware requirements: Shelly Gen2/Gen3 with scripting, UART, and Virtual
  * Components support.
+ * Device compatibility: The Pill with 5-terminal RS485 add-on.
+ * External hardware: Marstek Venus-E 3.0 RS485 RJ45 port.
  *
- * Virtual Components created:
- * - group:220   Marstek VenusE Status
+ * Hardware Connection:
+ * - Venus RJ45 pin 1 (RS485 A) -> The Pill A
+ * - Venus RJ45 pin 2 (RS485 B) -> The Pill B
+ * - Venus RJ45 pin 7 or 8 (GND) -> The Pill GND (recommended)
+ * - Venus RJ45 pins 3 and 6 (NC) -> Leave disconnected
+ * - Venus RJ45 pins 4 and 5 (+5 V) -> Leave disconnected
+ *
+ * Components created (8 total):
+ * - group:220   Marstek VenusE Control
  * - number:220  Battery SOC, 0..100 %
- * - number:221  Charge Current Limit, 0..100 A
- * - number:222  Discharge Current Limit, 0..100 A
- * - number:223  Internal Temperature, -10..55 C
- * - number:224  Max Cell Temperature, -10..80 C
- * - number:225  Daily Charging Energy, 0..100 kWh
- * - number:226  Daily Discharging Energy, 0..100 kWh
- * - number:227  Inverter State, 0..6
- * - number:228  Alarm/Fault Count, 0..45 active bits
+ * - number:221  Battery Power, -2500..2500 W
+ * - number:222  Inverter State, 0..6
+ * - number:223  Control Power, 100..2500 W (persisted)
+ * - button:220  Force Charge
+ * - button:221  Stop
+ * - button:222  Discharge
  *
- * Important:
- * - Documented communication defaults are address 1, 115200 baud, 8 data
- *   bits, no parity, and 1 stop bit.
- * - This VC variant is read-only. It does not write control registers.
- * - The alarm/fault component is a count of active bits across registers
- *   36000, 36001, 36100, 36101, 36103, and 36104.
+ * Control sequence:
+ * - Force Charge: write 0x55AA to 42000, power to 42020, then 1 to 42010.
+ * - Stop: write 0 to 42010.
+ * - Discharge: write 0x55AA to 42000, power to 42021, then 2 to 42010.
+ *
+ * Safety:
+ * - Default control power is 500 W.
+ * - Control power is clamped to 100..2500 W before every command.
+ * - Only one MODBUS request or control sequence runs at a time.
+ * - Every FC06 write must be echoed by the VenusE before the next write.
+ * - This script leaves RS485 control enabled after Stop.
+ * - Use this layout instead of the other VenusE VC scripts; The Pill supports
+ *   only 10 Virtual Components total on the tested firmware.
  */
 
 // ============================================================================
@@ -377,35 +391,39 @@ var CONFIG = {
   MODE: '8N1',
   SLAVE_ID: 1,
   RESPONSE_TIMEOUT: 1000,
-  POLL_INTERVAL: 15000,
-  INTER_REQUEST_DELAY: 80,
+  POLL_INTERVAL: 5000,
+  INTER_REQUEST_DELAY: 100,
+  DEFAULT_POWER: 500,
+  MIN_POWER: 100,
+  MAX_POWER: 2500,
   DEBUG: false
 };
 
-var COMPONENT_IDS = {
-  group: 220,
-  firstNumber: 220
+var REG = {
+  SOC: 32104,
+  BATTERY_POWER: 32102,
+  INVERTER_STATE: 35100,
+  RS485_CONTROL: 42000,
+  CONTROL_COMMAND: 42010,
+  CHARGE_POWER: 42020,
+  DISCHARGE_POWER: 42021
 };
 
-var COMPONENTS = [
-  { name: 'Battery SOC', addr: 32104, qty: 1, type: 'u16', scale: 1, unit: '%', min: 0, max: 100, vcId: 'number:220', vcHandle: null },
-  { name: 'Charge Current Limit', addr: 35111, qty: 1, type: 'u16', scale: 0.1, unit: 'A', min: 0, max: 100, vcId: 'number:221', vcHandle: null },
-  { name: 'Discharge Current Limit', addr: 35112, qty: 1, type: 'u16', scale: 0.1, unit: 'A', min: 0, max: 100, vcId: 'number:222', vcHandle: null },
-  { name: 'Internal Temperature', addr: 35000, qty: 1, type: 's16', scale: 0.1, unit: 'C', min: -10, max: 55, vcId: 'number:223', vcHandle: null },
-  { name: 'Max Cell Temperature', addr: 35010, qty: 1, type: 's16', scale: 0.1, unit: 'C', min: -10, max: 80, vcId: 'number:224', vcHandle: null },
-  { name: 'Daily Charging Energy', addr: 33004, qty: 2, type: 'u32', scale: 0.01, unit: 'kWh', min: 0, max: 100, vcId: 'number:225', vcHandle: null },
-  { name: 'Daily Discharging Energy', addr: 33006, qty: 2, type: 'u32', scale: 0.01, unit: 'kWh', min: 0, max: 100, vcId: 'number:226', vcHandle: null },
-  { name: 'Inverter State', addr: 35100, qty: 1, type: 'u16', scale: 1, unit: '', min: 0, max: 6, vcId: 'number:227', vcHandle: null },
-  { name: 'Alarm/Fault Count', computed: true, scale: 1, unit: '', min: 0, max: 45, vcId: 'number:228', vcHandle: null }
-];
+var COMPONENTS = {
+  group: 'group:220',
+  soc: 'number:220',
+  batteryPower: 'number:221',
+  inverterState: 'number:222',
+  controlPower: 'number:223',
+  forceCharge: 'button:220',
+  stop: 'button:221',
+  discharge: 'button:222'
+};
 
-var ALARM_FAULT_REGS = [
-  { name: 'Alarm Word 36000', addr: 36000, qty: 1, type: 'u16' },
-  { name: 'Alarm Word 36001', addr: 36001, qty: 1, type: 'u16' },
-  { name: 'Fault Word 36100', addr: 36100, qty: 1, type: 'u16' },
-  { name: 'Fault Word 36101', addr: 36101, qty: 1, type: 'u16' },
-  { name: 'Fault Word 36103', addr: 36103, qty: 1, type: 'u16' },
-  { name: 'Fault Word 36104', addr: 36104, qty: 1, type: 'u16' }
+var TELEMETRY = [
+  { name: 'Battery SOC', addr: REG.SOC, qty: 1, type: 'u16', scale: 1, handle: null },
+  { name: 'Battery Power', addr: REG.BATTERY_POWER, qty: 2, type: 's32', scale: 1, handle: null },
+  { name: 'Inverter State', addr: REG.INVERTER_STATE, qty: 1, type: 'u16', scale: 1, handle: null }
 ];
 
 // ============================================================================
@@ -418,7 +436,13 @@ var state = {
   pendingRequest: null,
   responseTimer: null,
   pollTimer: null,
-  isReady: false
+  isReady: false,
+  isControlling: false,
+  powerHandle: null,
+  stopRequested: false,
+  stopRetryTimer: null,
+  queuedMode: null,
+  controlRetryTimer: null
 };
 
 // ============================================================================
@@ -426,7 +450,7 @@ var state = {
 // ============================================================================
 
 function log(msg) {
-  print('[venus-e-status-vc] ' + msg);
+  print('[venus-e-control] ' + msg);
 }
 
 function debug(msg) {
@@ -449,305 +473,400 @@ function calcCRC(bytes) {
   return crc & 0xFFFF;
 }
 
-function bytesToStr(bytes) {
-  var s = '';
-  var i;
-  for (i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i] & 0xFF);
-  return s;
-}
-
-function buildReadFrame(addr, qty) {
-  var frame = [
-    CONFIG.SLAVE_ID & 0xFF,
-    0x03,
-    (addr >> 8) & 0xFF,
-    addr & 0xFF,
-    (qty >> 8) & 0xFF,
-    qty & 0xFF
-  ];
+function addCRC(frame) {
   var crc = calcCRC(frame);
   frame.push(crc & 0xFF);
   frame.push((crc >> 8) & 0xFF);
   return frame;
 }
 
+function bytesToStr(bytes) {
+  var str = '';
+  var i;
+  for (i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i] & 0xFF);
+  return str;
+}
+
+function buildReadFrame(addr, qty) {
+  return addCRC([
+    CONFIG.SLAVE_ID & 0xFF,
+    0x03,
+    (addr >> 8) & 0xFF,
+    addr & 0xFF,
+    (qty >> 8) & 0xFF,
+    qty & 0xFF
+  ]);
+}
+
+function buildWriteFrame(addr, value) {
+  return addCRC([
+    CONFIG.SLAVE_ID & 0xFF,
+    0x06,
+    (addr >> 8) & 0xFF,
+    addr & 0xFF,
+    (value >> 8) & 0xFF,
+    value & 0xFF
+  ]);
+}
+
 function clearResponseTimer() {
-  if (state.responseTimer) {
-    Timer.clear(state.responseTimer);
-    state.responseTimer = null;
-  }
+  if (!state.responseTimer) return;
+  Timer.clear(state.responseTimer);
+  state.responseTimer = null;
 }
 
 function decodePayload(payload, type) {
-  var raw16;
-  var hi;
-  var lo;
+  var high;
+  var low;
   var value;
 
   if (type === 'u16' || type === 's16') {
-    raw16 = (payload[0] << 8) | payload[1];
-    if (type === 's16' && raw16 >= 0x8000) raw16 = raw16 - 0x10000;
-    return raw16;
+    value = (payload[0] << 8) | payload[1];
+    if (type === 's16' && value >= 0x8000) value = value - 0x10000;
+    return value;
   }
 
-  hi = (payload[0] << 8) | payload[1];
-  lo = (payload[2] << 8) | payload[3];
-  value = hi * 65536 + lo;
-
+  high = (payload[0] << 8) | payload[1];
+  low = (payload[2] << 8) | payload[3];
+  value = high * 65536 + low;
   if (type === 's32' && value >= 2147483648) value = value - 4294967296;
   return value;
 }
 
-function scaledValue(raw, scale) {
-  var value = raw * scale;
-  if (scale === 0.1) return Math.round(value * 10) / 10;
-  if (scale === 0.01) return Math.round(value * 100) / 100;
-  if (scale === 0.001) return Math.round(value * 1000) / 1000;
-  return value;
-}
-
-function countBits(value) {
-  var n = value & 0xFFFF;
-  var count = 0;
-
-  while (n > 0) {
-    if (n & 1) count++;
-    n = n >> 1;
-  }
-
-  return count;
-}
-
-function stateName(raw) {
-  if (raw === 0) return 'sleep';
-  if (raw === 1) return 'standby';
-  if (raw === 2) return 'charge';
-  if (raw === 3) return 'discharge';
-  if (raw === 4) return 'backup mode';
-  if (raw === 5) return 'OTA upgrade';
-  if (raw === 6) return 'bypass';
+function stateName(value) {
+  if (value === 0) return 'sleep';
+  if (value === 1) return 'standby';
+  if (value === 2) return 'charging';
+  if (value === 3) return 'discharging';
+  if (value === 4) return 'backup';
+  if (value === 5) return 'OTA upgrade';
+  if (value === 6) return 'bypass';
   return 'unknown';
 }
 
+function getControlPower() {
+  var value = CONFIG.DEFAULT_POWER;
+
+  if (state.powerHandle) value = Number(state.powerHandle.getValue());
+  if (value !== value) value = CONFIG.DEFAULT_POWER;
+  value = Math.round(value);
+  if (value < CONFIG.MIN_POWER) value = CONFIG.MIN_POWER;
+  if (value > CONFIG.MAX_POWER) value = CONFIG.MAX_POWER;
+
+  if (state.powerHandle && state.powerHandle.getValue() !== value) {
+    state.powerHandle.setValue(value);
+  }
+
+  return value;
+}
+
 // ============================================================================
-// VIRTUAL COMPONENT MANIFEST
+// VIRTUAL COMPONENT CONFIGURATION
 // ============================================================================
 
-function numberConfig(component) {
-  var defaultValue = 0;
-  if (component.defaultValue !== undefined) defaultValue = component.defaultValue;
-
+function numberConfig(name, min, max, unit, defaultValue, persisted, view) {
   return {
-    name: component.name,
+    name: name,
     default_value: defaultValue,
-    min: component.min,
-    max: component.max,
+    min: min,
+    max: max,
+    persisted: persisted,
     meta: {
       ui: {
-        view: 'progressbar',
-        unit: component.unit,
-        step: component.scale < 1 ? component.scale : 1
-      },
-      persist: false
+        view: view,
+        unit: unit,
+        step: 1
+      }
     }
   };
 }
 
-function componentVcKey(index) {
-  return 'component' + String(index);
+function buttonConfig(name, icon) {
+  return {
+    name: name,
+    meta: {
+      ui: {
+        view: 'button',
+        icon: icon
+      },
+      cloud: []
+    }
+  };
 }
 
-function buildVirtualComponentsManifest() {
-  var manifest = { components: [] };
-  var members = [];
-  var i;
+var VIRTUAL_COMPONENTS = {
+  components: [
+    { key: 'soc', type: 'number', id: 220, config: numberConfig('Battery SOC', 0, 100, '%', 0, false, 'progressbar') },
+    { key: 'batteryPower', type: 'number', id: 221, config: numberConfig('Battery Power', -2500, 2500, 'W', 0, false, 'label') },
+    { key: 'inverterState', type: 'number', id: 222, config: numberConfig('Inverter State', 0, 6, '', 0, false, 'label') },
+    { key: 'controlPower', type: 'number', id: 223, config: numberConfig('Control Power', CONFIG.MIN_POWER, CONFIG.MAX_POWER, 'W', CONFIG.DEFAULT_POWER, true, 'slider') },
+    { key: 'forceCharge', type: 'button', id: 220, config: buttonConfig('Force Charge', 'mdi:battery-charging') },
+    { key: 'stop', type: 'button', id: 221, config: buttonConfig('Stop', 'mdi:stop-circle-outline') },
+    { key: 'discharge', type: 'button', id: 222, config: buttonConfig('Discharge', 'mdi:battery-arrow-down-outline') }
+  ],
+  groups: [
+    { id: 220, name: 'Marstek VenusE Control', components: ['soc', 'batteryPower', 'inverterState', 'controlPower', 'forceCharge', 'stop', 'discharge'] }
+  ]
+};
 
-  for (i = 0; i < COMPONENTS.length; i++) {
-    COMPONENTS[i].vcKey = componentVcKey(i);
-    manifest.components.push({
-      key: COMPONENTS[i].vcKey,
-      type: 'number',
-      id: COMPONENT_IDS.firstNumber + i,
-      config: numberConfig(COMPONENTS[i])
-    });
-    members.push(COMPONENTS[i].vcKey);
-  }
-
-  manifest.groups = [
-    { id: COMPONENT_IDS.group, name: 'Marstek VenusE Status', components: members }
-  ];
-
-  return manifest;
-}
-
-function bindVirtualComponents(readyVc) {
-  var i;
-
-  for (i = 0; i < COMPONENTS.length; i++) {
-    COMPONENTS[i].vcHandle = readyVc.handles[COMPONENTS[i].vcKey];
-  }
-}
-
-function updateVc(component, value) {
-  if (!component.vcHandle) return;
-  component.vcHandle.setValue(value);
+function bindVcHandles(readyVc) {
+  TELEMETRY[0].handle = readyVc.handles.soc;
+  TELEMETRY[1].handle = readyVc.handles.batteryPower;
+  TELEMETRY[2].handle = readyVc.handles.inverterState;
+  state.powerHandle = readyVc.handles.controlPower;
 }
 
 // ============================================================================
 // MODBUS CORE
 // ============================================================================
 
-function sendRead(request, callback) {
+function sendRequest(request, callback) {
+  var frame;
+
   if (!state.isReady) {
-    callback('Not ready', null);
+    callback('UART not ready', null);
     return;
   }
-
   if (state.pendingRequest) {
-    callback('Busy', null);
+    callback('MODBUS busy', null);
     return;
   }
 
-  state.pendingRequest = { request: request, callback: callback };
-  state.rxBuffer = [];
+  if (request.fc === 0x03) frame = buildReadFrame(request.addr, request.qty);
+  else frame = buildWriteFrame(request.addr, request.value);
 
+  state.pendingRequest = {
+    request: request,
+    frame: frame,
+    callback: callback
+  };
+  state.rxBuffer = [];
   state.responseTimer = Timer.set(CONFIG.RESPONSE_TIMEOUT, false, function() {
+    var cb;
     if (!state.pendingRequest) return;
-    var cb = state.pendingRequest.callback;
+    cb = state.pendingRequest.callback;
     state.pendingRequest = null;
-    cb('Timeout', null);
+    state.rxBuffer = [];
+    cb('timeout', null);
   });
 
-  debug('Read addr=' + request.addr + ' qty=' + request.qty);
-  state.uart.write(bytesToStr(buildReadFrame(request.addr, request.qty)));
+  debug('FC' + request.fc + ' addr=' + request.addr);
+  state.uart.write(bytesToStr(frame));
 }
 
 function onReceive(data) {
   var i;
   if (!data || data.length === 0) return;
-
   for (i = 0; i < data.length; i++) state.rxBuffer.push(data.charCodeAt(i) & 0xFF);
   processResponse();
 }
 
 function processResponse() {
-  var fc;
-  var byteCount;
-  var expectedLen;
+  var pending;
+  var request;
+  var expectedLength;
   var frame;
   var crc;
-  var recvCrc;
+  var receivedCrc;
   var payload;
-  var request;
-  var cb;
+  var callback;
+  var value;
 
   if (!state.pendingRequest) {
     state.rxBuffer = [];
     return;
   }
-
   if (state.rxBuffer.length < 5) return;
-  fc = state.rxBuffer[1];
 
-  if (fc & 0x80) {
-    if (state.rxBuffer.length < 5) return;
-    crc = calcCRC(state.rxBuffer.slice(0, 3));
-    recvCrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
-    if (crc !== recvCrc) return;
+  pending = state.pendingRequest;
+  request = pending.request;
 
-    clearResponseTimer();
-    cb = state.pendingRequest.callback;
-    state.pendingRequest = null;
-    state.rxBuffer = [];
-    cb('MODBUS exception', null);
+  if (state.rxBuffer[1] & 0x80) expectedLength = 5;
+  else if (request.fc === 0x06) expectedLength = 8;
+  else expectedLength = 3 + state.rxBuffer[2] + 2;
+  if (state.rxBuffer.length < expectedLength) return;
+
+  frame = state.rxBuffer.slice(0, expectedLength);
+  crc = calcCRC(frame.slice(0, expectedLength - 2));
+  receivedCrc = frame[expectedLength - 2] | (frame[expectedLength - 1] << 8);
+  if (crc !== receivedCrc) {
+    state.rxBuffer.shift();
     return;
   }
 
-  byteCount = state.rxBuffer[2];
-  expectedLen = 3 + byteCount + 2;
-  if (state.rxBuffer.length < expectedLen) return;
-
-  frame = state.rxBuffer.slice(0, expectedLen);
-  crc = calcCRC(frame.slice(0, expectedLen - 2));
-  recvCrc = frame[expectedLen - 2] | (frame[expectedLen - 1] << 8);
-  if (crc !== recvCrc) return;
-
   clearResponseTimer();
-  payload = frame.slice(3, 3 + byteCount);
-  request = state.pendingRequest.request;
-  cb = state.pendingRequest.callback;
+  callback = pending.callback;
   state.pendingRequest = null;
   state.rxBuffer = [];
 
-  cb(null, decodePayload(payload, request.type));
+  if (frame[0] !== CONFIG.SLAVE_ID) {
+    callback('wrong slave response', null);
+    return;
+  }
+  if (frame[1] & 0x80) {
+    callback('MODBUS exception ' + frame[2], null);
+    return;
+  }
+  if (frame[1] !== request.fc) {
+    callback('unexpected function code', null);
+    return;
+  }
+
+  if (request.fc === 0x06) {
+    if (frame[2] !== ((request.addr >> 8) & 0xFF) ||
+        frame[3] !== (request.addr & 0xFF) ||
+        frame[4] !== ((request.value >> 8) & 0xFF) ||
+        frame[5] !== (request.value & 0xFF)) {
+      callback('write echo mismatch', null);
+      return;
+    }
+    callback(null, request.value);
+    return;
+  }
+
+  payload = frame.slice(3, expectedLength - 2);
+  value = decodePayload(payload, request.type);
+  callback(null, value);
+}
+
+function readRegister(addr, qty, type, callback) {
+  sendRequest({ fc: 0x03, addr: addr, qty: qty, type: type }, callback);
+}
+
+function writeRegister(addr, value, callback) {
+  sendRequest({ fc: 0x06, addr: addr, value: value }, callback);
 }
 
 // ============================================================================
-// MAIN LOGIC
+// CONTROL
+// ============================================================================
+
+function finishControl(err, message) {
+  state.isControlling = false;
+  if (err) {
+    log('CONTROL ERROR: ' + err);
+    return;
+  }
+  log(message);
+  Timer.set(500, false, poll);
+}
+
+function stopControl() {
+  state.queuedMode = null;
+  if (state.isControlling || state.pendingRequest) {
+    state.stopRequested = true;
+    if (!state.stopRetryTimer) {
+      log('Stop queued: waiting for the current MODBUS request');
+      state.stopRetryTimer = Timer.set(150, false, function() {
+        state.stopRetryTimer = null;
+        stopControl();
+      });
+    }
+    return;
+  }
+
+  state.stopRequested = false;
+  state.isControlling = true;
+  writeRegister(REG.CONTROL_COMMAND, 0, function(err) {
+    finishControl(err, 'Charge/discharge stopped');
+  });
+}
+
+function startControl(mode) {
+  var power;
+  var powerRegister;
+  var command;
+  var modeName;
+
+  if (state.isControlling || state.pendingRequest) {
+    state.queuedMode = mode;
+    if (!state.controlRetryTimer) {
+      log(mode + ' queued: waiting for the current MODBUS request');
+      state.controlRetryTimer = Timer.set(150, false, function() {
+        var queuedMode = state.queuedMode;
+        state.controlRetryTimer = null;
+        if (!queuedMode) return;
+        state.queuedMode = null;
+        startControl(queuedMode);
+      });
+    }
+    return;
+  }
+
+  state.queuedMode = null;
+  power = getControlPower();
+  powerRegister = mode === 'charge' ? REG.CHARGE_POWER : REG.DISCHARGE_POWER;
+  command = mode === 'charge' ? 1 : 2;
+  modeName = mode === 'charge' ? 'Charging' : 'Discharging';
+  state.isControlling = true;
+
+  writeRegister(REG.RS485_CONTROL, 0x55AA, function(enableErr) {
+    if (enableErr) {
+      finishControl('RS485 control enable failed: ' + enableErr, '');
+      return;
+    }
+
+    Timer.set(CONFIG.INTER_REQUEST_DELAY, false, function() {
+      writeRegister(powerRegister, power, function(powerErr) {
+        if (powerErr) {
+          finishControl('Power setting failed: ' + powerErr, '');
+          return;
+        }
+
+        Timer.set(CONFIG.INTER_REQUEST_DELAY, false, function() {
+          writeRegister(REG.CONTROL_COMMAND, command, function(commandErr) {
+            finishControl(commandErr, modeName + ' started at ' + power + ' W');
+          });
+        });
+      });
+    });
+  });
+}
+
+function onEvent(event) {
+  var action;
+
+  action = event.name;
+  if (event.info && event.info.event) action = event.info.event;
+  if (action !== 'single_push' && action !== 'push') return;
+
+  if (event.component === COMPONENTS.forceCharge) startControl('charge');
+  else if (event.component === COMPONENTS.stop) stopControl();
+  else if (event.component === COMPONENTS.discharge) startControl('discharge');
+}
+
+// ============================================================================
+// TELEMETRY
 // ============================================================================
 
 function poll() {
-  var alarmFaultCount = 0;
+  function readNext(index) {
+    var item;
 
-  function readComponent(index) {
-    var component;
-
-    if (index >= COMPONENTS.length) {
-      readAlarmFault(0);
+    if (state.isControlling || state.pendingRequest) return;
+    if (index >= TELEMETRY.length) {
+      debug('Poll complete');
       return;
     }
 
-    component = COMPONENTS[index];
-    if (component.computed) {
-      readComponent(index + 1);
-      return;
-    }
-
-    sendRead(component, function(err, raw) {
-      var value;
-
+    item = TELEMETRY[index];
+    readRegister(item.addr, item.qty, item.type, function(err, raw) {
       if (err) {
-        log(component.name + ': ERROR (' + err + ')');
+        log(item.name + ': ERROR (' + err + ')');
       } else {
-        value = scaledValue(raw, component.scale);
-        updateVc(component, value);
-        if (component.name === 'Inverter State') {
-          log(component.name + ': ' + raw + ' (' + stateName(raw) + ')');
+        if (item.handle) item.handle.setValue(raw * item.scale);
+        if (item.addr === REG.INVERTER_STATE) {
+          debug('Inverter state: ' + raw + ' (' + stateName(raw) + ')');
         }
       }
 
       Timer.set(CONFIG.INTER_REQUEST_DELAY, false, function() {
-        readComponent(index + 1);
+        readNext(index + 1);
       });
     });
   }
 
-  function readAlarmFault(index) {
-    var request;
-
-    if (index >= ALARM_FAULT_REGS.length) {
-      updateVc(COMPONENTS[8], alarmFaultCount);
-      log('Alarm/Fault Count: ' + alarmFaultCount);
-      log('Poll complete');
-      return;
-    }
-
-    request = ALARM_FAULT_REGS[index];
-    sendRead(request, function(err, raw) {
-      if (err) {
-        log(request.name + ': ERROR (' + err + ')');
-      } else {
-        alarmFaultCount += countBits(raw);
-        if (raw !== 0) log(request.name + ': 0x' + raw.toString(16));
-      }
-
-      Timer.set(CONFIG.INTER_REQUEST_DELAY, false, function() {
-        readAlarmFault(index + 1);
-      });
-    });
-  }
-
-  readComponent(0);
+  readNext(0);
 }
 
 // ============================================================================
@@ -755,14 +874,13 @@ function poll() {
 // ============================================================================
 
 function init() {
-  log('Marstek VenusE status MODBUS-RTU reader + VC');
+  log('Marstek VenusE charge/discharge control + VC');
 
   state.uart = UART.get();
   if (!state.uart) {
     log('ERROR: UART not available');
     return;
   }
-
   if (!state.uart.configure({ baud: CONFIG.BAUD_RATE, mode: CONFIG.MODE })) {
     log('ERROR: UART configuration failed');
     return;
@@ -770,15 +888,16 @@ function init() {
 
   state.uart.recv(onReceive);
   state.isReady = true;
+  Shelly.addEventHandler(onEvent);
 
-  ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
+  ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
     if (!ok) {
       log('ERROR: Virtual component setup failed');
       return;
     }
 
-    bindVirtualComponents(readyVc);
-    log('Polling ' + COMPONENTS.length + ' components every ' + CONFIG.POLL_INTERVAL / 1000 + 's');
+    bindVcHandles(readyVc);
+    log('Ready; default control power is ' + getControlPower() + ' W');
     Timer.set(500, false, poll);
     state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, poll);
   });
