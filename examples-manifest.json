@@ -498,7 +498,7 @@
   {
     "fname": "http-integrations/tasmota/mitsubishi-heavy-ac/mitsubishi_heavy_ac_vc.shelly.js",
     "title": "Mitsubishi Heavy AC control via Tasmota IR bridge",
-    "description": "Creates Virtual Components for Mitsubishi Heavy HVAC control",
+    "description": "Creates Virtual Components for Mitsubishi Heavy HVAC control and automatically sends IRHVAC commands to one or more Tasmota IR bridges over HTTP.",
     "tags": [
       "http",
       "virtual-components",

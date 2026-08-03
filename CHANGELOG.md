@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08
+- Update `http-integrations/tasmota/mitsubishi-heavy-ac/mitsubishi_heavy_ac_vc.shelly.js` to the new Mitsubishi Heavy AC auto-send workflow, target mapping, and reduced VC set; refresh its README and manifest description
+- Anonymize Mitsubishi Heavy AC example Tasmota target IP addresses to TEST-NET placeholders in the script and README
+
 ## 2026-07-29
 
 - Remove setup-only Virtual Component scripts after merging VC creation into the runtime applications
