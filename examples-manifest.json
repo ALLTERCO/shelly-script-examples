@@ -184,6 +184,19 @@
     ]
   },
   {
+    "fname": "ble/ble-blu-button-presence_vc.shelly.js",
+    "title": "Shelly BLU button presence watcher + Virtual Components",
+    "description": "Tracks paired Shelly BLU button beacon presence through bthomedevice components and updates a self-created Boolean Virtual Component for nearby/away state.",
+    "tags": [
+      "ble",
+      "shelly-blu",
+      "bthome",
+      "virtual-components",
+      "presence",
+      "monitoring"
+    ]
+  },
+  {
     "fname": "ble/hue-lights-control.shelly.js",
     "title": "Controlling hue lights with Shelly BLU Button or virtual buttons",
     "description": "This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)",
