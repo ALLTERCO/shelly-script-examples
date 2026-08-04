@@ -2,6 +2,7 @@
 
 ## 2026-08
 - Add `ble/ble-blu-button-presence_vc.shelly.js`, a Shelly BLU button presence watcher that tracks paired `bthomedevice` beacons and auto-creates a Boolean Virtual Component group for nearby/away state
+- Document the BLU button presence watcher step by step in `ble/README.md`, including the native Shelly Webhook (`boolean.change`) pattern for local "away" actions, keeping the published script free of hardcoded URLs
 - Update `http-integrations/tasmota/mitsubishi-heavy-ac/mitsubishi_heavy_ac_vc.shelly.js` to the new Mitsubishi Heavy AC auto-send workflow, target mapping, and reduced VC set; refresh its README and manifest description
 - Anonymize Mitsubishi Heavy AC example Tasmota target IP addresses to TEST-NET placeholders in the script and README
 

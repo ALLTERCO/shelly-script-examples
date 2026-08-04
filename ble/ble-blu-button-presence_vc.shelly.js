@@ -355,11 +355,8 @@ var VIRTUAL_COMPONENTS = {
         default_value: false,
         meta: {
           ui: {
-            view: 'label',
-            titles: {
-              'false': 'Away',
-              'true': 'Present'
-            }
+            view: 'regular',
+            titles: ['Away', 'Present']
           },
           cloud: ['log']
         }
