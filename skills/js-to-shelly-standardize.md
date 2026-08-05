@@ -69,11 +69,11 @@ Organize into sections when practical:
 - Add/update nearest folder `README.md` entries for renamed/new script file
 - Update category/root `README.md` indexes if needed
 - Add `CHANGELOG.md` entry in current `YYYY-MM` section
-- If `@status production`, ensure manifest/index workflow is run via tools
+- If `@status production`, ensure the manifest workflow is run via tools
 
 ---
 
 ## Guardrails
-- Do not manually edit generated files (`examples-manifest.json`, `SHELLY_MJS.md`)
+- Do not manually edit generated manifest metadata; use the repository tools
 - If script path changes, always update `@link`
 - Keep behavior unchanged unless user explicitly asks for functional refactor

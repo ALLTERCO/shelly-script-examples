@@ -88,7 +88,8 @@ Shelly.emitEvent("air_quality", {
 - Frame validation, checksum checks, and ACK filtering
 - PM2.5/PM10 averaging with minimum sample threshold
 - Spike clamping and bounds validation for cleaner values
-- Virtual Component updates for PM values, status, timestamp, and AQI category
+- Script-owned Virtual Components for PM values, status, timestamp, AQI category, and power control
+- Automatic VC creation, verification, and handle binding at startup
 - Optional boolean power component (`boolean:200`) to enable/disable polling
 
 ---
@@ -106,9 +107,9 @@ Shelly.emitEvent("air_quality", {
 ## Quick Start
 
 1. Wire the SDS011 sensor to your Shelly device
-2. Create Virtual Components used by the script:
+2. Upload and run `sds011-vc-cycle.shelly.js`
+3. Wait for the script to create and bind its Virtual Components:
    - `number:200`, `number:201`, `text:200`, `text:201`, `enum:200`, `boolean:200`
-3. Upload and run `sds011-vc-cycle.shelly.js`
 4. Enable `boolean:200` to start the polling cycle
 
 **Example Output:**

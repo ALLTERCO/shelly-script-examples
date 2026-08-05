@@ -1,8 +1,19 @@
 /**
- * @title BLU Assistant factory reset
- * @description Factory resets Shelly BLU devices via BLE scanning and RPC commands.
- * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/factory-reset-device.shelly.js
+ * @title BLE open windows monitor
+ * @description Scans Shelly BLU DoorWindow advertisements, tracks open windows,
+ *   and updates Virtual Components with aggregate open-state information.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/ble/ble-open-windows_vc.shelly.js
+ */
+
+/**
+ * BLE Open Windows Monitor
+ *
+ * Watches configured BLU DoorWindow devices and creates/publishes:
+ * - boolean:200  true if any configured window is open
+ * - number:200   count of open windows
+ * - text:200     last update timestamp
+ * - text:201     most recently opened window name (or None)
  */
 
 // ============================================================================
@@ -341,272 +352,265 @@ function ensureVirtualComponents(manifest, done) {
 }
 
 
-/************************************************
- * CONFIGURATION & CONSTANTS
- ************************************************/
-var CONFIG = {
- FILTERED_BLE_ID: 0x1800,    // Default numeric hex ID (0x1800)
- ALLTERCO_MFD_ID: "a90b",    // Signature for Shelly devices
- SYS_BTN: "sys",             // Name of system button to trigger script
- S_ID: null,
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
- // Virtual Component handles are created and verified at startup
- V_CMP_BLE_ID: "text:200",
- V_CMP_LOG: "text:203",
- V_CMP_ACTIVATE_BTN: "button:201"
+const DEVICES = {
+  // Replace sample MAC addresses with your real BLU DoorWindow addresses.
+  'xx:xx:xx:xx:xx:01': { res: {}, name: 'Living Room Back Window', date: null },
+  'xx:xx:xx:xx:xx:02': { res: {}, name: 'Children Room Front Window', date: null }
 };
 
-// BLE Scan Parameters
-var BLE_SCAN_PARAMS = {
- active: false,
- duration_ms: 505,
- window_ms: 95,
- interval_ms: 100,
- rssi_thr: -100
+var VIRTUAL_COMPONENTS = {
+  components: [
+    { key: 'anyOpen', type: 'boolean', id: 200, config: { name: 'Any Window Open', default_value: false, meta: { ui: { view: 'label', titles: { 'false': 'closed', 'true': 'open' } }, cloud: ['log'] } } },
+    { key: 'openCount', type: 'number', id: 200, config: { name: 'Open Window Count', default_value: 0, min: 0, max: 64, meta: { ui: { view: 'label', step: 1 }, cloud: ['measurement'] } } },
+    { key: 'lastUpdate', type: 'text', id: 200, config: { name: 'Last Update', default_value: '', persisted: false, meta: { ui: { view: 'label', maxLength: 64 }, cloud: ['log'] } } },
+    { key: 'lastOpenName', type: 'text', id: 201, config: { name: 'Last Open Window', default_value: 'None', persisted: false, meta: { ui: { view: 'label', maxLength: 128 }, cloud: ['log'] } } }
+  ],
+  groups: [
+    { id: 200, name: 'BLE Open Windows', components: ['anyOpen', 'openCount', 'lastUpdate', 'lastOpenName'] }
+  ]
 };
 
-/************************************************
-* DEPLOYMENT QUEUE
-************************************************/
-// Each device is an object { addr: "xx:xx:xx:xx:xx", attempts: 3 }
-var DEPLOY_QUEUE = {
- tasks: [],     // We store discovered devices needing reset
- success: 0,    // Count of successful calls
- fail: 0        // Count of final failed calls
+var vcHandles = null;
+
+const BTHOME_SVC_ID_STR = 'fcd2';
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+function setValue(key, value) {
+  if (vcHandles && vcHandles[key]) {
+    vcHandles[key].setValue(value);
+  }
+}
+
+function getTimestamp(date) {
+  return date.toString().split('GMT')[0];
+}
+
+function getByteSize(type) {
+  if (type === uint8 || type === int8) {
+    return 1;
+  }
+  if (type === uint16 || type === int16) {
+    return 2;
+  }
+  if (type === uint24 || type === int24) {
+    return 3;
+  }
+  return 255;
+}
+
+// ============================================================================
+// EVENT PROCESSING
+// ============================================================================
+
+function onEvent(res) {
+  const addr = res.addr;
+  const device = DEVICES[addr];
+  if (!device) {
+    return;
+  }
+
+  const date = new Date();
+  device.res = res;
+  device.date = date;
+
+  let isOpenWindow = false;
+  let openWindowsCount = 0;
+  let lastOpenWindowDevice = null;
+
+  for (const dev in DEVICES) {
+    const trackedDevice = DEVICES[dev];
+    if (trackedDevice.res.window === 1) {
+      openWindowsCount += 1;
+      isOpenWindow = true;
+      if (!lastOpenWindowDevice || lastOpenWindowDevice.date <= trackedDevice.date) {
+        lastOpenWindowDevice = trackedDevice;
+      }
+    }
+  }
+
+  setValue('anyOpen', isOpenWindow);
+  setValue('openCount', openWindowsCount);
+  setValue('lastUpdate', getTimestamp(date));
+  setValue('lastOpenName', lastOpenWindowDevice ? lastOpenWindowDevice.name : 'None');
+}
+
+function scanCB(ev, res) {
+  if (
+    ev !== BLE.Scanner.SCAN_RESULT ||
+    !res ||
+    !DEVICES[res.addr] ||
+    !res.service_data ||
+    !res.service_data[BTHOME_SVC_ID_STR]
+  ) {
+    return;
+  }
+
+  const bthomeData = ShellyBLUParser.getData(res);
+  if (bthomeData) {
+    onEvent(bthomeData);
+    return;
+  }
+
+  print('Failed to parse BTH data:', JSON.stringify(res));
+}
+
+function startBleScan() {
+  const success = BLE.Scanner.Start(
+    { duration_ms: BLE.Scanner.INFINITE_SCAN, active: false },
+    scanCB
+  );
+  print('BLE scanner running:', success !== false);
+}
+
+function startApp() {
+  const bleConfig = Shelly.getComponentConfig('ble');
+  if (bleConfig.enable === false) {
+    print('Error: BLE not enabled');
+    return;
+  }
+
+  startBleScan();
+}
+
+// ============================================================================
+// BTHOME PARSER
+// ============================================================================
+
+const uint8 = 0;
+const int8 = 1;
+const uint16 = 2;
+const int16 = 3;
+const uint24 = 4;
+const int24 = 5;
+
+const BTH = [];
+BTH[0x00] = { n: 'pid', t: uint8 };
+BTH[0x01] = { n: 'battery', t: uint8, u: '%' };
+BTH[0x02] = { n: 'temperature', t: int16, f: 0.01, u: 'tC' };
+BTH[0x03] = { n: 'humidity', t: uint16, f: 0.01, u: '%' };
+BTH[0x05] = { n: 'illuminance', t: uint24, f: 0.01 };
+BTH[0x21] = { n: 'motion', t: uint8 };
+BTH[0x2d] = { n: 'window', t: uint8 };
+BTH[0x3a] = { n: 'button', t: uint8 };
+BTH[0x3f] = { n: 'rotation', t: int16, f: 0.1 };
+
+const ShellyBLUParser = {
+  getData: function(res) {
+    const result = BTHomeDecoder.unpack(res.service_data[BTHOME_SVC_ID_STR]);
+    if (result) {
+      result.addr = res.addr;
+      result.rssi = res.rssi;
+    }
+    return result;
+  }
 };
 
-/************************************************
-* HELPER FUNCTIONS
-************************************************/
-/**
-* Extract 2 bytes from adv_data (indexes 22..25) to form device ID.
-*/
-function extractDeviceID(adv_data) {
- return parseInt(adv_data.substring(22,24), 16) +
-        (parseInt(adv_data.substring(24,26), 16) << 8);
-}
+const BTHomeDecoder = {
+  utoi: function(num, bitsz) {
+    const mask = 1 << (bitsz - 1);
+    return num & mask ? num - (1 << bitsz) : num;
+  },
+  getUInt8: function(buffer) {
+    return buffer.at(0);
+  },
+  getInt8: function(buffer) {
+    return this.utoi(this.getUInt8(buffer), 8);
+  },
+  getUInt16LE: function(buffer) {
+    return 0xffff & ((buffer.at(1) << 8) | buffer.at(0));
+  },
+  getInt16LE: function(buffer) {
+    return this.utoi(this.getUInt16LE(buffer), 16);
+  },
+  getUInt24LE: function(buffer) {
+    return 0x00ffffff & ((buffer.at(2) << 16) | (buffer.at(1) << 8) | buffer.at(0));
+  },
+  getInt24LE: function(buffer) {
+    return this.utoi(this.getUInt24LE(buffer), 24);
+  },
+  getBufValue: function(type, buffer) {
+    if (buffer.length < getByteSize(type)) {
+      return null;
+    }
 
-/**
-* If a virtual text component is present, use its value; else use _default.
-*/
-function virtValueOrDefault(vkey, _default) {
- var cmp = Virtual.getHandle(vkey);
- if (cmp !== null) {
-   return cmp.getValue();
- }
- return _default;
-}
+    let res = null;
+    if (type === uint8) {
+      res = this.getUInt8(buffer);
+    }
+    if (type === int8) {
+      res = this.getInt8(buffer);
+    }
+    if (type === uint16) {
+      res = this.getUInt16LE(buffer);
+    }
+    if (type === int16) {
+      res = this.getInt16LE(buffer);
+    }
+    if (type === uint24) {
+      res = this.getUInt24LE(buffer);
+    }
+    if (type === int24) {
+      res = this.getInt24LE(buffer);
+    }
+    return res;
+  },
+  unpack: function(buffer) {
+    if (typeof buffer !== 'string' || buffer.length === 0) {
+      return null;
+    }
 
-/**
-* Show queue status (Remaining / Success / Fail) in console and text:203 if present
-*/
-function updateLog() {
- var logField = Virtual.getHandle(CONFIG.V_CMP_LOG);
- var msg =
-   "Remaining: " + DEPLOY_QUEUE.tasks.length +
-   " | Success: " + DEPLOY_QUEUE.success +
-   " | Fail: " + DEPLOY_QUEUE.fail;
+    const result = {};
+    const dib = buffer.at(0);
+    result.encryption = dib & 0x1 ? true : false;
+    result.BTHome_version = dib >> 5;
 
- console.log(msg);
- if (logField) {
-   logField.setValue(msg);
- }
-}
+    // Encrypted data is not handled.
+    if (result.BTHome_version !== 2 || result.encryption) {
+      return null;
+    }
 
-/************************************************
-* DEPLOYMENT LOGIC
-************************************************/
-function doDeploy() {
- updateLog();
+    buffer = buffer.slice(1);
+    while (buffer.length > 0) {
+      const bth = BTH[buffer.at(0)];
+      if (typeof bth === 'undefined') {
+        return null;
+      }
 
- if (DEPLOY_QUEUE.tasks.length <= 0) {
-   console.log("Deployment complete. No more devices in queue.");
-   return;
- }
+      buffer = buffer.slice(1);
+      let value = this.getBufValue(bth.t, buffer);
+      if (value === null) {
+        return null;
+      }
 
- // Pop one device object: { addr: "...", attempts: 3 }
- var task = DEPLOY_QUEUE.tasks.pop();
- doRemoteRPC(task);
-}
+      if (typeof bth.f !== 'undefined') {
+        value = value * bth.f;
+      }
 
-/************************************************
-* RPC LOGIC
-************************************************/
-/**
-* Callback after GATTC.call for Shelly.FactoryReset.
-* If err_code=0 => success; else we decrement attempts, re-queue if any remain.
-*/
-function remoteRPCCallback(task, result, err_code, err_msg) {
- var addr = task.addr;
- var methodName = "Shelly.FactoryReset";
+      result[bth.n] = value;
+      buffer = buffer.slice(getByteSize(bth.t));
+    }
 
- if (err_code === 0) {
-   console.log("SUCCESS for device:", addr, "Method:", methodName, "Attempts left:", task.attempts);
-   DEPLOY_QUEUE.success++;
- } else {
-   console.log("ERROR for device:", addr, "Method:", methodName, "-", err_msg, "Attempts left:", task.attempts);
-   task.attempts--;
+    return result;
+  }
+};
 
-   if (task.attempts > 0) {
-     console.log("Will retry device:", addr, "Remaining attempts:", task.attempts);
-     // re-queue the device
-     DEPLOY_QUEUE.tasks.push(task);
-   } else {
-     // final fail
-     console.log("Final fail for device:", addr);
-     DEPLOY_QUEUE.fail++;
-   }
- }
+// ============================================================================
+// STARTUP
+// ============================================================================
 
- doDeploy();
-}
+ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+  if (!ok) {
+    print('ERROR: Virtual component setup failed');
+    return;
+  }
 
-/**
-* Calls Shelly.FactoryReset. If fail => schedule a retry until attempts=0.
-*/
-function doRemoteRPC(task) {
- var addr = task.addr;
- var methodName = "Shelly.FactoryReset";
-
- console.log("Executing remote RPC for device:", addr, "->", methodName, "Attempts:", task.attempts);
-
- Shelly.call("GATTC.call",
-   {
-     addr: addr,
-     method: methodName,
-     params: {}
-   },
-   function(result, err_code, err_msg) {
-     remoteRPCCallback(task, result, err_code, err_msg);
-   }
- );
-}
-
-/************************************************
-* BLE SCAN CALLBACK
-************************************************/
-function BLEScanCb(scan_result) {
- if (!scan_result || !Array.isArray(scan_result.results)) {
-   console.log("Invalid BLE scan result, exit.");
-   return;
- }
-
- var BLE_devices = scan_result.results;
- var shellyDevices = [];
- var matchedDevices = [];
-
- // Possibly user input for BLE ID (default "1800")
- var rawBleIdStr = virtValueOrDefault(CONFIG.V_CMP_BLE_ID, "1800");
- var parsedBleId = parseInt(rawBleIdStr, 16);
-
- // Filter by Shelly signature "a90b" at index=10
- for (var i = 0; i < BLE_devices.length; i++) {
-   var dev = BLE_devices[i];
-   if (typeof dev.adv_data === "string" && dev.adv_data.indexOf(CONFIG.ALLTERCO_MFD_ID) === 10) {
-     shellyDevices.push(dev);
-   }
- }
-
- if (shellyDevices.length === 0) {
-   console.log("Scan complete. No Shelly devices found.");
-   return;
- }
-
- console.log("Scan complete. Detected", shellyDevices.length, "Shelly device(s).");
-
- // Among Shelly devices, see which match user-specified or default BLE ID
- for (var j = 0; j < shellyDevices.length; j++) {
-   var device = shellyDevices[j];
-   var model_id = extractDeviceID(device.adv_data);
-   if (model_id === parsedBleId) {
-     matchedDevices.push(device);
-   }
- }
-
- if (matchedDevices.length > 0) {
-   console.log("Detected", matchedDevices.length, "Shelly device(s) matching BLE ID:", rawBleIdStr);
-
-   // For each matched device, add { addr, attempts: 3 } to tasks
-   for (var k = 0; k < matchedDevices.length; k++) {
-     var d = matchedDevices[k];
-     console.log("Discovered matching Shelly device (#" + (k+1) + "):", d.addr);
-
-     // Start with 3 attempts (adjust as desired)
-     DEPLOY_QUEUE.tasks.push({ addr: d.addr, attempts: 3 });
-   }
-
-   // Start deployment
-   doDeploy();
- } else {
-   console.log("No Shelly devices matched BLE ID:", rawBleIdStr);
- }
-}
-
-/************************************************
-* BLE SCAN INITIATION
-************************************************/
-function BLEScan() {
- var bleConfig = Shelly.getComponentConfig("BLE");
- if (!bleConfig || bleConfig.enable === false) {
-   console.log("BLE disabled.");
-   return;
- }
-
- Shelly.call("GATTC.Scan", BLE_SCAN_PARAMS, BLEScanCb);
-}
-
-/************************************************
-* MAIN ACTION FUNCTION
-************************************************/
-function activateScanAndExecute() {
- // Clear the queue
- DEPLOY_QUEUE.tasks = [];
- DEPLOY_QUEUE.success = 0;
- DEPLOY_QUEUE.fail = 0;
-
- // Start scanning
- BLEScan();
-}
-
-/************************************************
-* SYSTEM BUTTON EVENT HANDLER
-************************************************/
-function _shelly_event_handler(ev) {
- if (!ev.info) return;
- if (ev.info.component !== "sys" || ev.info.event !== "brief_btn_down") {
-   return;
- }
- if (ev.info.name !== CONFIG.SYS_BTN) return;
-
- console.log("System button pressed:", CONFIG.SYS_BTN);
- activateScanAndExecute();
-}
-
-/************************************************
-* INITIALIZATION
-************************************************/
-function bindVirtualComponents(readyVc) {
- CONFIG.V_CMP_BLE_ID = readyVc.keys.bleId;
- CONFIG.V_CMP_LOG = readyVc.keys.log;
- CONFIG.V_CMP_ACTIVATE_BTN = readyVc.keys.factoryReset;
-}
-
-function init() {
- ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
-   if (!ok) {
-     console.log("Virtual component setup failed.");
-     return;
-   }
-   bindVirtualComponents(readyVc);
-   Shelly.addEventHandler(_shelly_event_handler);
-   var deployBtn = readyVc.handles.factoryReset;
-   if (deployBtn) {
-     deployBtn.on("single_push", function() {
-       console.log("Virtual button pressed - Starting BLE scan & factory reset.");
-       activateScanAndExecute();
-     });
-   }
- });
-}
-
-init();
+  vcHandles = readyVc.handles;
+  startApp();
+});
