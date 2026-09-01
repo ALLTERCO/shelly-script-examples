@@ -1,4 +1,15 @@
 /**
+ * @title Victron BLE Bridge
+ * @description Acts as a BLE bridge that forwards BLE advertisement data to a
+ *   Victron GX device over HTTPS, so bridged sensors appear under
+ *   Settings -> Bluetooth Sensors just like locally seen ones. Requires Shelly
+ *   firmware 1.5.0+ and GX firmware 3.80+. Configured via Virtual Components
+ *   where supported, otherwise via a venus-host KVS key.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/power-energy/victron-ble-bridge.shelly.js
+ */
+
+/**
  * Victron BLE Bridge
  *
  * Continuously scans BLE advertisements and forwards packets
