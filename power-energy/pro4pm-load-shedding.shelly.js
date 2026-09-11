@@ -16,10 +16,10 @@
  * enforces the limit by directly calling Switch.Set on the local device.
  *
  * Priority order (highest → lowest, first to restore / last to shed):
- *   switch:0 – Kitchen boiler
- *   switch:1 – Guest 1 boiler
- *   switch:2 – Guest 2 boiler
- *   switch:3 – Outdoor plug   (first to shed)
+ *   switch:0 – Kupaona Bojler
+ *   switch:1 – Soba 1 Bojler
+ *   switch:2 – Soba 2 Bojler
+ *   switch:3 – Vani Suko   (first to shed)
  *
  * Shedding rules:
  *   - When total current > CONFIG.maxAmps: turn off the lowest-priority
@@ -37,6 +37,21 @@
  *   - Turning a switch back ON manually re-enters it into the rotation, so it
  *     can be shed again later if the combined current requires it.
  *
+ * Reboot recovery (KVS-backed):
+ *   - The on/off state each switch had the last time all switches finished
+ *     restoring is persisted to KVS (key CONFIG.kvsKey). At startup this
+ *     persisted state - not the live hardware output - decides which
+ *     switches should end up ON, so a switch's own "restore last state"
+ *     power-up behavior can't turn several boilers on simultaneously.
+ *   - Every switch that should be ON per the persisted state is forced off
+ *     first and queued into the normal shed-restore rotation, so they are
+ *     brought back on one-by-one, minRestoreMs apart, just like a runtime
+ *     restore after shedding.
+ *   - The persisted state is only overwritten once that restore sequence has
+ *     fully completed (or immediately at boot if nothing needed restoring),
+ *     so a power loss partway through a restore doesn't get remembered as
+ *     the new target state.
+ *
  * @see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch
  */
 
@@ -50,7 +65,8 @@ let CONFIG = {
   minShedMs: 2000,      // Min ms between consecutive shed actions
   cooldownMs: 30000,    // Ms after last shed before any restore is attempted
   minRestoreMs: 10000,  // Min ms between consecutive restore actions
-  labels: ['Kitchen boiler', 'Guest 1 boiler', 'Guest 2 boiler', 'Outdoor plug'],
+  labels: ['Kupaona Bojler', 'Soba 1 Bojler', 'Soba 2 Bojler', 'Vani Suko'],
+  kvsKey: 'pro4pm-load-shedding-state', // KVS key used to remember on/off state across reboots
 };
 
 // Set per-channel simulated current (A) to test without real loads; 0 = use hardware readings
@@ -65,6 +81,7 @@ let channelOutput = [false, false, false, false]; // Last known output state per
 let shedByUs = [false, false, false, false];  // true = this script turned this switch off
 let lastShedMs = 0;
 let lastRestoreMs = 0;
+let bootRestorePending = false; // true while the post-reboot one-by-one restore is still in progress
 
 // ============================================================================
 // HELPERS
@@ -88,9 +105,29 @@ function setSwitchOutput(id, on) {
   });
 }
 
+// Remember the current on/off state so a reboot can restore it one-by-one.
+// Only called once the post-reboot restore sequence (if any) has finished.
+function persistState() {
+  Shelly.call('KVS.Set', { key: CONFIG.kvsKey, value: JSON.stringify(channelOutput) }, function(r, err) {
+    if (err !== 0) print('KVS.Set error err=' + err);
+  });
+}
+
 // ============================================================================
 // LOAD SHEDDING LOGIC
 // ============================================================================
+
+// If a post-reboot restore sequence is running and nothing is left to
+// restore, it just finished - persist the now-settled state to KVS.
+function checkBootRestoreComplete() {
+  if (!bootRestorePending) return;
+  for (let i = 0; i < 4; i++) {
+    if (shedByUs[i]) return;
+  }
+  bootRestorePending = false;
+  print('Pro 4PM load shedding: boot restore sequence complete, saving state');
+  persistState();
+}
 
 function decide() {
   let total = totalCurrent();
@@ -124,6 +161,7 @@ function decide() {
         shedByUs[i] = false;
         lastRestoreMs = now;
         setSwitchOutput(i, true);
+        checkBootRestoreComplete();
         return;
       }
     }
@@ -150,6 +188,11 @@ Shelly.addStatusHandler(function(msg) {
       // rotation and eligible to be shed again if current requires it.
       shedByUs[id] = false;
     }
+    checkBootRestoreComplete();
+    // Keep the persisted state current for the next reboot, but never while
+    // a boot restore is still in progress - that gets persisted only once
+    // the whole sequence has completed.
+    if (!bootRestorePending) persistState();
   }
   if (typeof msg.delta.current === 'number') {
     channelCurrent[id] = msg.delta.current;
@@ -164,27 +207,47 @@ Shelly.addStatusHandler(function(msg) {
 
 function initChannel(idx) {
   if (idx >= 4) {
-    // Switches already OFF at startup are left alone - they're treated as
-    // manually disabled (whether via the device display, app, or a prior
-    // shed) and won't be auto-restored. Switches that are ON get shed and
-    // then restored one by one (minRestoreMs apart) so all loads don't
-    // inrush simultaneously, respecting the 16A fuse limit.
-    let anyOn = false;
-    for (let i = 0; i < 4; i++) {
-      if (channelOutput[i]) {
-        anyOn = true;
-        shedByUs[i] = true;
-        channelOutput[i] = false;
-        channelCurrent[i] = 0.0;
-        setSwitchOutput(i, false);
+    Shelly.call('KVS.Get', { key: CONFIG.kvsKey }, function(result, error_code) {
+      let target = null;
+      if (error_code === 0 && result && typeof result.value === 'string') {
+        let parsed = JSON.parse(result.value);
+        if (Array.isArray(parsed) && parsed.length === 4) target = parsed;
       }
-    }
-    if (anyOn) {
-      lastRestoreMs = Date.now();
-      print('Pro 4PM load shedding ready – restoring outputs in sequence');
-    } else {
-      print('Pro 4PM load shedding ready – all outlets off/disabled at start');
-    }
+
+      // With no persisted state yet (first run), fall back to whatever the
+      // hardware reports right now - the previous behavior.
+      if (!target) target = channelOutput.slice(0);
+
+      // Switches whose remembered target is OFF are left alone - they're
+      // treated as manually disabled (whether via the device display, app,
+      // or a prior shed) and won't be auto-restored. Switches whose
+      // remembered target is ON are forced off now (in case the switch's
+      // own power-up behavior already turned them on) and then restored one
+      // by one (minRestoreMs apart) so all loads don't inrush
+      // simultaneously, respecting the 16A fuse limit.
+      let anyOn = false;
+      for (let i = 0; i < 4; i++) {
+        if (target[i]) {
+          anyOn = true;
+          shedByUs[i] = true;
+          if (channelOutput[i]) setSwitchOutput(i, false);
+          channelOutput[i] = false;
+          channelCurrent[i] = 0.0;
+        } else if (channelOutput[i]) {
+          setSwitchOutput(i, false);
+          channelOutput[i] = false;
+          channelCurrent[i] = 0.0;
+        }
+      }
+      if (anyOn) {
+        bootRestorePending = true;
+        lastRestoreMs = Date.now();
+        print('Pro 4PM load shedding ready – restoring outputs in sequence');
+      } else {
+        print('Pro 4PM load shedding ready – all outlets off/disabled at start');
+        persistState();
+      }
+    });
     return;
   }
   Shelly.call('Switch.GetStatus', { id: idx }, function(res, err) {
