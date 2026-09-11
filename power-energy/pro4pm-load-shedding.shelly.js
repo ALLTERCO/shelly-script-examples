@@ -60,11 +60,11 @@
 // ============================================================================
 
 let CONFIG = {
-  maxAmps: 16.0,        // Shed when total current exceeds this value
-  reenableAmps: 14.0,   // Restore only when total current drops below this
-  minShedMs: 2000,      // Min ms between consecutive shed actions
-  cooldownMs: 30000,    // Ms after last shed before any restore is attempted
-  minRestoreMs: 10000,  // Min ms between consecutive restore actions
+  maxAmps: 14.0,        // Shed when total current exceeds this value
+  reenableAmps: 2.0,    // Restore only when total current drops below this
+  minShedMs: 200,       // Min ms between consecutive shed actions
+  cooldownMs: 60000,    // Ms after last shed before any restore is attempted
+  minRestoreMs: 30000,  // Min ms between consecutive restore actions
   labels: ['Kupaona Bojler', 'Soba 1 Bojler', 'Soba 2 Bojler', 'Vani Suko'],
   kvsKey: 'pro4pm-load-shedding-state', // KVS key used to remember on/off state across reboots
 };
