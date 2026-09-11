@@ -60,8 +60,8 @@
 // ============================================================================
 
 let CONFIG = {
-  maxAmps: 14.0,        // Shed when total current exceeds this value
-  reenableAmps: 2.0,    // Restore only when total current drops below this
+  maxAmps: 15.0,        // Shed when total current exceeds this value
+  reenableAmps: 1.0,    // Restore only when total current drops below this
   minShedMs: 200,       // Min ms between consecutive shed actions
   cooldownMs: 60000,    // Ms after last shed before any restore is attempted
   minRestoreMs: 30000,  // Min ms between consecutive restore actions
