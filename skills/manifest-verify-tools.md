@@ -3,7 +3,6 @@
 ## Description
 Use this skill when working with repository-generated files managed by scripts in `tools/`, especially:
 - `examples-manifest.json`
-- `SHELLY_MJS.md`
 
 This skill enforces a strict rule:
 - **Never manually edit generated files.**
@@ -13,8 +12,7 @@ This skill enforces a strict rule:
 
 ## Trigger Cases
 Use this workflow when the user asks to:
-- verify/check manifest or index consistency
-- regenerate `SHELLY_MJS.md`
+- verify/check manifest consistency
 - sync production script metadata from headers
 - fix CI failures related to manifest/header/sync checks
 
@@ -27,12 +25,7 @@ Use this workflow when the user asks to:
 python3 tools/sync-manifest-md.py --extract-metadata
 ```
 
-### 2) Regenerate index markdown from manifest
-```bash
-python3 tools/sync-manifest-json.py ./examples-manifest.json
-```
-
-### 3) Run integrity checks (same gate used in CI)
+### 2) Run integrity checks (same gate used in CI)
 ```bash
 python3 tools/check-manifest-integrity.py --check-headers --check-sync
 ```
@@ -41,7 +34,7 @@ python3 tools/check-manifest-integrity.py --check-headers --check-sync
 
 ## Auto-Fix Rules
 
-If step 3 fails, apply targeted fixes, then rerun step 2 and step 3.
+If step 2 fails, apply targeted fixes, then rerun step 1 and step 2.
 
 ### Missing files referenced by manifest
 Use:
@@ -62,8 +55,6 @@ Fix script header fields (`@title`, `@description`, `@status`, `@link`) in sourc
 
 ## Guardrails
 - Do not hand-edit `examples-manifest.json`.
-- Do not hand-edit `SHELLY_MJS.md`.
-- Use forward-slash manifest path: `./examples-manifest.json`.
 - Report exact files added/removed/fixed after each run.
 
 ---
@@ -79,4 +70,3 @@ Short example:
 - `Manifest entries: 102`
 - `Removed stale entries: 3`
 - `Integrity check: PASS`
-

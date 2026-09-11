@@ -23,6 +23,7 @@ power, AC frequency, internal temperature, and inverter state.
 - [`venus_e.shelly.js`](venus_e.shelly.js): console telemetry reader for key live/status registers
 - [`venus_e_vc.shelly.js`](venus_e_vc.shelly.js): telemetry reader that creates and updates Shelly Virtual Components with label-backed UI ranges
 - [`venus_e_status_vc.shelly.js`](venus_e_status_vc.shelly.js): status-focused Virtual Components reader for SOC, limits, temperatures, daily energy, operating state, and alarm/fault count
+- [`venus_e_control_vc.shelly.js`](venus_e_control_vc.shelly.js): charge/stop/discharge Virtual Component controller with adjustable power and SOC, battery-power, and operating-state telemetry
 - [`screenshot.png`](screenshot.png): Shelly UI screenshot of the Virtual Components view
 - [`registers/README.md`](registers/README.md): cross-linked register document index
 - [`registers/runtime_information_04.md`](registers/runtime_information_04.md): read-only runtime/status register map
@@ -40,11 +41,16 @@ power, AC frequency, internal temperature, and inverter state.
 The read-only VenusE telemetry scripts are marked `production` after hardware
 validation on The Pill. They do not write control registers.
 
-Open validation items before adding any control/write script:
+The control script is marked `production` after its Virtual Component setup,
+embedded-web button rendering, and runtime telemetry were validated on The
+Pill. The underlying FC06 charge, stop, and discharge sequence was validated
+through a USB-RS485 adapter.
+
+Open validation items:
 - 32-bit word order under non-zero load
 - signed direction for current and power
 - alarm/fault bit behavior during real warning or fault conditions
-- whether the device accepts FC06/FC10 writes safely
+- extended control-script soak testing on The Pill
 
 ## Protocol And Register Reference
 The register documentation lives in the cross-linked [`registers/`](registers/README.md) folder. Start with the index, then follow the document-specific links for runtime registers, writable parameters, bitfields, enum tables, faults, and protocol change history.
@@ -81,19 +87,19 @@ clip/latch orientation matching a normal RJ45 numbering reference:
 
 | RJ45 pin | Function | Connect to The Pill |
 |---:|---|---|
-| 1 | RS485 B | `B` |
-| 2 | RS485 A | `A` |
-| 3 | Not documented | leave open |
+| 1 | RS485 A | `A` |
+| 2 | RS485 B | `B` |
+| 3 | NC | leave open |
 | 4 | +5 V | leave open |
 | 5 | +5 V | leave open |
-| 6 | Not documented | leave open |
+| 6 | NC | leave open |
 | 7 | GND | `GND` recommended |
 | 8 | GND | `GND` recommended |
 
 Do not connect the Venus-E `+5 V` pins to The Pill unless you intentionally
 need that supply for an isolated adapter and have verified the current limits.
-If the bus is silent, swap only `A` and `B`; do not experiment with the `+5 V`
-pins.
+If the bus is silent, verify the RJ45 plug/socket viewing orientation and all
+connections against the table; do not experiment with the `+5 V` pins.
 
 This RJ45 pinout has been confirmed for the device used in this integration.
 Keep this section as the connector reference for future wiring diagrams and
@@ -155,7 +161,30 @@ VenusE VC script at a time on The Pill.
 | `number:227` | Inverter State | raw enum | `0..6` | register `35100` |
 | `number:228` | Alarm/Fault Count | active bits | `0..45` | registers `36000`, `36001`, `36100`, `36101`, `36103`, `36104` |
 
+## Charge/Discharge Control Virtual Components
+
+`venus_e_control_vc.shelly.js` creates an eight-component control layout:
+
+| VC ID | Name | Purpose |
+|---|---|---|
+| `group:220` | Marstek VenusE Control | Container for the control UI |
+| `number:220` | Battery SOC | Live SOC from register `32104` |
+| `number:221` | Battery Power | Live signed power from registers `32102-32103` |
+| `number:222` | Inverter State | `0` sleep, `1` standby, `2` charge, `3` discharge, `4` backup, `5` OTA, `6` bypass |
+| `number:223` | Control Power | Persisted `100..2500 W` setpoint; defaults to `500 W` |
+| `button:220` | Force Charge | Enables RS485 control, writes `42020`, then starts charge with `42010=1` |
+| `button:221` | Stop | Stops forced charge/discharge with `42010=0` |
+| `button:222` | Discharge | Enables RS485 control, writes `42021`, then starts discharge with `42010=2` |
+
+Every write uses MODBUS FC06 and must be echoed by the VenusE before the next
+step runs. Stop requests are queued if another MODBUS request is in progress.
+The script leaves RS485 control enabled after Stop. Do not run it alongside
+either read-only VenusE VC layout because their component IDs overlap and the
+tested firmware supports only 10 Virtual Components.
+
 ## Notes
-- The scripts intentionally do not write registers.
+- The production telemetry scripts intentionally do not write registers.
+- The control script writes only the documented RS485
+  control, forced-power, and forced-mode registers.
 - Register-level semantics, scale exceptions, alarm/fault bits, and open validation items are centralized in [`registers/`](registers/README.md).
 - The RJ45 RS485 pinout has been confirmed on the device used for this integration.

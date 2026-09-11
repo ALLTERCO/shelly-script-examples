@@ -21,9 +21,9 @@ Scripts for sending and receiving NEC-format infrared codes using the YS-IRTM mo
 
 ## Files
 
-### ysirtm.shelly.js
+### ysirtm_vc.shelly.js
 
-**Core API Library** - Full YS-IRTM UART protocol implementation.
+**Core API Library** - Full YS-IRTM UART protocol implementation with self-created RX/TX Virtual Components.
 
 **Features:**
 - Send NEC IR codes (3-byte format)

@@ -1,47 +1,29 @@
 /**
- * @title Marstek VenusE MODBUS-RTU reader + Virtual Components
- * @description Reads key Marstek VenusE live MODBUS registers and
- *   updates Shelly Virtual Components for battery, AC, energy, and status data.
- * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/Marstek/VenusE/venus_e_vc.shelly.js
+ * @title iRobot Roomba button controller + Virtual Components
+ * @description Controls Roomba via self-created virtual buttons and physical inputs over UART.
+ * @status under development
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/iRobotRoomba/roomba_ctrl_vc.shelly.js
  */
 
 /**
- * Marstek VenusE MODBUS-RTU Reader + Virtual Components
+ * iRobot Roomba 560 - Button Control Script
  *
- * Firmware requirements: Shelly Gen2/Gen3 with scripting, UART, and Virtual
- * Components support.
- * Device compatibility: The Pill with 5-terminal RS485 add-on.
- * External hardware: Marstek Venus-E 3.0 connected through its RS485 RJ45
- * port. Use normal RJ45 pin numbering while looking into the device socket.
+ * Controls Roomba 560 via virtual buttons and physical inputs.
+ * Uses The Pill UART to communicate with Roomba via mini-DIN connector.
+ *
+ * Button Mappings:
+ * - Button 1 (single): Clean / Start cleaning
+ * - Button 1 (double): Stop / Emergency stop
+ * - Button 1 (long):   Dock / Return to base
+ * - Button 2 (single): Spot clean
  *
  * Hardware Connection:
- * - Venus RJ45 pin 1 (RS485 A) -> The Pill A
- * - Venus RJ45 pin 2 (RS485 B) -> The Pill B
- * - Venus RJ45 pin 7 or 8 (GND) -> The Pill GND (recommended)
- * - Venus RJ45 pins 3 and 6 -> Leave disconnected
- * - Venus RJ45 pins 4 and 5 (+5 V) -> Leave disconnected
+ * - Roomba mini-DIN pin 3 (RXD) -> Shelly TX
+ * - Roomba mini-DIN pin 4 (TXD) -> Shelly RX
+ * - Roomba mini-DIN pin 5 (BRC) -> Optional wake pin
+ * - Roomba mini-DIN pin 6,7 (GND) -> Shelly GND
  *
- * Do not connect either Venus +5 V pin to The Pill. If the MODBUS bus is
- * silent, verify the RJ45 viewing orientation and wiring against this pinout;
- * do not experiment with the +5 V pins.
- *
- * Virtual Components created:
- * - group:220   Marstek VenusE
- * - number:220  Battery Voltage, 0..100 V
- * - number:221  Battery Current, -100..100 A
- * - number:222  Battery Power, -2500..2500 W
- * - number:223  Battery SOC, 0..100 %
- * - number:224  AC Voltage, 187..253 V
- * - number:225  AC Power, -2500..2500 W
- * - number:226  AC Frequency, 45..55 Hz
- * - number:227  Internal Temperature, -10..55 C
- * - number:228  Inverter State, 0..6
- *
- * Important:
- * - Documented communication defaults are address 1, 115200 baud, 8 data
- *   bits, no parity, and 1 stop bit.
- * - This VC variant is read-only. It does not write control registers.
+ * @see https://github.com/orlin369/Roomba
  */
 
 // ============================================================================
@@ -385,306 +367,310 @@ function ensureVirtualComponents(manifest, done) {
 // ============================================================================
 
 var CONFIG = {
-  BAUD_RATE: 115200,
-  MODE: '8N1',
-  SLAVE_ID: 1,
-  RESPONSE_TIMEOUT: 1000,
-  POLL_INTERVAL: 15000,
-  INTER_REQUEST_DELAY: 80,
-  DEBUG: false
+    // UART settings (Roomba 500 series default: 115200)
+    baud: 115200,
+    mode: '8N1',
+
+    // Command delay between OI commands (ms)
+    cmdDelayMs: 50,
+
+    // Debug output
+    debug: true,
+
+    // Button components for control
+    buttons: {
+        main: 'button:200',     // Main control button
+        spot: 'button:201'      // Spot clean button
+    },
+
+    // Virtual components for status display
+    vc: {
+        statusDisplay: 'text:200',
+        batteryDisplay: 'number:200'
+    },
+
+    // Battery monitor interval (ms) - 0 to disable
+    batteryPollMs: 60000
 };
 
-var COMPONENT_IDS = {
-  group: 220,
-  firstNumber: 220
+
+var VIRTUAL_COMPONENTS = {
+    components: [
+        { key: "mainButton", type: "button", id: 200, config: { name: "Roomba Main", meta: { ui: { view: "button" }, cloud: ["events"] } } },
+        { key: "spotButton", type: "button", id: 201, config: { name: "Roomba Spot", meta: { ui: { view: "button" }, cloud: ["events"] } } },
+        { key: "statusDisplay", type: "text", id: 200, config: { name: "Roomba Status", default_value: "", persisted: false, meta: { ui: { view: "label", maxLength: 128 }, cloud: ["log"] } } },
+        { key: "batteryDisplay", type: "number", id: 200, config: { name: "Roomba Battery", default_value: 0, min: 0, max: 100, meta: { ui: { view: "progressbar", unit: "%", step: 1 }, cloud: ["measurement"] } } }
+    ],
+    groups: [
+        { id: 200, name: "Roomba Control", components: ["mainButton", "spotButton", "statusDisplay", "batteryDisplay"] }
+    ]
 };
 
-var ENTITIES = [
-  { name: 'Battery Voltage', addr: 32100, qty: 1, type: 'u16', scale: 0.01, unit: 'V', min: 0, max: 100, vcId: 'number:220', vcHandle: null },
-  { name: 'Battery Current', addr: 32101, qty: 1, type: 's16', scale: 0.01, unit: 'A', min: -100, max: 100, vcId: 'number:221', vcHandle: null },
-  { name: 'Battery Power', addr: 32102, qty: 2, type: 's32', scale: 1, unit: 'W', min: -2500, max: 2500, vcId: 'number:222', vcHandle: null },
-  { name: 'Battery SOC', addr: 32104, qty: 1, type: 'u16', scale: 1, unit: '%', min: 0, max: 100, vcId: 'number:223', vcHandle: null },
-  { name: 'AC Voltage', addr: 32200, qty: 1, type: 'u16', scale: 0.1, unit: 'V', min: 187, max: 253, defaultValue: 230, vcId: 'number:224', vcHandle: null },
-  { name: 'AC Power', addr: 32202, qty: 2, type: 's32', scale: 1, unit: 'W', min: -2500, max: 2500, vcId: 'number:225', vcHandle: null },
-  { name: 'AC Frequency', addr: 32204, qty: 1, type: 'u16', scale: 0.1, unit: 'Hz', min: 45, max: 55, defaultValue: 50, vcId: 'number:226', vcHandle: null },
-  { name: 'Internal Temperature', addr: 35000, qty: 1, type: 's16', scale: 0.1, unit: 'C', min: -10, max: 55, vcId: 'number:227', vcHandle: null },
-  { name: 'Inverter State', addr: 35100, qty: 1, type: 'u16', scale: 1, unit: '', min: 0, max: 6, vcId: 'number:228', vcHandle: null }
-];
+function bindVirtualComponents(readyVc) {
+    CONFIG.buttons.main = readyVc.keys.mainButton;
+    CONFIG.buttons.spot = readyVc.keys.spotButton;
+    CONFIG.vc.statusDisplay = readyVc.keys.statusDisplay;
+    CONFIG.vc.batteryDisplay = readyVc.keys.batteryDisplay;
+    vcStatus = readyVc.handles.statusDisplay;
+    vcBattery = readyVc.handles.batteryDisplay;
+}
+
+// ============================================================================
+// OI OPCODES
+// ============================================================================
+
+var OI = {
+    START: 128,
+    SAFE: 131,
+    FULL: 132,
+    POWER: 133,
+    SPOT: 134,
+    COVER: 135,
+    DOCK: 143,
+    DRIVE: 137,
+    DRIVERS: 138,
+    SENSORS: 142
+};
+
+// ============================================================================
+// SENSOR PACKET IDS
+// ============================================================================
+
+var SENSOR = {
+    GROUP_3: 3,
+    BUMPS_WHEELDROPS: 7
+};
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+var MODE = {
+    OFF: 0,
+    PASSIVE: 1,
+    SAFE: 2,
+    FULL: 3
+};
 
 // ============================================================================
 // STATE
 // ============================================================================
 
-var state = {
-  uart: null,
-  rxBuffer: [],
-  pendingRequest: null,
-  responseTimer: null,
-  pollTimer: null,
-  isReady: false
-};
+var uart = null;
+var currentMode = MODE.OFF;
+var isReady = false;
+var isCleaning = false;
+
+// Virtual component handles
+var vcStatus = null;
+var vcBattery = null;
 
 // ============================================================================
-// HELPERS
+// UTILITY FUNCTIONS
 // ============================================================================
 
-function log(msg) {
-  print('[venus-e-vc] ' + msg);
-}
-
-function calcCRC(bytes) {
-  var crc = 0xFFFF;
-  var i;
-  var j;
-
-  for (i = 0; i < bytes.length; i++) {
-    crc = crc ^ bytes[i];
-    for (j = 0; j < 8; j++) {
-      if (crc & 1) crc = (crc >> 1) ^ 0xA001;
-      else crc = crc >> 1;
-    }
-  }
-
-  return crc & 0xFFFF;
+function toHex(n) {
+    n = n & 0xFF;
+    return (n < 16 ? '0' : '') + n.toString(16).toUpperCase();
 }
 
 function bytesToStr(bytes) {
-  var s = '';
-  var i;
-  for (i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i] & 0xFF);
-  return s;
-}
-
-function buildReadFrame(addr, qty) {
-  var frame = [
-    CONFIG.SLAVE_ID & 0xFF,
-    0x03,
-    (addr >> 8) & 0xFF,
-    addr & 0xFF,
-    (qty >> 8) & 0xFF,
-    qty & 0xFF
-  ];
-  var crc = calcCRC(frame);
-  frame.push(crc & 0xFF);
-  frame.push((crc >> 8) & 0xFF);
-  return frame;
-}
-
-function clearResponseTimer() {
-  if (state.responseTimer) {
-    Timer.clear(state.responseTimer);
-    state.responseTimer = null;
-  }
-}
-
-function decodePayload(payload, type) {
-  var raw16;
-  var hi;
-  var lo;
-  var value;
-
-  if (type === 'u16' || type === 's16') {
-    raw16 = (payload[0] << 8) | payload[1];
-    if (type === 's16' && raw16 >= 0x8000) raw16 = raw16 - 0x10000;
-    return raw16;
-  }
-
-  hi = (payload[0] << 8) | payload[1];
-  lo = (payload[2] << 8) | payload[3];
-  value = hi * 65536 + lo;
-
-  if (type === 's32' && value >= 2147483648) value = value - 4294967296;
-  return value;
-}
-
-function scaledValue(raw, scale) {
-  var value = raw * scale;
-  if (scale === 0.1) return Math.round(value * 10) / 10;
-  if (scale === 0.01) return Math.round(value * 100) / 100;
-  if (scale === 0.001) return Math.round(value * 1000) / 1000;
-  return value;
-}
-
-// ============================================================================
-// VIRTUAL COMPONENT MANIFEST
-// ============================================================================
-
-function numberConfig(component) {
-  var defaultValue = 0;
-  if (component.defaultValue !== undefined) defaultValue = component.defaultValue;
-
-  return {
-    name: component.name,
-    default_value: defaultValue,
-    min: component.min,
-    max: component.max,
-    meta: {
-      ui: {
-        view: 'progressbar',
-        unit: component.unit,
-        step: component.scale < 1 ? component.scale : 1
-      },
-      persist: false
+    var s = '';
+    for (var i = 0; i < bytes.length; i++) {
+        s += String.fromCharCode(bytes[i] & 0xFF);
     }
-  };
+    return s;
 }
 
-function componentVcKey(index) {
-  return 'component' + String(index);
+function bytesToHexStr(bytes) {
+    var s = '';
+    for (var i = 0; i < bytes.length; i++) {
+        s += (i ? ' ' : '') + toHex(bytes[i]);
+    }
+    return s;
 }
 
-function buildVirtualComponentsManifest() {
-  var manifest = { components: [] };
-  var members = [];
-  var i;
+function int16ToBytes(val) {
+    val = val & 0xFFFF;
+    return [(val >> 8) & 0xFF, val & 0xFF];
+}
 
-  for (i = 0; i < ENTITIES.length; i++) {
-    ENTITIES[i].vcKey = componentVcKey(i);
-    manifest.components.push({
-      key: ENTITIES[i].vcKey,
-      type: 'number',
-      id: COMPONENT_IDS.firstNumber + i,
-      config: numberConfig(ENTITIES[i])
+function dbg(msg) {
+    if (CONFIG.debug) {
+        print('[ROOMBA] ' + msg);
+    }
+}
+
+// ============================================================================
+// ROOMBA CONTROL
+// ============================================================================
+
+function sendRaw(bytes) {
+    if (!uart) return;
+    dbg('TX: ' + bytesToHexStr(bytes));
+    uart.write(bytesToStr(bytes));
+}
+
+function sendCmd(opcode) {
+    sendRaw([opcode & 0xFF]);
+}
+
+function start() {
+    sendCmd(OI.START);
+    currentMode = MODE.PASSIVE;
+    dbg('Started OI -> Passive mode');
+    updateStatus('Passive');
+}
+
+function safe() {
+    sendCmd(OI.SAFE);
+    currentMode = MODE.SAFE;
+    dbg('Safe mode');
+    updateStatus('Safe');
+}
+
+function power() {
+    sendCmd(OI.POWER);
+    currentMode = MODE.PASSIVE;
+    isCleaning = false;
+    dbg('Power off');
+    updateStatus('Power Off');
+}
+
+function spot() {
+    sendCmd(OI.SPOT);
+    isCleaning = true;
+    dbg('Spot cleaning');
+    updateStatus('Spot');
+}
+
+function clean() {
+    sendCmd(OI.COVER);
+    isCleaning = true;
+    dbg('Cleaning');
+    updateStatus('Cleaning');
+}
+
+function dock() {
+    sendCmd(OI.DOCK);
+    isCleaning = false;
+    dbg('Seeking dock');
+    updateStatus('Docking');
+}
+
+function stop() {
+    var velBytes = int16ToBytes(0);
+    var radBytes = int16ToBytes(0);
+    sendRaw([OI.DRIVE, velBytes[0], velBytes[1], radBytes[0], radBytes[1]]);
+    sendRaw([OI.DRIVERS, 0]);
+    isCleaning = false;
+    dbg('STOP');
+    updateStatus('Stopped');
+}
+
+function wakeUp(callback) {
+    dbg('Waking up Roomba...');
+
+    Timer.set(100, false, function() {
+        start();
+
+        Timer.set(CONFIG.cmdDelayMs, false, function() {
+            safe();
+
+            Timer.set(CONFIG.cmdDelayMs, false, function() {
+                isReady = true;
+                dbg('Roomba ready');
+                updateStatus('Ready');
+                if (callback) callback();
+            });
+        });
     });
-    members.push(ENTITIES[i].vcKey);
-  }
-
-  manifest.groups = [
-    { id: COMPONENT_IDS.group, name: 'Marstek VenusE', components: members }
-  ];
-
-  return manifest;
-}
-
-function bindVirtualComponents(readyVc) {
-  var i;
-
-  for (i = 0; i < ENTITIES.length; i++) {
-    ENTITIES[i].vcHandle = readyVc.handles[ENTITIES[i].vcKey];
-  }
-}
-
-function updateVc(component, value) {
-  if (!component.vcHandle) return;
-  component.vcHandle.setValue(value);
 }
 
 // ============================================================================
-// MODBUS CORE
+// VIRTUAL COMPONENTS
 // ============================================================================
 
-function sendRead(entity, callback) {
-  if (!state.isReady) {
-    callback('Not ready', null);
-    return;
-  }
-
-  if (state.pendingRequest) {
-    callback('Busy', null);
-    return;
-  }
-
-  state.pendingRequest = { entity: entity, callback: callback };
-  state.rxBuffer = [];
-
-  state.responseTimer = Timer.set(CONFIG.RESPONSE_TIMEOUT, false, function() {
-    if (!state.pendingRequest) return;
-    var cb = state.pendingRequest.callback;
-    state.pendingRequest = null;
-    cb('Timeout', null);
-  });
-
-  state.uart.write(bytesToStr(buildReadFrame(entity.addr, entity.qty)));
+function updateStatus(status) {
+    if (vcStatus) {
+        try {
+            vcStatus.setValue(status);
+        } catch (e) { }
+    }
 }
 
-function onReceive(data) {
-  var i;
-  if (!data || data.length === 0) return;
-
-  for (i = 0; i < data.length; i++) state.rxBuffer.push(data.charCodeAt(i) & 0xFF);
-  processResponse();
+function updateBattery(percent) {
+    if (vcBattery) {
+        try {
+            vcBattery.setValue(percent);
+        } catch (e) { }
+    }
 }
 
-function processResponse() {
-  var fc;
-  var byteCount;
-  var expectedLen;
-  var frame;
-  var crc;
-  var recvCrc;
-  var payload;
-  var entity;
-  var cb;
-
-  if (!state.pendingRequest) {
-    state.rxBuffer = [];
-    return;
-  }
-
-  if (state.rxBuffer.length < 5) return;
-  fc = state.rxBuffer[1];
-
-  if (fc & 0x80) {
-    if (state.rxBuffer.length < 5) return;
-    crc = calcCRC(state.rxBuffer.slice(0, 3));
-    recvCrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
-    if (crc !== recvCrc) return;
-
-    clearResponseTimer();
-    cb = state.pendingRequest.callback;
-    state.pendingRequest = null;
-    state.rxBuffer = [];
-    cb('MODBUS exception', null);
-    return;
-  }
-
-  byteCount = state.rxBuffer[2];
-  expectedLen = 3 + byteCount + 2;
-  if (state.rxBuffer.length < expectedLen) return;
-
-  frame = state.rxBuffer.slice(0, expectedLen);
-  crc = calcCRC(frame.slice(0, expectedLen - 2));
-  recvCrc = frame[expectedLen - 2] | (frame[expectedLen - 1] << 8);
-  if (crc !== recvCrc) return;
-
-  clearResponseTimer();
-  payload = frame.slice(3, 3 + byteCount);
-  entity = state.pendingRequest.entity;
-  cb = state.pendingRequest.callback;
-  state.pendingRequest = null;
-  state.rxBuffer = [];
-
-  cb(null, decodePayload(payload, entity.type));
+function initVirtualComponents(callback) {
+    ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+        if (!ok) {
+            print('[ROOMBA] ERROR: Virtual component setup failed');
+            return;
+        }
+        bindVirtualComponents(readyVc);
+        dbg('Virtual components ready');
+        if (callback) callback();
+    });
 }
 
 // ============================================================================
-// MAIN LOGIC
+// BUTTON HANDLERS
 // ============================================================================
 
-function poll() {
-  function readNext(index) {
-    var entity;
+function onMainButton(event) {
+    dbg('Main button: ' + event);
 
-    if (index >= ENTITIES.length) {
-      log('Poll complete');
-      return;
+    if (!isReady) {
+        wakeUp(function() {
+            onMainButton(event);
+        });
+        return;
     }
 
-    entity = ENTITIES[index];
-    sendRead(entity, function(err, raw) {
-      if (err) {
-        log(entity.name + ': ERROR (' + err + ')');
-      } else {
-        updateVc(entity, raw);
-      }
+    if (event === 'single_push') {
+        if (isCleaning) {
+            stop();
+        } else {
+            clean();
+        }
+    } else if (event === 'double_push') {
+        stop();
+    } else if (event === 'long_push') {
+        dock();
+    }
+}
 
-      Timer.set(CONFIG.INTER_REQUEST_DELAY, false, function() {
-        readNext(index + 1);
-      });
-    });
-  }
+function onSpotButton(event) {
+    dbg('Spot button: ' + event);
 
-  readNext(0);
+    if (!isReady) {
+        wakeUp(function() {
+            onSpotButton(event);
+        });
+        return;
+    }
+
+    if (event === 'single_push') {
+        spot();
+    }
+}
+
+function onEvent(ev) {
+    if (!ev.info || !ev.info.event) return;
+
+    var event = ev.info.event;
+
+    if (ev.component === CONFIG.buttons.main) {
+        onMainButton(event);
+    } else if (ev.component === CONFIG.buttons.spot) {
+        onSpotButton(event);
+    }
 }
 
 // ============================================================================
@@ -692,33 +678,35 @@ function poll() {
 // ============================================================================
 
 function init() {
-  log('Marstek VenusE MODBUS-RTU reader + VC');
+    print('[ROOMBA] Initializing Roomba 560 controller...');
 
-  state.uart = UART.get();
-  if (!state.uart) {
-    log('ERROR: UART not available');
-    return;
-  }
-
-  if (!state.uart.configure({ baud: CONFIG.BAUD_RATE, mode: CONFIG.MODE })) {
-    log('ERROR: UART configuration failed');
-    return;
-  }
-
-  state.uart.recv(onReceive);
-  state.isReady = true;
-
-  ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
-    if (!ok) {
-      log('ERROR: Virtual component setup failed');
-      return;
+    // Initialize UART
+    uart = UART.get();
+    if (!uart.configure({ baud: CONFIG.baud, mode: CONFIG.mode })) {
+        print('[ROOMBA] ERROR: Failed to configure UART');
+        return;
     }
 
-    bindVirtualComponents(readyVc);
-    log('Polling ' + ENTITIES.length + ' registers every ' + CONFIG.POLL_INTERVAL / 1000 + 's');
-    Timer.set(500, false, poll);
-    state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, poll);
-  });
+    // Initialize virtual components before binding button events
+    initVirtualComponents(function() {
+        // Register event handler
+        Shelly.addEventHandler(onEvent);
+
+        // Setup battery monitoring
+        if (CONFIG.batteryPollMs > 0) {
+            Timer.set(CONFIG.batteryPollMs, true, function() {
+                if (isReady) {
+                    sendRaw([OI.SENSORS, SENSOR.GROUP_3]);
+                }
+            });
+        }
+
+        updateStatus('Initialized');
+        dbg('Initialized @ ' + CONFIG.baud + ' baud');
+        dbg('Main button: ' + CONFIG.buttons.main);
+        dbg('Spot button: ' + CONFIG.buttons.spot);
+        print('[ROOMBA] Ready. Press main button to wake and control Roomba.');
+    });
 }
 
 init();

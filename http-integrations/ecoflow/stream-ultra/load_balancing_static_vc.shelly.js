@@ -3,8 +3,8 @@
  * @description Polls Shelly EM / Plug S Gen3 devices and controls an EcoFlow
  *   STREAM Ultra via the EcoFlow cloud API. Switches between discharge, charge,
  *   and idle modes based on total load and a configurable night-charging window.
- *   Creates Virtual Components on first run to visualise EcoFlow device parameters
- *   in the Shelly app dashboard.
+ *   Creates, verifies, repairs, groups, and updates Shelly Virtual Components
+ *   for EcoFlow device parameters in the Shelly app dashboard.
  * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/http-integrations/ecoflow/stream-ultra/load_balancing_static_vc.shelly.js
  */
@@ -15,7 +15,7 @@
  *   charge    : night window (configurable hours)
  *   idle      : day + load below threshold — battery neither charges nor discharges
  *
- * Virtual Components (10 total, created once on first run, reused on restart):
+ * Virtual Components (10 total, created/verified on every script start):
  *   Group   : "EcoFlow STREAM Ultra"
  *   Numbers : Battery SOC (%), Battery Power (W), PV Power (W),
  *             Grid Power (W), Load Power (W),
@@ -29,6 +29,342 @@
  * All configuration is embedded in CONFIG / DEVICES_CFG — no KVS needed.
  * HMAC-SHA256 adapted from ecoflow_api.js reference.
  */
+
+// ============================================================================
+// VIRTUAL COMPONENT STANDARD HELPER
+// ============================================================================
+//
+// Usage:
+//
+// var VIRTUAL_COMPONENTS = {
+//   components: [
+//     {
+//       key: "soc",
+//       type: "number",
+//       id: 200, // optional; when omitted the helper creates the next free one
+//       config: {
+//         name: "Battery SOC",
+//         min: 0,
+//         max: 100,
+//         unit: "%",
+//         meta: { ui: { view: "progressbar" }, cloud: ["measurement"] }
+//       }
+//     },
+//     {
+//       key: "status",
+//       type: "text",
+//       config: {
+//         name: "Status",
+//         default_value: "",
+//         persisted: false,
+//         meta: { ui: { view: "label", maxLength: 255 }, cloud: ["log"] }
+//       }
+//     }
+//   ],
+//   groups: [
+//     { id: 200, name: "Battery", components: ["soc", "status"] }
+//   ]
+// };
+//
+// ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, vc) {
+//   if (!ok) {
+//     print("Virtual Component setup failed");
+//     return;
+//   }
+//
+//   vc.handles.soc.setValue(73);
+//   vc.handles.status.setValue("ready");
+// });
+//
+// Notes:
+// - `key` is only the logical name inside your script.
+// - `type` is a Shelly dynamic component type: number, boolean, text, enum,
+//   button, group.
+// - For fixed IDs, the helper checks whether the existing component config
+//   matches. If not, it deletes and recreates it.
+// - Without fixed IDs, the helper searches by type + config.name. If a matching
+//   component exists and fits the config, it reuses it. If not, it creates a new
+//   component and stores the assigned id.
+// - The callback receives `vc.ids[key]`, `vc.keys[key]`, and `vc.handles[key]`.
+// ============================================================================
+
+function ensureVirtualComponents(manifest, done) {
+  var VC_HELPER_DELAY_MS = 150;
+  var state = {
+    existing: [],
+    ids: {},
+    keys: {},
+    handles: {},
+    ok: true
+  };
+
+  function log(msg) {
+    print("[VC] " + msg);
+  }
+
+  function componentKey(type, id) {
+    return type + ":" + String(id);
+  }
+
+
+  function shallowConfigMatches(desired, current) {
+    var k;
+
+    if (!desired || !current) return false;
+
+    for (k in desired) {
+      if (k === "meta") {
+        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
+      } else if (typeof desired[k] === "object" && desired[k] !== null) {
+        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
+      } else if (desired[k] !== current[k]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function normalizeComponent(spec) {
+    if (!spec.config) spec.config = {};
+    if (!spec.config.name) spec.config.name = spec.key;
+    return spec;
+  }
+
+  function findExistingByName(type, name) {
+    var i;
+    var c;
+    for (i = 0; i < state.existing.length; i++) {
+      c = state.existing[i];
+      if (c.type === type && c.name === name) return c;
+    }
+    return null;
+  }
+
+  function remember(spec, id) {
+    var key = componentKey(spec.type, id);
+    state.ids[spec.key] = id;
+    state.keys[spec.key] = key;
+    state.handles[spec.key] = Virtual.getHandle(key);
+  }
+
+  function getConfig(type, id) {
+    return Shelly.getComponentConfig(type, id);
+  }
+
+  function deleteComponent(key, cb) {
+    Shelly.call("Virtual.Delete", { key: key }, function(res, errCode, errMsg) {
+      if (errCode !== 0) {
+        log("Virtual.Delete skipped for " + key + ": " + String(errCode) + " " + String(errMsg));
+      }
+      Timer.set(VC_HELPER_DELAY_MS, false, cb);
+    });
+  }
+
+  function addComponent(spec, cb) {
+    var params = { type: spec.type, config: spec.config };
+    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
+
+    Shelly.call("Virtual.Add", params, function(res, errCode, errMsg) {
+      var id;
+
+      if (errCode !== 0) {
+        log("Virtual.Add failed for " + spec.key + ": " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      id = spec.id;
+      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
+      if (id === undefined || id === null) {
+        log("Virtual.Add did not return id for " + spec.key);
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      remember(spec, id);
+      log("Created " + state.keys[spec.key] + " " + spec.config.name);
+      Timer.set(VC_HELPER_DELAY_MS, false, function() { cb(true); });
+    });
+  }
+
+  function ensureOne(spec, cb) {
+    var current;
+    var existing;
+    var key;
+
+    spec = normalizeComponent(spec);
+
+    if (spec.id !== undefined && spec.id !== null) {
+      current = getConfig(spec.type, spec.id);
+      key = componentKey(spec.type, spec.id);
+
+      if (current) {
+        if (shallowConfigMatches(spec.config, current)) {
+          remember(spec, spec.id);
+          cb(true);
+          return;
+        }
+
+        log("Recreating mismatched " + key + " " + spec.config.name);
+        deleteComponent(key, function() { addComponent(spec, cb); });
+        return;
+      }
+
+      addComponent(spec, cb);
+      return;
+    }
+
+    existing = findExistingByName(spec.type, spec.config.name);
+    if (existing && shallowConfigMatches(spec.config, existing.config)) {
+      remember(spec, existing.id);
+      cb(true);
+      return;
+    }
+
+    if (existing) {
+      log("Existing " + existing.key + " does not fit " + spec.config.name + "; creating a new one");
+    }
+    addComponent(spec, cb);
+  }
+
+  function ensureList(index, cb) {
+    var list = manifest.components || [];
+    if (index >= list.length) {
+      cb();
+      return;
+    }
+
+    ensureOne(list[index], function() {
+      Timer.set(VC_HELPER_DELAY_MS, false, function() {
+        ensureList(index + 1, cb);
+      });
+    });
+  }
+
+  function createGroupConfig(name) {
+    return { name: name, meta: { ui: { view: "group" } } };
+  }
+
+  function groupMembers(group) {
+    var members = [];
+    var i;
+    var logicalKey;
+
+    for (i = 0; i < group.components.length; i++) {
+      logicalKey = group.components[i];
+      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
+    }
+
+    return members;
+  }
+
+  function ensureGroup(index, cb) {
+    var groups = manifest.groups || [];
+    var group;
+    var cfg;
+    var current;
+    var key;
+
+    if (index >= groups.length) {
+      cb();
+      return;
+    }
+
+    group = groups[index];
+    cfg = createGroupConfig(group.name);
+    key = componentKey("group", group.id);
+    current = getConfig("group", group.id);
+
+    function setMembersAndContinue() {
+      Shelly.call("Group.Set", { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Group.Set failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+        }
+        Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+      });
+    }
+
+    if (current && shallowConfigMatches(cfg, current)) {
+      setMembersAndContinue();
+      return;
+    }
+
+    function addGroup() {
+      Shelly.call("Virtual.Add", { type: "group", id: group.id, config: cfg }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Virtual.Add group failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+          Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+          return;
+        }
+        setMembersAndContinue();
+      });
+    }
+
+    if (current) {
+      deleteComponent(key, addGroup);
+    } else {
+      addGroup();
+    }
+  }
+
+  function readExistingPage(offset, cb) {
+    Shelly.call("Shelly.GetComponents", { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
+      var raw;
+      var total;
+      var i;
+      var c;
+      var cfg;
+      var keyParts;
+
+      if (errCode !== 0) {
+        log("Shelly.GetComponents failed: " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb();
+        return;
+      }
+
+      raw = (res && res.components) ? res.components : [];
+      total = res ? (res.total || raw.length) : raw.length;
+
+      for (i = 0; i < raw.length; i++) {
+        c = raw[i];
+        cfg = c.config || {};
+        keyParts = (c.key || "").split(":");
+        state.existing.push({
+          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
+          type: c.type || keyParts[0],
+          id: cfg.id,
+          name: cfg.name,
+          config: cfg
+        });
+      }
+
+      if (offset + raw.length < total && raw.length > 0) {
+        readExistingPage(offset + raw.length, cb);
+      } else {
+        cb();
+      }
+    });
+  }
+
+  readExistingPage(0, function() {
+    ensureList(0, function() {
+      ensureGroup(0, function() {
+        done(state.ok, {
+          ids: state.ids,
+          keys: state.keys,
+          handles: state.handles
+        });
+      });
+    });
+  });
+}
+
 
 /* === CONFIG === */
 // Edit these values before uploading the script to the Shelly device.
@@ -468,6 +804,47 @@ function isNight() {
 
 /* === VIRTUAL COMPONENTS === */
 
+
+function buildVirtualComponentsManifest() {
+    var manifest = { components: [], groups: [] };
+    var members = [];
+    var i;
+    var spec;
+    var cfg;
+    var key;
+
+    for (i = 1; i < VC_SPECS.length; i++) {
+        spec = VC_SPECS[i];
+        key = "vc" + String(i);
+        cfg = { name: spec[1] };
+        if (spec[0] === "number") {
+            cfg.default_value = 0;
+            cfg.min = spec[3];
+            cfg.max = spec[4];
+            cfg.meta = { ui: { view: "label", unit: spec[2], step: 1 }, cloud: ["measurement"] };
+        } else if (spec[0] === "boolean") {
+            cfg.default_value = false;
+            cfg.meta = { ui: { view: "label", titles: { "false": "off", "true": "on" } }, cloud: ["log"] };
+        }
+        manifest.components.push({ key: key, type: spec[0], config: cfg });
+        members.push(key);
+    }
+
+    manifest.groups = [
+        { id: 200, name: VC_SPECS[0][1], components: members }
+    ];
+
+    return manifest;
+}
+
+function bindVirtualComponents(readyVc) {
+    var i;
+    vcIds[0] = readyVc.ids.group;
+    for (i = 1; i < VC_SPECS.length; i++) {
+        vcIds[i] = readyVc.ids["vc" + String(i)];
+    }
+}
+
 function drainVcQueue() {
     if (vcQueueIdx >= vcQueue.length) {
         vcQueue = []; vcQueueIdx = 0; vcQueueRun = false; return;
@@ -509,73 +886,6 @@ function updateVCs(totalW, data) {
     setVc(7, Math.round(totalW));
     setVc(8, feedGrid);
     setVc(9, isNight());
-}
-
-function addOneVC(idx, cb) {
-    var spec = VC_SPECS[idx];
-    var cfg  = { name: spec[1] };
-    if (spec[0] === "number") {
-        cfg.unit = spec[2];
-        cfg.min  = spec[3];
-        cfg.max  = spec[4];
-    }
-    Shelly.call("Virtual.Add", { type: spec[0], config: cfg }, function(res, ec) {
-        if (ec === 0 && res && res.id !== undefined) {
-            vcIds[idx] = res.id;
-            print("[VC] Created '" + spec[1] + "' id=" + String(res.id));
-        } else {
-            print("[VC] Create failed '" + spec[1] + "' ec=" + String(ec));
-            vcIds[idx] = null;
-        }
-        Timer.set(150, false, function() { cb(); });
-    });
-}
-
-function matchAndCreate(idx, existing, cb) {
-    if (idx >= VC_SPECS.length) {
-        var dbg = "";
-        for (var di = 0; di < vcIds.length; di++) dbg += String(vcIds[di]) + ",";
-        print("[VC] Setup done. ids=" + dbg);
-        vcReady = true; cb(); return;
-    }
-    var vcName = VC_SPECS[idx][1];
-    var found  = null;
-    for (var i = 0; i < existing.length; i++) {
-        if (existing[i][0] === vcName) { found = existing[i][1]; break; }
-    }
-    if (found !== null && found !== undefined) {
-        vcIds[idx] = found;
-        print("[VC] Found '" + vcName + "' id=" + String(found));
-        Timer.set(0, false, function() { matchAndCreate(idx + 1, existing, cb); });
-    } else {
-        addOneVC(idx, function() { matchAndCreate(idx + 1, existing, cb); });
-    }
-}
-
-function ensureVCs(cb) {
-    Shelly.call("Shelly.GetComponents", { dynamic_only: true }, function(res, ec) {
-        var raw  = (res && res.components) ? res.components : [];
-        var tot  = res ? (res["total"] || raw.length) : raw.length;
-        // Extract only [name, id] pairs — discards full component objects to save RAM
-        var existing = [];
-        for (var i = 0; i < raw.length; i++) {
-            if (raw[i].config) existing.push([raw[i].config["name"], raw[i].config["id"]]);
-        }
-        if (tot <= raw.length) {
-            print("[VC] GetComponents found=" + String(existing.length));
-            matchAndCreate(0, existing, cb);
-            return;
-        }
-        // Fetch the remainder (pagination — Shelly default page is 9)
-        Shelly.call("Shelly.GetComponents", { dynamic_only: true, offset: raw.length }, function(res2, ec2) {
-            var raw2 = (res2 && res2.components) ? res2.components : [];
-            for (var i = 0; i < raw2.length; i++) {
-                if (raw2[i].config) existing.push([raw2[i].config["name"], raw2[i].config["id"]]);
-            }
-            print("[VC] GetComponents found=" + String(existing.length));
-            matchAndCreate(0, existing, cb);
-        });
-    });
 }
 
 /* === VC REFRESH (separate timer — keeps ecoGetAll out of the 5 s hot loop) === */
@@ -641,7 +951,7 @@ function runOnce() {
 
 /* === INIT === */
 // Config is read from the embedded CONFIG and DEVICES_CFG objects above.
-// VCs are looked up by name on restart and reused; missing ones are created.
+// VCs are created, verified, grouped, and reused by the shared VC helper.
 
 function init() {
     if (!CONFIG.accessKey || !CONFIG.secretKey || !CONFIG.serial) {
@@ -677,7 +987,14 @@ function init() {
           "poll=" + String(CFG.pollMs) + " ms, " +
           "night=" + String(CFG.nightStart) + ":00-" + String(CFG.nightEnd) + ":00");
 
-    ensureVCs(function() {
+    ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) {
+        if (!ok) {
+            print("[Init] ERROR: Virtual component setup failed");
+            return;
+        }
+
+        bindVirtualComponents(readyVc);
+        vcReady = true;
         print("[Init] VCs ready (" + String(VC_SPECS.length - 1) + " + 1 group)");
         refreshEco();                               // initial VC population
         runOnce();

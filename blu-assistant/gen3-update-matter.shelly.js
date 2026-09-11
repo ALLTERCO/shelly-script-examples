@@ -5,28 +5,364 @@
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/blu-assistant/gen3-update-matter.shelly.js
  */
 
+// ============================================================================
+// VIRTUAL COMPONENT STANDARD HELPER
+// ============================================================================
+//
+// Usage:
+//
+// var VIRTUAL_COMPONENTS = {
+//   components: [
+//     {
+//       key: "soc",
+//       type: "number",
+//       id: 200, // optional; when omitted the helper creates the next free one
+//       config: {
+//         name: "Battery SOC",
+//         min: 0,
+//         max: 100,
+//         unit: "%",
+//         meta: { ui: { view: "progressbar" }, cloud: ["measurement"] }
+//       }
+//     },
+//     {
+//       key: "status",
+//       type: "text",
+//       config: {
+//         name: "Status",
+//         default_value: "",
+//         persisted: false,
+//         meta: { ui: { view: "label", maxLength: 255 }, cloud: ["log"] }
+//       }
+//     }
+//   ],
+//   groups: [
+//     { id: 200, name: "Battery", components: ["soc", "status"] }
+//   ]
+// };
+//
+// ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, vc) {
+//   if (!ok) {
+//     print("Virtual Component setup failed");
+//     return;
+//   }
+//
+//   vc.handles.soc.setValue(73);
+//   vc.handles.status.setValue("ready");
+// });
+//
+// Notes:
+// - `key` is only the logical name inside your script.
+// - `type` is a Shelly dynamic component type: number, boolean, text, enum,
+//   button, group.
+// - For fixed IDs, the helper checks whether the existing component config
+//   matches. If not, it deletes and recreates it.
+// - Without fixed IDs, the helper searches by type + config.name. If a matching
+//   component exists and fits the config, it reuses it. If not, it creates a new
+//   component and stores the assigned id.
+// - The callback receives `vc.ids[key]`, `vc.keys[key]`, and `vc.handles[key]`.
+// ============================================================================
+
+function ensureVirtualComponents(manifest, done) {
+  var VC_HELPER_DELAY_MS = 150;
+  var state = {
+    existing: [],
+    ids: {},
+    keys: {},
+    handles: {},
+    ok: true
+  };
+
+  function log(msg) {
+    print("[VC] " + msg);
+  }
+
+  function componentKey(type, id) {
+    return type + ":" + String(id);
+  }
+
+
+  function shallowConfigMatches(desired, current) {
+    var k;
+
+    if (!desired || !current) return false;
+
+    for (k in desired) {
+      if (k === "meta") {
+        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
+      } else if (typeof desired[k] === "object" && desired[k] !== null) {
+        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
+      } else if (desired[k] !== current[k]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function normalizeComponent(spec) {
+    if (!spec.config) spec.config = {};
+    if (!spec.config.name) spec.config.name = spec.key;
+    return spec;
+  }
+
+  function findExistingByName(type, name) {
+    var i;
+    var c;
+    for (i = 0; i < state.existing.length; i++) {
+      c = state.existing[i];
+      if (c.type === type && c.name === name) return c;
+    }
+    return null;
+  }
+
+  function remember(spec, id) {
+    var key = componentKey(spec.type, id);
+    state.ids[spec.key] = id;
+    state.keys[spec.key] = key;
+    state.handles[spec.key] = Virtual.getHandle(key);
+  }
+
+  function getConfig(type, id) {
+    return Shelly.getComponentConfig(type, id);
+  }
+
+  function deleteComponent(key, cb) {
+    Shelly.call("Virtual.Delete", { key: key }, function(res, errCode, errMsg) {
+      if (errCode !== 0) {
+        log("Virtual.Delete skipped for " + key + ": " + String(errCode) + " " + String(errMsg));
+      }
+      Timer.set(VC_HELPER_DELAY_MS, false, cb);
+    });
+  }
+
+  function addComponent(spec, cb) {
+    var params = { type: spec.type, config: spec.config };
+    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
+
+    Shelly.call("Virtual.Add", params, function(res, errCode, errMsg) {
+      var id;
+
+      if (errCode !== 0) {
+        log("Virtual.Add failed for " + spec.key + ": " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      id = spec.id;
+      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
+      if (id === undefined || id === null) {
+        log("Virtual.Add did not return id for " + spec.key);
+        state.ok = false;
+        cb(false);
+        return;
+      }
+
+      remember(spec, id);
+      log("Created " + state.keys[spec.key] + " " + spec.config.name);
+      Timer.set(VC_HELPER_DELAY_MS, false, function() { cb(true); });
+    });
+  }
+
+  function ensureOne(spec, cb) {
+    var current;
+    var existing;
+    var key;
+
+    spec = normalizeComponent(spec);
+
+    if (spec.id !== undefined && spec.id !== null) {
+      current = getConfig(spec.type, spec.id);
+      key = componentKey(spec.type, spec.id);
+
+      if (current) {
+        if (shallowConfigMatches(spec.config, current)) {
+          remember(spec, spec.id);
+          cb(true);
+          return;
+        }
+
+        log("Recreating mismatched " + key + " " + spec.config.name);
+        deleteComponent(key, function() { addComponent(spec, cb); });
+        return;
+      }
+
+      addComponent(spec, cb);
+      return;
+    }
+
+    existing = findExistingByName(spec.type, spec.config.name);
+    if (existing && shallowConfigMatches(spec.config, existing.config)) {
+      remember(spec, existing.id);
+      cb(true);
+      return;
+    }
+
+    if (existing) {
+      log("Existing " + existing.key + " does not fit " + spec.config.name + "; creating a new one");
+    }
+    addComponent(spec, cb);
+  }
+
+  function ensureList(index, cb) {
+    var list = manifest.components || [];
+    if (index >= list.length) {
+      cb();
+      return;
+    }
+
+    ensureOne(list[index], function() {
+      Timer.set(VC_HELPER_DELAY_MS, false, function() {
+        ensureList(index + 1, cb);
+      });
+    });
+  }
+
+  function createGroupConfig(name) {
+    return { name: name, meta: { ui: { view: "group" } } };
+  }
+
+  function groupMembers(group) {
+    var members = [];
+    var i;
+    var logicalKey;
+
+    for (i = 0; i < group.components.length; i++) {
+      logicalKey = group.components[i];
+      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
+    }
+
+    return members;
+  }
+
+  function ensureGroup(index, cb) {
+    var groups = manifest.groups || [];
+    var group;
+    var cfg;
+    var current;
+    var key;
+
+    if (index >= groups.length) {
+      cb();
+      return;
+    }
+
+    group = groups[index];
+    cfg = createGroupConfig(group.name);
+    key = componentKey("group", group.id);
+    current = getConfig("group", group.id);
+
+    function setMembersAndContinue() {
+      Shelly.call("Group.Set", { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Group.Set failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+        }
+        Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+      });
+    }
+
+    if (current && shallowConfigMatches(cfg, current)) {
+      setMembersAndContinue();
+      return;
+    }
+
+    function addGroup() {
+      Shelly.call("Virtual.Add", { type: "group", id: group.id, config: cfg }, function(res, errCode, errMsg) {
+        if (errCode !== 0) {
+          log("Virtual.Add group failed for " + key + ": " + String(errCode) + " " + String(errMsg));
+          state.ok = false;
+          Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
+          return;
+        }
+        setMembersAndContinue();
+      });
+    }
+
+    if (current) {
+      deleteComponent(key, addGroup);
+    } else {
+      addGroup();
+    }
+  }
+
+  function readExistingPage(offset, cb) {
+    Shelly.call("Shelly.GetComponents", { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
+      var raw;
+      var total;
+      var i;
+      var c;
+      var cfg;
+      var keyParts;
+
+      if (errCode !== 0) {
+        log("Shelly.GetComponents failed: " + String(errCode) + " " + String(errMsg));
+        state.ok = false;
+        cb();
+        return;
+      }
+
+      raw = (res && res.components) ? res.components : [];
+      total = res ? (res.total || raw.length) : raw.length;
+
+      for (i = 0; i < raw.length; i++) {
+        c = raw[i];
+        cfg = c.config || {};
+        keyParts = (c.key || "").split(":");
+        state.existing.push({
+          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
+          type: c.type || keyParts[0],
+          id: cfg.id,
+          name: cfg.name,
+          config: cfg
+        });
+      }
+
+      if (offset + raw.length < total && raw.length > 0) {
+        readExistingPage(offset + raw.length, cb);
+      } else {
+        cb();
+      }
+    });
+  }
+
+  readExistingPage(0, function() {
+    ensureList(0, function() {
+      ensureGroup(0, function() {
+        done(state.ok, {
+          ids: state.ids,
+          keys: state.keys,
+          handles: state.handles
+        });
+      });
+    });
+  });
+}
+
+
 /************************************************
  * CONFIGURATION & CONSTANTS
  ************************************************/
 var CONFIG = {
     // RSSI threshold for including devices in queue
     RSSI_THRESHOLD: -35,
-    
+
     // WiFi credentials
     WIFI_SSID: "YOUR_WIFI_SSID",          // WiFi SSID
     WIFI_PASS: "YOUR_WIFI_PASSWORD",       // WiFi password
-  
+
     // Number of retry attempts when no update is found
     NO_UPDATE_RETRIES: 3,
-  
+
     // Delay durations (ms)
     DELAY_AFTER_WIFI: 10000,      // 10 seconds
     DELAY_POST_UPDATE: 120000,    // 2 minutes
     DELAY_AFTER_REBOOT: 10000,    // 10 seconds
-  
+
     // Manufacturer signature (if needed)
     ALLTERCO_MFD_ID: "a90b",
-  
+
     // BLE Scan Parameters: we include RSSI threshold directly
     BLE_SCAN_PARAMS: {
       active: false,
@@ -35,18 +371,18 @@ var CONFIG = {
       interval_ms: 100,
       rssi_thr: -35  // only devices with RSSI ≥ –35
     },
-  
+
     // How many GATT calls to run in parallel
     MAX_CONCURRENT: 4,
-  
+
     // Button configuration
     SYS_BTN: "pair",
     V_CMP_ACTIVATE_BTN: "button:200"
   };
-  
+
   // Queue for devices to process
   var deviceQueue = [];
-  
+
   /************************************************
    * VERSION COMPARISON
    ************************************************/
@@ -60,11 +396,11 @@ var CONFIG = {
     }
     return true;
   }
-  
+
   /************************************************
    * HELPER FUNCTIONS
    ************************************************/
-  
+
   /**
    * Extract the model ID from advertisement data (if needed)
    */
@@ -72,7 +408,7 @@ var CONFIG = {
     return parseInt(adv_data.substring(22,24), 16) +
            (parseInt(adv_data.substring(24,26), 16) << 8);
   }
-  
+
   /**
    * Add a device to the queue if its RSSI meets the threshold
    */
@@ -82,11 +418,11 @@ var CONFIG = {
       deviceQueue.push({ addr: dev.addr, rssi: dev.rssi });
     }
   }
-  
+
   /************************************************
    * REMOTE RPC COMMAND FUNCTIONS
    ************************************************/
-  
+
   function setWiFi(addr, ssid, pass, cb) {
     Shelly.call("GATTC.call", {
       addr: addr,
@@ -99,7 +435,7 @@ var CONFIG = {
       }
     }, cb);
   }
-  
+
   function getIPAddress(addr, cb) {
     Shelly.call("GATTC.call", {
       addr: addr,
@@ -113,7 +449,7 @@ var CONFIG = {
       cb(res.sta_ip);
     });
   }
-  
+
   function getDeviceInfo(addr, cb) {
     Shelly.call("GATTC.call", {
       addr: addr,
@@ -121,7 +457,7 @@ var CONFIG = {
       params: {}
     }, cb);
   }
-  
+
   function checkForFirmwareUpdate(addr, cb) {
     Shelly.call("GATTC.call", {
       addr: addr,
@@ -139,7 +475,7 @@ var CONFIG = {
       }
     });
   }
-  
+
   function triggerUpdate(addr, cb) {
     // Attempts to start firmware update and return error code/message
     Shelly.call("GATTC.call", {
@@ -155,7 +491,7 @@ var CONFIG = {
       cb(err, msg);
     });
   }
-  
+
   function rebootDevice(addr, cb) {
     console.log("Rebooting device", addr);
     Shelly.call("GATTC.call", {
@@ -164,7 +500,7 @@ var CONFIG = {
       params: {}
     }, cb);
   }
-  
+
   function getMatterSetupCode(addr, cb) {
     Shelly.call("GATTC.call", {
       addr: addr,
@@ -174,7 +510,7 @@ var CONFIG = {
       cb(res, err, msg);
     });
   }
-  
+
   /************************************************
    * BULK ACTION WITH CONCURRENCY THROTTLING
    ************************************************/
@@ -196,16 +532,16 @@ var CONFIG = {
     }
     nextOne();
   }
-  
+
   /************************************************
    * QUEUE PROCESSING SEQUENCE (PARALLEL)
    ************************************************/
-  
+
   function runBatch() {
     console.log("== BATCH START == Devices to process:", deviceQueue.length);
     console.log("🔍 Phase 1: Configuring WiFi for all devices");
     deviceQueue.forEach(function(dev, idx) { dev.id = idx + 1; });
-  
+
     // Phase 1: WiFi
     bulkAction(deviceQueue, function(dev, next) {
       console.log("Dev" + dev.id + " - Phase 1: Config WiFi for", dev.addr, "(RSSI:", dev.rssi + ")");
@@ -213,7 +549,7 @@ var CONFIG = {
     }, function() {
       console.log("⌛ Waiting " + (CONFIG.DELAY_AFTER_WIFI/1000) + "s for all devices WiFi setup...");
       Timer.set(CONFIG.DELAY_AFTER_WIFI, false, function() {
-  
+
         // Phase 2: IP
         console.log("📶 Phase 2: Retrieving device IPs");
         var attempts = 0;
@@ -243,7 +579,7 @@ var CONFIG = {
           });
         }
         tryIPs(deviceQueue);
-  
+
         // Phase 3: Current firmware
         function phase3() {
           console.log("🔍 Phase 3: Retrieving current firmware versions");
@@ -255,14 +591,14 @@ var CONFIG = {
             });
           }, phase4);
         }
-  
+
         // Phase 4: Trigger updates if needed
         function phase4() {
           console.log("💡 Phase 4: Checking & triggering necessary updates");
-  
+
           // Split into up-to-date vs needs-update
           var upToDate = [], toUpdate = [], updateErrors = [];
-  
+
           deviceQueue.forEach(function(dev) {
             if (dev.currentVer && versionCompare(dev.currentVer, "1.6.1")) {
               console.log("Dev" + dev.id + " - Skipping update, firmware ≥1.6.1");
@@ -272,7 +608,7 @@ var CONFIG = {
               toUpdate.push(dev);
             }
           });
-  
+
           // Attempt updates with retries
           var updated = [], failedUpdates = [];
           bulkAction(toUpdate, function(dev, next) {
@@ -317,12 +653,12 @@ var CONFIG = {
             });
           });
         }
-  
+
         // Phase 5: Enable Matter & retrieve codes
         function phase5(devices, updateErrors) {
           console.log("🔧 Phase 5: Enabling Matter on", devices.length, "devices");
           var matterErrors = [];
-  
+
           devices.forEach(function(dev) {
             console.log("Dev" + dev.id + " - Enabling Matter for", dev.addr);
             Shelly.call("GATTC.call", {
@@ -338,7 +674,7 @@ var CONFIG = {
               }
             });
           });
-  
+
           console.log("⌛ Waiting " + (CONFIG.DELAY_AFTER_REBOOT/1000) + "s after Matter enable...");
           Timer.set(CONFIG.DELAY_AFTER_REBOOT, false, function() {
             console.log("📜 Retrieving Matter setup codes for all devices");
@@ -353,7 +689,7 @@ var CONFIG = {
                 }
               });
             });
-  
+
             // Final error summary
             Timer.set(500, false, function() {
               if (updateErrors.length) {
@@ -367,11 +703,11 @@ var CONFIG = {
             });
           });
         }
-  
+
       }); // end DELAY_AFTER_WIFI callback
     });   // end Phase 1 bulkAction callback
   }       // end runBatch()
-  
+
   /************************************************
    * BLE SCANNING
    ************************************************/
@@ -385,16 +721,16 @@ var CONFIG = {
     if (deviceQueue.length > 0) runBatch();
     else console.log("No devices met RSSI threshold.");
   }
-  
+
   function BLEScan() {
     console.log("🔍 Initiating BLE scan…");
     Shelly.call("GATTC.Scan", CONFIG.BLE_SCAN_PARAMS, BLEScanCb);
   }
-  
+
   /************************************************
    * EVENT HANDLERS & INITIALIZATION
    ************************************************/
-  
+
   function _shelly_event_handler(ev) {
     if (!ev.info || ev.info.component !== "sys" || ev.info.event !== "brief_btn_down") return;
     if (ev.info.name === CONFIG.SYS_BTN) {
@@ -402,18 +738,28 @@ var CONFIG = {
       BLEScan();
     }
   }
-  
-  var virtualDeployBtn = Virtual.getHandle(CONFIG.V_CMP_ACTIVATE_BTN);
-  if (virtualDeployBtn) {
-    virtualDeployBtn.on("single_push", function() {
-      console.log("Virtual button pressed — starting batch process.");
-      BLEScan();
+
+  function bindVirtualComponents(readyVc) {
+    CONFIG.V_CMP_ACTIVATE_BTN = readyVc.keys.matterUpdate;
+  }
+
+  function init() {
+    ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+      if (!ok) {
+        console.log("Virtual component setup failed.");
+        return;
+      }
+      bindVirtualComponents(readyVc);
+      Shelly.addEventHandler(_shelly_event_handler);
+      var virtualDeployBtn = readyVc.handles.matterUpdate;
+      if (virtualDeployBtn) {
+        virtualDeployBtn.on("single_push", function() {
+          console.log("Virtual button pressed - starting batch process.");
+          BLEScan();
+        });
+      }
+      console.log("Batch update script initialized. Waiting for trigger...");
     });
   }
-  
-  function init() {
-    Shelly.addEventHandler(_shelly_event_handler);
-    console.log("Batch update script initialized. Waiting for trigger...");
-  }
-  
+
   init();

@@ -22,12 +22,42 @@ This repository is designed for:
 
 ## Documentation
 
-- [Script Index](SHELLY_MJS.md) - Full list of all example scripts with descriptions
+- [Example Manifest](examples-manifest.json) - Machine-readable list of production examples, descriptions, and tags
 - [Changelog](CHANGELOG.md) - See what's new
 - [Contributing](CONTRIBUTING.md) - How to contribute to this project
 - [Tools](tools/README.md) - Helper utilities for uploading scripts and validation
 - [License](LICENSE) - Apache License 2.0
 - [Shelly Script Documentation](https://shelly-api-docs.shelly.cloud/gen2/Scripts/ShellyScriptLanguageFeatures) - Official Shelly scripting docs
+
+
+## Virtual Component Scripts
+
+Runtime scripts that use Shelly Virtual Components should be self-contained. A user should be able to upload and start the script on a compatible device without manually creating the components first.
+
+Use `snippets/virtual-components-helper.shelly.js` as the standard mechanism:
+
+- Embed the helper as a normal code section in the standalone `.shelly.js` file. Do not copy the helper `@title`, `@description`, or `@status` metadata block into runtime scripts.
+- Define one `VIRTUAL_COMPONENTS` manifest, or a small `buildVirtualComponentsManifest()` function when the script already has an `ENTITIES`/`COMPONENTS` table.
+- Preserve fixed IDs when a README, dashboard, article, or companion script already documents `type:id` values.
+- Put groups in the manifest and reference logical component keys, not raw strings such as `number:200`.
+- Start polling, control handlers, HTTP requests, MODBUS reads, or BLE scanning only after `ensureVirtualComponents(...)` returns `ok === true`.
+- Bind handles from the callback result, for example `readyVc.handles.soc`, instead of assuming the VC already exists.
+
+The expected startup shape is:
+
+```javascript
+ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+  if (!ok) {
+    print('ERROR: Virtual component setup failed');
+    return;
+  }
+
+  bindVirtualComponents(readyVc);
+  startApp();
+});
+```
+
+This makes each script create missing VCs, reuse matching VCs, repair mismatched fixed-ID VCs, restore group membership, and bind handles before normal logic starts.
 
 ## Collections
 
@@ -41,6 +71,7 @@ This repository is designed for:
 - [howto/](howto/README.md) - Minimal examples and tutorials
 - [http-integrations/](http-integrations/README.md) - HTTP endpoints, notifications, and external services
 - [lora/](lora/README.md) - LoRa send/receive and device control examples
+- [modbus/](modbus/README.md) - MODBUS examples for RS485 add-ons and native MODBUS clients
 - [mqtt/](mqtt/README.md) - MQTT and Home Assistant integrations
 - [networking/](networking/README.md) - Provisioning and watchdog scripts
 - [power-energy/](power-energy/README.md) - Load management, power thresholds, and monitoring
