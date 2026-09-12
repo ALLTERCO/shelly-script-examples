@@ -23,9 +23,15 @@
  *
  * Shedding rules:
  *   - When total current > CONFIG.maxAmps: turn off the lowest-priority
- *     switch that is ON and not already shed by this script.
+ *     switch that is ON and not already shed by this script. This check
+ *     (checkShed) reacts immediately to every current/output update, plus a
+ *     2 s timer tick, so overcurrent is shed quickly.
  *   - When total current < CONFIG.reenableAmps and the post-shed cooldown
  *     has elapsed: restore the highest-priority switch that this script shed.
+ *     This check (checkRestore) runs ONLY on the 2 s timer tick, never from a
+ *     switch/current event, so a manual UI action can never cause an
+ *     automatic restore to fire in the same instant and look "paired" with
+ *     it.
  *   - Only one switch is acted on per decision cycle. Consecutive sheds are
  *     spaced by CONFIG.minShedMs; consecutive restores by CONFIG.minRestoreMs.
  *
@@ -64,7 +70,7 @@ let CONFIG = {
   reenableAmps: 1.0,    // Restore only when total current drops below this
   minShedMs: 200,       // Min ms between consecutive shed actions
   cooldownMs: 60000,    // Ms after last shed before any restore is attempted
-  minRestoreMs: 30000,  // Min ms between consecutive restore actions
+  minRestoreMs: 10000,  // Min ms between consecutive restore actions
   labels: ['Kupaona Bojler', 'Soba 1 Bojler', 'Soba 2 Bojler', 'Vani Suko'],
   kvsKey: 'pro4pm-load-shedding-state', // KVS key used to remember on/off state across reboots
 };
@@ -129,41 +135,48 @@ function checkBootRestoreComplete() {
   persistState();
 }
 
-function decide() {
+// Reacts immediately to current/output changes so overcurrent is shed fast.
+// Never restores - restoring is handled solely by checkRestore() on its own
+// timer, so a manual switch-on can't piggyback an extra automatic restore
+// and make two switches appear to turn on together.
+function checkShed() {
   let total = totalCurrent();
   let now = Date.now();
-
-  if (total > CONFIG.maxAmps) {
-    if (now - lastShedMs < CONFIG.minShedMs) return;
-    // Shed the lowest-priority switch that is ON and not already shed by us
-    for (let i = 3; i >= 0; i--) {
-      if (channelOutput[i] && !shedByUs[i]) {
-        print('SHED sw' + i + ' (' + CONFIG.labels[i] + ') total=' + fmtA(total));
-        shedByUs[i] = true;
-        channelCurrent[i] = 0.0;
-        channelOutput[i] = false;
-        lastShedMs = now;
-        setSwitchOutput(i, false);
-        return;
-      }
+  if (total <= CONFIG.maxAmps) return;
+  if (now - lastShedMs < CONFIG.minShedMs) return;
+  // Shed the lowest-priority switch that is ON and not already shed by us
+  for (let i = 3; i >= 0; i--) {
+    if (channelOutput[i] && !shedByUs[i]) {
+      print('SHED sw' + i + ' (' + CONFIG.labels[i] + ') total=' + fmtA(total));
+      shedByUs[i] = true;
+      channelCurrent[i] = 0.0;
+      channelOutput[i] = false;
+      lastShedMs = now;
+      setSwitchOutput(i, false);
+      return;
     }
-    print('WARNING: total=' + fmtA(total) + ' but no switch left to shed');
-    return;
   }
+  print('WARNING: total=' + fmtA(total) + ' but no switch left to shed');
+}
 
-  if (total < CONFIG.reenableAmps) {
-    if (now - lastShedMs < CONFIG.cooldownMs) return;
-    if (now - lastRestoreMs < CONFIG.minRestoreMs) return;
-    // Restore the highest-priority switch that we shed
-    for (let i = 0; i < 4; i++) {
-      if (shedByUs[i]) {
-        print('RESTORE sw' + i + ' (' + CONFIG.labels[i] + ') total=' + fmtA(total));
-        shedByUs[i] = false;
-        lastRestoreMs = now;
-        setSwitchOutput(i, true);
-        checkBootRestoreComplete();
-        return;
-      }
+// Only called from the periodic timer, on its own fixed cadence, so
+// restores (whether after runtime shedding or after a reboot) always land
+// CONFIG.minRestoreMs apart and never coincide with a manual UI action.
+function checkRestore() {
+  let total = totalCurrent();
+  let now = Date.now();
+  if (total >= CONFIG.reenableAmps) return;
+  if (now - lastShedMs < CONFIG.cooldownMs) return;
+  if (now - lastRestoreMs < CONFIG.minRestoreMs) return;
+  // Restore the highest-priority switch that we shed
+  for (let i = 0; i < 4; i++) {
+    if (shedByUs[i]) {
+      print('RESTORE sw' + i + ' (' + CONFIG.labels[i] + ') total=' + fmtA(total));
+      shedByUs[i] = false;
+      lastRestoreMs = now;
+      setSwitchOutput(i, true);
+      checkBootRestoreComplete();
+      return;
     }
   }
 }
@@ -198,7 +211,7 @@ Shelly.addStatusHandler(function(msg) {
     channelCurrent[id] = msg.delta.current;
   }
 
-  decide();
+  checkShed();
 });
 
 // ============================================================================
@@ -259,14 +272,12 @@ function initChannel(idx) {
   });
 }
 
-// Drive decide() on a 2 s tick only while simulation is active
+// Runs continuously (real hardware and simulation alike). checkShed() gives
+// fast overcurrent reaction between ticks too; checkRestore() is only ever
+// called from here, so restores land on this fixed cadence.
 Timer.set(2000, true, function() {
-  for (let i = 0; i < 4; i++) {
-    if (simulation_current[i] > 0) {
-      decide();
-      return;
-    }
-  }
+  checkShed();
+  checkRestore();
 });
 
 initChannel(0);
