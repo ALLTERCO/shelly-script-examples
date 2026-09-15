@@ -1,15 +1,15 @@
-# INNOVA AirLeaf ECA644II
+# INNOVA AirLeaf EWF644II
 
-Local Shelly Script integration for an INNOVA AirLeaf fan-coil controller that reports `deviceType` `002`.
+Local Shelly Script integration for an **INNOVA AirLeaf EWF644II** SMART TOUCH fan-coil controller with integrated Wi-Fi that reports `deviceType` `002`.
 
 ## Script
 
-- [`innova-airleaf-eca644ii_vc.shelly.js`](innova-airleaf-eca644ii_vc.shelly.js) — self-contained Shelly Gen3 controller using the INNOVA local HTTP API and six fixed Virtual Components.
+- [`innova-airleaf-ewf644ii_vc.shelly.js`](innova-airleaf-ewf644ii_vc.shelly.js) — self-contained Shelly Gen3 controller using the INNOVA local HTTP API and six fixed Virtual Components for Shelly Smart Control.
 
 ## Requirements
 
 - Shelly Gen3 device with Scripts and Dynamic Virtual Components.
-- INNOVA AirLeaf ECA644II reachable from the Shelly over local IPv4 HTTP.
+- INNOVA AirLeaf EWF644II reachable from Shelly over local IPv4 HTTP.
 - Target status response must report `deviceType` `002`.
 - Configure `CONFIG.host` at the top of the script.
 
@@ -27,8 +27,8 @@ The controller serializes HTTP requests, validates the device type, confirms acc
 
 ## Virtual Components
 
-The script creates or repairs the fixed component IDs `200` through `205` for power, mode, temperature setpoint, fan function, room temperature, and connection status before starting the HTTP controller.
+The script creates or repairs fixed component IDs `200` through `205` for power, mode, temperature setpoint, fan function, room temperature, and connection status before starting the HTTP controller. These components provide the Shelly Smart Control representation of the AirLeaf controller.
 
 ## Scope
 
-Protocol behavior has been validated for a real AirLeaf installation reporting `deviceType` `002`. Do not assume other INNOVA device types expose identical fields or endpoint semantics without validation.
+Protocol behavior has been validated for a real AirLeaf installation reporting `deviceType` `002`. The target hardware is **INNOVA AirLeaf EWF644II**. Do not assume other INNOVA controls or device types expose identical fields or endpoint semantics without validation.
