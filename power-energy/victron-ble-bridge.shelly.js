@@ -254,15 +254,16 @@ function handlePostBLEDataResponse(res, errCode) {
             }
             if (!useVirtualComponents) {
                 print('=== To re-authenticate:');
-                print('=== 1. Put GX device in pairing mode');
+                print('=== 1. Put the GX device in pairing mode');
                 print('=== 2. Restart this script');
                 print('=== STOPPING SCRIPT');
                 die();
             }
             updateGroupMembership();
-            setStatus('Authentication failed - enable pairing mode and authenticate again');
+            print('=== Authentication failed - enable pairing mode on the GX device and press the Authenticate button on the Shelly home screen');
+            setStatus('Authentication failed - enable pairing mode on the GX device and press the Authenticate button on the Shelly home screen');
         } else {
-            setStatus('BLE POST failed: ' + (res ? 'HTTP ' + res.code : 'err ' + errCode));
+            setStatus('Communication failed: ' + (res ? 'HTTP ' + res.code : 'err ' + errCode));
         }
     } else {
         if (debugEnabled()) {
@@ -396,7 +397,7 @@ function handleVenusHostKvs(res, errCode, errMsg) {
     if (errCode !== 0) {
         print('= Victron BLE Bridge ERROR ===');
         print('=== Failed to read venus-host from KVS: ' + errCode + ' - ' + errMsg);
-        print('=== To fix: Go to Advanced -> KVS in the web UI');
+        print('=== To fix: Go to Advanced -> KVS in the Shelly web UI');
         print('=== Add key "venus-host" with your Venus hostname (e.g., venus.local or IP address)');
         print('=== Then restart this script.');
         print('=== STOPPING SCRIPT');
@@ -407,7 +408,7 @@ function handleVenusHostKvs(res, errCode, errMsg) {
     if (!venusHost) {
         print('= Victron BLE Bridge ERROR ===');
         print('=== venus-host is empty');
-        print('=== To fix: Go to Advanced -> KVS in the web UI');
+        print('=== To fix: Go to Advanced -> KVS in the Shelly web UI');
         print('=== Set "venus-host" to your Venus hostname (e.g., venus.local or IP address)');
         print('=== Then restart this script.');
         print('=== STOPPING SCRIPT');
@@ -753,7 +754,7 @@ function handleGenerateTokenButtonPress() {
         if (!venusHost) {
             print('= Victron BLE Bridge ERROR ===');
             print('=== venus-host is empty');
-            print('=== To fix: Go to the Shelly web UI, Virtual Components, and set the venus-host field');
+            print('=== To fix: Go to the Shelly home screen, enter the venus-host field and press Save');
             print('=== Then press the Authenticate button again.');
             setStatus('Venus host required');
         } else {
@@ -800,12 +801,12 @@ function handleVirtualComponentsReady(ok, vc) {
     updateGroupMembership();
     print('= Victron BLE Bridge UI components ready.');
     if (tokenAuthBase64) {
-        print('=== Authentication loaded, starting BLE...');
-        setStatus('Authentication loaded, starting BLE...');
+        print('=== Authentication loaded, starting BLE scanning');
+        setStatus('Authentication loaded, starting BLE scanning');
         startBLEScanning();
     } else {
-        print('=== No authentication found, enable pairing mode and press the Authenticate button');
-        setStatus('Enable pairing mode and press the Authenticate button');
+        print('=== No authentication found, enable pairing mode on the GX device and press the Authenticate button on the Shelly home screen');
+        setStatus('Enable pairing mode on the GX device and press the Authenticate button on the Shelly home screen');
     }
 }
 
