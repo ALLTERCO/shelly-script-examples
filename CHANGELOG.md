@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09
+- Add `mqtt/mqtt-jaalee-jht-bridge.shelly.js`, a bridge script that parses Jaalee JHT BLE sensor data (temperature/humidity/battery) via Shelly BLU Gateway and publishes to Home Assistant via MQTT Auto-Discovery
+
 ## 2026-08
 - Add `ble/ble-blu-button-presence_vc.shelly.js`, a Shelly BLU button presence watcher that tracks paired `bthomedevice` beacons and auto-creates a Boolean Virtual Component group for nearby/away state
 - Document the BLU button presence watcher step by step in `ble/README.md`, including the native Shelly Webhook (`boolean.change`) pattern for local "away" actions, keeping the published script free of hardcoded URLs

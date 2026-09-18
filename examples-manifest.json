@@ -197,6 +197,17 @@
     ]
   },
   {
+    "fname": "ble/blu-gateway-bthome-to-mqtt.shelly.js",
+    "title": "BLU Gateway BTHome to MQTT Script",
+    "description": "Publishes decoded Shelly BLU / BTHome advertisements as Shelly Gen2-style MQTT RPC notifications.",
+    "tags": [
+      "ble",
+      "mqtt",
+      "bthome",
+      "gateway"
+    ]
+  },
+  {
     "fname": "ble/hue-lights-control.shelly.js",
     "title": "Controlling hue lights with Shelly BLU Button or virtual buttons",
     "description": "This script allows you to control your hue lights with a Shelly BLU Button or virtual buttons. You can turn on/off lights, change brightness and color temperature. (Requires firmware version: 1.3 or newer)",
@@ -654,6 +665,17 @@
     ]
   },
   {
+    "fname": "modbus/LG/lg-therma-v-pro-em50_vc.shelly.js",
+    "title": "LG THERMA V Modbus bridge for Shelly Pro EM-50",
+    "description": "Self-contained RS-485/Modbus RTU bridge for compatible LG THERMA V heat pumps using Shelly Pro EM-50 plus Shelly Pro Modbus Add-on.",
+    "tags": [
+      "modbus",
+      "lg",
+      "therma-v",
+      "hvac"
+    ]
+  },
+  {
     "fname": "modbus/Sigenergy/SigenStor/sigenstor_plant_vc.shelly.js",
     "title": "Sigenergy SigenStor MODBUS-RTU plant monitor",
     "description": "Reads SigenStor plant PV, battery, grid, load, SOC, grid state, and status values into Virtual Components with cloud logging.",
@@ -719,6 +741,18 @@
       "switch",
       "lighting",
       "scenes"
+    ]
+  },
+  {
+    "fname": "mqtt/mqtt-jaalee-jht-bridge.shelly.js",
+    "title": "Jaalee JHT BLE sensor to MQTT bridge",
+    "description": "Bridge for Jaalee JHT BLE sensors that decodes iTag and other BLE sensor advertisements and publishes decoded sensor data (temperature, humidity, battery, button) as MQTT messages compatible with Home Assistant MQTT discovery.",
+    "tags": [
+      "ble",
+      "mqtt",
+      "home-assistant",
+      "sensors",
+      "jaalee"
     ]
   },
   {
