@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-09
+- Add hardware-tested INNOVA AirLeaf EWF644II local HTTP controller for deviceType 002 with six Shelly Virtual Components
 - Add `mqtt/mqtt-jaalee-jht-bridge.shelly.js`, a bridge script that parses Jaalee JHT BLE sensor data (temperature/humidity/battery) via Shelly BLU Gateway and publishes to Home Assistant via MQTT Auto-Discovery
 
 ## 2026-08
