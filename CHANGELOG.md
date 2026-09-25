@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-09
+- Add a separate Marstek VenusE controller using firmware-managed values declared through `@meta vc`, a classic persisted Modbus Slave ID field and home-page group for Pro 3EM firmware compatibility, plus portable `MbRtuClient` RPC telemetry/control for Pro RS485 Add-ons; document that tested Pill Gen3 firmware 2.0.1-ge1a198b reboots on managed-VC script startup
+- Replace the Marstek VenusE control buttons with a Charge / Stop / Discharge Virtual Component dropdown, migrate obsolete controls automatically, preserve the persisted power setting across script restarts, use spaced Pill FC06 writes for Gen3-compatible VenusE control, and release RS485 control on Stop
 - Add `mqtt/mqtt-jaalee-jht-bridge.shelly.js`, a bridge script that parses Jaalee JHT BLE sensor data (temperature/humidity/battery) via Shelly BLU Gateway and publishes to Home Assistant via MQTT Auto-Discovery
 - Add `power-energy/victron-ble-bridge.shelly.js` (upstream PR #217 by Thiemo van Engelen, Victron Energy): a BLE bridge that forwards BLE advertisement data to a Victron GX device over HTTPS, making bridged sensors appear under Settings → Bluetooth Sensors. Requires Shelly firmware 1.5.0+ and GX firmware 3.80+; configured through Virtual Components where supported, otherwise a `venus-host` KVS key. Cherry-picked from `upstream/main` and adapted to the fork's standard two-header JSDoc convention
 - Backport upstream PR #211 (tscofield): wrap the `HTTP.POST`, `KVS.Set`, and `syncKVSToAll` paths in `switch-input/n-way-dimmer.shelly.js` in try/catch so a failed remote call logs instead of throwing

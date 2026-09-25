@@ -46,7 +46,7 @@ simpler starting points.
 - [`LinkedGo/R290/`](LinkedGo/R290/): R290 air-to-water thermal pump - `r290_aw_thermal_pump_vc.shelly.js`
 - [`LinkedGo/ST802/`](LinkedGo/ST802/): Youth Smart Thermostat + BMS command simulation - `st802_bms_vc.shelly.js`
 - [`MarsRock/G2_SUN_Series_Grid_Tie_Inverter/`](MarsRock/G2_SUN_Series_Grid_Tie_Inverter/): micro-inverter, only 5 registers total (all promoted to VC) - `g2_sun_series_vc.shelly.js`
-- [`Marstek/VenusE/`](Marstek/VenusE/): battery/inverter, plus a dedicated charge/discharge control script - `venus_e_vc.shelly.js`, `venus_e_control_vc.shelly.js`
+- [`Marstek/VenusE/`](Marstek/VenusE/): battery/inverter, plus dedicated Charge / Stop / Discharge controllers using either self-provisioned fixed-ID VCs or managed, role-based values grouped with a classic Modbus Slave ID field. The managed variant uses portable `MbRtuClient` RPC reads/writes and works on the tested Pro 3EM RS485 Add-on, but not on tested Pill Gen3 firmware 2.0.1-ge1a198b - `venus_e_vc.shelly.js`, `venus_e_control_vc.shelly.js`, `venus_e_control_managed_vc.shelly.js`
 - [`Sigenergy/`](Sigenergy/): Sigenergy/SigenStor MODBUS examples for Shelly Pro RS485 Addon
 - [`V-TAC/VT6607103/`](V-TAC/VT6607103/): hybrid inverter, six inferred live registers - `vtac_six_register_example_vc.shelly.js`
 - [`wirenboard/WB-M1W2-v3/`](wirenboard/WB-M1W2-v3/): 1-Wire to RS-485 converter (DS18B20 + discrete inputs) - `wb_m1w2_v3_vc.shelly.js`
