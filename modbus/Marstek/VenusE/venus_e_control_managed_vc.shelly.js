@@ -1,48 +1,4 @@
-/* @meta {
-  "vc": {
-    "soc": {
-      "type": "number",
-      "config": {
-        "name": "Battery SOC",
-        "min": 0,
-        "max": 100,
-        "default_value": 0,
-        "persisted": false,
-        "meta": { "ui": { "view": "progressbar", "unit": "%" }, "cloud": ["measurement"] }
-      }
-    },
-    "inverterState": {
-      "type": "text",
-      "config": {
-        "name": "Inverter State",
-        "default_value": "unknown",
-        "persisted": false,
-        "meta": { "ui": { "view": "label", "maxLength": 32 }, "cloud": ["measurement"] }
-      }
-    },
-    "controlPower": {
-      "type": "number",
-      "config": {
-        "name": "Control Power",
-        "min": 100,
-        "max": 2500,
-        "default_value": 500,
-        "persisted": true,
-        "meta": { "ui": { "view": "slider", "unit": "W" }, "cloud": ["measurement"] }
-      }
-    },
-    "chargeControl": {
-      "type": "enum",
-      "config": {
-        "name": "Charge Control",
-        "options": ["Charge", "Stop", "Discharge"],
-        "default_value": "Stop",
-        "persisted": false,
-        "meta": { "ui": { "view": "dropdown" } }
-      }
-    }
-  }
-} */
+/* @meta {"vc":{"soc":{"type":"number","config":{"name":"Battery SOC","min":0,"max":100,"meta":{"ui":{"view":"progressbar","unit":"%"},"cloud":["measurement"]}}},"batteryPower":{"type":"number","config":{"name":"Battery Power","min":-2500,"max":2500,"meta":{"ui":{"view":"label","unit":"W"},"cloud":["measurement"]}}},"inverterState":{"type":"text","config":{"name":"State","meta":{"ui":{"view":"label"},"cloud":["measurement"]}}},"controlPower":{"type":"number","config":{"name":"Control Power","min":100,"max":2500,"default_value":500,"persisted":true,"meta":{"ui":{"view":"slider","unit":"W"},"cloud":["measurement"]}}},"chargeControl":{"type":"enum","config":{"name":"Charge","options":["Charge","Stop","Discharge"],"default_value":"Stop","meta":{"ui":{"view":"dropdown"}}}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Marstek"}}}} */
 
 /**
  * @title Marstek VenusE control with managed Virtual Components
@@ -64,20 +20,19 @@
  *
  * Managed Virtual Component roles:
  * - soc: Battery state of charge
+ * - batteryPower: Live battery power
  * - inverterState: Current inverter state
  * - controlPower: Persisted charge/discharge power setting
  * - chargeControl: Charge / Stop / Discharge dropdown
+ * - slaveId: Persisted MODBUS server ID
+ * - group: Home-page group containing all value/control components
  *
- * Compatibility Virtual Components created through RPC:
- * - number:299: Persisted MODBUS server ID
- * - group:200: Home-page group containing all value/control components
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary.
  *
- * Tested Pro 3EM firmware provisions only four managed roles reliably, so the
- * classic Slave ID field and dashboard group remain RPC-managed. Battery power
- * is printed to the script log.
- *
- * The firmware creates and reconciles these components before the script
- * starts. Their numeric IDs are intentionally not known or used by the script.
+ * The firmware creates and reconciles all components before the script starts.
+ * Their numeric IDs are intentionally not known or hard-coded by the script.
  * MODBUS client component ID 100 (Pro RS485 Add-on) is detected automatically;
  * other devices use client ID 0.
  * Do not run this controller together with venus_e_control_vc.shelly.js.
@@ -127,7 +82,6 @@ var TELEMETRY = [
 // ============================================================================
 
 var vc = {};
-var slaveIdHandle = null;
 var state = {
   isControlling: false,
   isPolling: false,
@@ -162,13 +116,13 @@ function clampInteger(value, fallback, min, max) {
 
 function getSlaveId() {
   var value = clampInteger(
-    slaveIdHandle ? slaveIdHandle.getValue() : CONFIG.DEFAULT_SLAVE_ID,
+    vc.slaveId.getValue(),
     CONFIG.DEFAULT_SLAVE_ID,
     CONFIG.MIN_SLAVE_ID,
     CONFIG.MAX_SLAVE_ID
   );
 
-  if (slaveIdHandle && slaveIdHandle.getValue() !== value) slaveIdHandle.setValue(value);
+  if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
   return value;
 }
 
@@ -204,7 +158,7 @@ function isModbusClientReady() {
 }
 
 function bindManagedComponents() {
-  var roles = ['soc', 'inverterState', 'controlPower', 'chargeControl'];
+  var roles = ['soc', 'batteryPower', 'inverterState', 'controlPower', 'chargeControl', 'slaveId', 'group'];
   var i;
 
   for (i = 0; i < roles.length; i++) {
@@ -226,15 +180,21 @@ function managedComponentKey(role, type) {
 }
 
 function setDashboardGroup() {
+  var groupConfig = vc.group.getConfig();
   var members = [
     managedComponentKey('soc', 'number'),
+    managedComponentKey('batteryPower', 'number'),
     managedComponentKey('inverterState', 'text'),
     managedComponentKey('controlPower', 'number'),
-    'number:299',
+    managedComponentKey('slaveId', 'number'),
     managedComponentKey('chargeControl', 'enum')
   ];
   var i;
 
+  if (!groupConfig || groupConfig.id === undefined) {
+    console.log('ERROR: managed dashboard group has no component ID');
+    return;
+  }
   for (i = 0; i < members.length; i++) {
     if (!members[i]) {
       console.log('ERROR: cannot resolve managed dashboard member');
@@ -242,61 +202,12 @@ function setDashboardGroup() {
     }
   }
 
-  Shelly.call('Group.Set', { id: 200, value: members }, function(result, errorCode, errorMessage) {
+  Shelly.call('Group.Set', { id: groupConfig.id, value: members }, function(result, errorCode, errorMessage) {
     if (errorCode !== 0) {
       console.log('Group.Set failed: ' + errorCode + ' ' + errorMessage);
       return;
     }
     console.log('Managed dashboard group ready');
-  });
-}
-
-function ensureClassicComponents(done) {
-  function ensureGroup() {
-    if (Shelly.getComponentConfig('group', 200)) {
-      setDashboardGroup();
-      done();
-      return;
-    }
-
-    Shelly.call('Virtual.Add', {
-      type: 'group',
-      id: 200,
-      config: { name: 'Marstek VenusE Control', meta: { ui: { view: 'group' } } }
-    }, function(result, errorCode, errorMessage) {
-      if (errorCode !== 0) {
-        console.log('Virtual.Add group failed: ' + errorCode + ' ' + errorMessage);
-        return;
-      }
-      setDashboardGroup();
-      done();
-    });
-  }
-
-  if (Shelly.getComponentConfig('number', 299)) {
-    slaveIdHandle = Virtual.getHandle('number:299');
-    ensureGroup();
-    return;
-  }
-
-  Shelly.call('Virtual.Add', {
-    type: 'number',
-    id: 299,
-    config: {
-      name: 'Modbus Slave ID',
-      min: CONFIG.MIN_SLAVE_ID,
-      max: CONFIG.MAX_SLAVE_ID,
-      default_value: CONFIG.DEFAULT_SLAVE_ID,
-      persisted: true,
-      meta: { ui: { view: 'field', step: 1 }, cloud: ['status'], role: 'modbus_id' }
-    }
-  }, function(result, errorCode, errorMessage) {
-    if (errorCode !== 0) {
-      console.log('Virtual.Add Modbus Slave ID failed: ' + errorCode + ' ' + errorMessage);
-      return;
-    }
-    slaveIdHandle = Virtual.getHandle('number:299');
-    ensureGroup();
   });
 }
 
@@ -521,16 +432,15 @@ function init() {
     return;
   }
 
-  ensureClassicComponents(function() {
-    slaveIdHandle.on('change', function() {
-      console.log('Modbus Slave ID changed -> ' + getSlaveId());
-    });
-    vc.chargeControl.on('change', onChargeControlChange);
-
-    console.log('Ready; control power is ' + getControlPower() + ' W');
-    Timer.set(500, false, poll);
-    state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, poll);
+  setDashboardGroup();
+  vc.slaveId.on('change', function() {
+    console.log('Modbus Slave ID changed -> ' + getSlaveId());
   });
+  vc.chargeControl.on('change', onChargeControlChange);
+
+  console.log('Ready; control power is ' + getControlPower() + ' W');
+  Timer.set(500, false, poll);
+  state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, poll);
 }
 
 init();
