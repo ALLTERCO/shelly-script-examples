@@ -1,7 +1,10 @@
+/* @meta {"vc":{"power":{"type":"boolean","config":{"name":"Power","meta":{"ui":{"view":"toggle"}}}},"dhw":{"type":"boolean","config":{"name":"DHW","meta":{"ui":{"view":"toggle"}}}},"silent":{"type":"boolean","config":{"name":"Silent","meta":{"ui":{"view":"toggle"}}}},"heatTarget":{"type":"number","config":{"name":"Heat Target","default_value":35,"min":10,"max":65,"meta":{"ui":{"view":"field","unit":"C"}}}},"dhwTarget":{"type":"number","config":{"name":"DHW Target","default_value":50,"min":25,"max":70,"meta":{"ui":{"view":"field","unit":"C"}}}},"inlet":{"type":"number","config":{"name":"Inlet Temp","min":-50,"max":100,"meta":{"ui":{"view":"label","unit":"C"}}}},"outlet":{"type":"number","config":{"name":"Outlet Temp","min":-50,"max":100,"meta":{"ui":{"view":"label","unit":"C"}}}},"dhwTemp":{"type":"number","config":{"name":"DHW Temp","min":-50,"max":100,"meta":{"ui":{"view":"label","unit":"C"}}}},"error":{"type":"number","config":{"name":"Error Code","min":0,"max":65535,"meta":{"ui":{"view":"label"}}}}}} */
+
 /**
- * @title LG THERMA V Modbus bridge for Shelly Pro EM-50
+ * @title LG THERMA V Modbus bridge for Shelly Pro EM-50 with managed Virtual Components
  * @description Self-contained RS-485/Modbus RTU bridge for compatible LG THERMA V
- *   heat pumps using Shelly Pro EM-50 plus Shelly Pro Modbus Add-on.
+ *   heat pumps using Shelly Pro EM-50 plus Shelly Pro Modbus Add-on, using a
+ *   firmware-managed 9-component Virtual Component set.
  * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/LG/lg-therma-v-pro-em50_vc.shelly.js
  */
@@ -18,9 +21,31 @@
  * - The script preserves a first-read-before-write gate and confirms writes by
  *   reading the physical device back. It does not bypass LG safety logic.
  *
- * Virtual Components:
- * - Exactly 9 fixed components: boolean:200-202 and number:203-207,209.
- * - number:208 remains intentionally unused.
+ * Managed Virtual Component roles:
+ * - power, dhw, silent: on/off toggles
+ * - heatTarget, dhwTarget: writable setpoints, C
+ * - inlet, outlet, dhwTemp: read-only temperatures, C
+ * - error: read-only LG error code
+ *
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary. Per-role
+ * default_value/step metadata is intentionally trimmed to stay inside that
+ * budget; the 0.5 C step validation still happens in code (controlNext),
+ * not just as a UI hint.
+ *
+ * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
+ * script containing even a minimal managed VC declaration is started. This
+ * script does not run on that firmware; there is no non-managed fallback.
+ *
+ * The firmware creates and reconciles all components before the script
+ * starts. Component numeric IDs are resolved once via Script.getVcHandle(
+ * role).getConfig().id and cached in C[i][1] - the rest of the bridge state
+ * machine below is unchanged from the classical version, since it already
+ * operated on resolved numeric IDs (Shelly.getComponentStatus / Type.Set)
+ * rather than Virtual Component handle objects.
+ *
+ * @see https://shelly-api-docs.shelly.cloud/gen2/Scripts/APIs/Virtual/#managed-virtual-components
  */
 
 var CFG = {
@@ -34,174 +59,19 @@ var CFG = {
   settleMs: 700
 };
 
-var VIRTUAL_COMPONENTS = {
-  components: [
-    { key: 'power', type: 'boolean', id: 200, config: { name: 'LG Power', persisted: false, default_value: false, meta: { ui: { view: 'toggle', titles: ['Off', 'On'] } } } },
-    { key: 'dhw', type: 'boolean', id: 201, config: { name: 'LG DHW', persisted: false, default_value: false, meta: { ui: { view: 'toggle', titles: ['Off', 'On'] } } } },
-    { key: 'silent', type: 'boolean', id: 202, config: { name: 'LG Silent Mode', persisted: false, default_value: false, meta: { ui: { view: 'toggle', titles: ['Off', 'On'] } } } },
-    { key: 'heatTarget', type: 'number', id: 203, config: { name: 'LG Heating Target', persisted: false, default_value: 35, min: 10, max: 65, meta: { ui: { view: 'field', unit: 'C', step: 0.5 } } } },
-    { key: 'dhwTarget', type: 'number', id: 204, config: { name: 'LG DHW Target', persisted: false, default_value: 50, min: 25, max: 70, meta: { ui: { view: 'field', unit: 'C', step: 0.5 } } } },
-    { key: 'inlet', type: 'number', id: 205, config: { name: 'LG Inlet Temperature', persisted: false, default_value: 0, min: -50, max: 100, meta: { ui: { view: 'label', unit: 'C', step: 0.1 } } } },
-    { key: 'outlet', type: 'number', id: 206, config: { name: 'LG Outlet Temperature', persisted: false, default_value: 0, min: -50, max: 100, meta: { ui: { view: 'label', unit: 'C', step: 0.1 } } } },
-    { key: 'dhwTemp', type: 'number', id: 207, config: { name: 'LG DHW Temperature', persisted: false, default_value: 0, min: -50, max: 100, meta: { ui: { view: 'label', unit: 'C', step: 0.1 } } } },
-    { key: 'error', type: 'number', id: 209, config: { name: 'LG Error Code', persisted: false, default_value: 0, min: 0, max: 65535, meta: { ui: { view: 'label', step: 1 } } } }
-  ]
-};
-
-function ensureVirtualComponents(manifest, done) {
-  var VC_HELPER_DELAY_MS = 150;
-  var state = { existing: [], ids: {}, keys: {}, handles: {}, ok: true };
-
-  function log(msg) { print('[VC] ' + msg); }
-  function componentKey(type, id) { return type + ':' + String(id); }
-  function shallowConfigMatches(desired, current) {
-    var k;
-    if (!desired || !current) return false;
-    for (k in desired) {
-      if (k === 'meta') {
-        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
-      } else if (typeof desired[k] === 'object' && desired[k] !== null) {
-        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
-      } else if (desired[k] !== current[k]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  function normalizeComponent(spec) {
-    if (!spec.config) spec.config = {};
-    if (!spec.config.name) spec.config.name = spec.key;
-    return spec;
-  }
-  function findExistingByName(type, name) {
-    var i, c;
-    for (i = 0; i < state.existing.length; i++) {
-      c = state.existing[i];
-      if (c.type === type && c.name === name) return c;
-    }
-    return null;
-  }
-  function remember(spec, id) {
-    var key = componentKey(spec.type, id);
-    state.ids[spec.key] = id;
-    state.keys[spec.key] = key;
-    state.handles[spec.key] = Virtual.getHandle(key);
-  }
-  function getConfig(type, id) { return Shelly.getComponentConfig(type, id); }
-  function deleteComponent(key, cb) {
-    Shelly.call('Virtual.Delete', { key: key }, function(res, errCode, errMsg) {
-      if (errCode !== 0) log('Virtual.Delete skipped for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-      Timer.set(VC_HELPER_DELAY_MS, false, cb);
-    });
-  }
-  function addComponent(spec, cb) {
-    var params = { type: spec.type, config: spec.config };
-    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
-    Shelly.call('Virtual.Add', params, function(res, errCode, errMsg) {
-      var id;
-      if (errCode !== 0) {
-        log('Virtual.Add failed for ' + spec.key + ': ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false; cb(false); return;
-      }
-      id = spec.id;
-      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
-      if (id === undefined || id === null) {
-        log('Virtual.Add did not return id for ' + spec.key);
-        state.ok = false; cb(false); return;
-      }
-      remember(spec, id);
-      log('Created ' + state.keys[spec.key] + ' ' + spec.config.name);
-      Timer.set(VC_HELPER_DELAY_MS, false, function() { cb(true); });
-    });
-  }
-  function ensureOne(spec, cb) {
-    var current, existing, key;
-    spec = normalizeComponent(spec);
-    if (spec.id !== undefined && spec.id !== null) {
-      current = getConfig(spec.type, spec.id);
-      key = componentKey(spec.type, spec.id);
-      if (current) {
-        if (shallowConfigMatches(spec.config, current)) { remember(spec, spec.id); cb(true); return; }
-        log('Recreating mismatched ' + key + ' ' + spec.config.name);
-        deleteComponent(key, function() { addComponent(spec, cb); });
-        return;
-      }
-      addComponent(spec, cb); return;
-    }
-    existing = findExistingByName(spec.type, spec.config.name);
-    if (existing && shallowConfigMatches(spec.config, existing.config)) { remember(spec, existing.id); cb(true); return; }
-    if (existing) log('Existing ' + existing.key + ' does not fit ' + spec.config.name + '; creating a new one');
-    addComponent(spec, cb);
-  }
-  function ensureList(index, cb) {
-    var list = manifest.components || [];
-    if (index >= list.length) { cb(); return; }
-    ensureOne(list[index], function() {
-      Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureList(index + 1, cb); });
-    });
-  }
-  function createGroupConfig(name) { return { name: name, meta: { ui: { view: 'group' } } }; }
-  function groupMembers(group) {
-    var members = [], i, logicalKey;
-    for (i = 0; i < group.components.length; i++) {
-      logicalKey = group.components[i];
-      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
-    }
-    return members;
-  }
-  function ensureGroup(index, cb) {
-    var groups = manifest.groups || [], group, cfg, current, key;
-    if (index >= groups.length) { cb(); return; }
-    group = groups[index]; cfg = createGroupConfig(group.name);
-    key = componentKey('group', group.id); current = getConfig('group', group.id);
-    function setMembersAndContinue() {
-      Shelly.call('Group.Set', { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
-        if (errCode !== 0) { log('Group.Set failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg)); state.ok = false; }
-        Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); });
-      });
-    }
-    function addGroup() {
-      Shelly.call('Virtual.Add', { type: 'group', id: group.id, config: cfg }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Virtual.Add group failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg)); state.ok = false;
-          Timer.set(VC_HELPER_DELAY_MS, false, function() { ensureGroup(index + 1, cb); }); return;
-        }
-        setMembersAndContinue();
-      });
-    }
-    if (current && shallowConfigMatches(cfg, current)) { setMembersAndContinue(); return; }
-    if (current) deleteComponent(key, addGroup); else addGroup();
-  }
-  function readExistingPage(offset, cb) {
-    Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
-      var raw, total, i, c, cfg, keyParts;
-      if (errCode !== 0) { log('Shelly.GetComponents failed: ' + String(errCode) + ' ' + String(errMsg)); state.ok = false; cb(); return; }
-      raw = (res && res.components) ? res.components : [];
-      total = res ? (res.total || raw.length) : raw.length;
-      for (i = 0; i < raw.length; i++) {
-        c = raw[i]; cfg = c.config || {}; keyParts = (c.key || '').split(':');
-        state.existing.push({ key: c.key || componentKey(c.type || keyParts[0], cfg.id), type: c.type || keyParts[0], id: cfg.id, name: cfg.name, config: cfg });
-      }
-      if (offset + raw.length < total && raw.length > 0) readExistingPage(offset + raw.length, cb); else cb();
-    });
-  }
-  readExistingPage(0, function() {
-    ensureList(0, function() {
-      ensureGroup(0, function() { done(state.ok, { ids: state.ids, keys: state.keys, handles: state.handles }); });
-    });
-  });
-}
+var MANAGED_ROLES = ['power', 'dhw', 'silent', 'heatTarget', 'dhwTarget', 'inlet', 'outlet', 'dhwTemp', 'error'];
+var vc = {};
 
 var C = [
-  ['Boolean', 200, 'Power', 0],
-  ['Boolean', 201, 'DHW', 1],
-  ['Boolean', 202, 'Silent', 2],
-  ['Number', 203, 'Heating target', 2, 10, 65],
-  ['Number', 204, 'DHW target', 8, 25, 70],
-  ['Number', 205, 'Inlet', 2, -50, 100],
-  ['Number', 206, 'Outlet', 3, -50, 100],
-  ['Number', 207, 'DHW temperature', 5, -50, 100],
-  ['Number', 209, 'Error code', 0, 0, 65535]
+  ['Boolean', null, 'Power', 0, null, null, 'power'],
+  ['Boolean', null, 'DHW', 1, null, null, 'dhw'],
+  ['Boolean', null, 'Silent', 2, null, null, 'silent'],
+  ['Number', null, 'Heating target', 2, 10, 65, 'heatTarget'],
+  ['Number', null, 'DHW target', 8, 25, 70, 'dhwTarget'],
+  ['Number', null, 'Inlet', 2, -50, 100, 'inlet'],
+  ['Number', null, 'Outlet', 3, -50, 100, 'outlet'],
+  ['Number', null, 'DHW temperature', 5, -50, 100, 'dhwTemp'],
+  ['Number', null, 'Error code', 0, 0, 65535, 'error']
 ];
 var READS = [
   ['ReadCoils', 0, 3],
@@ -350,11 +220,49 @@ function publishNext() {
   });
 }
 function startBridge() {
-  print('[LG] self-contained bridge: 9 components; RTU ' + CFG.baud + ' ' + CFG.format + '; slave ' + CFG.slaveId);
+  print('[LG] managed-VC bridge: 9 components; RTU ' + CFG.baud + ' ' + CFG.format + '; slave ' + CFG.slaveId);
   later(begin, 1);
 }
-ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
-  if (!ok) { print('[LG] ERROR: Virtual component setup failed'); return; }
-  if (!readyVc || !readyVc.handles.power || !readyVc.handles.error) { print('[LG] ERROR: Virtual component handles unavailable'); return; }
+
+function bindManagedComponents() {
+  var i;
+
+  for (i = 0; i < MANAGED_ROLES.length; i++) {
+    vc[MANAGED_ROLES[i]] = Script.getVcHandle(MANAGED_ROLES[i]);
+    if (!vc[MANAGED_ROLES[i]]) {
+      print('[LG] ERROR: managed Virtual Component role not available: ' + MANAGED_ROLES[i]);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function resolveComponentIds() {
+  var i;
+  var config;
+
+  for (i = 0; i < C.length; i++) {
+    config = vc[C[i][6]].getConfig();
+    if (!config || config.id === undefined) {
+      print('[LG] ERROR: managed component has no id: ' + C[i][6]);
+      return false;
+    }
+    C[i][1] = config.id;
+  }
+
+  return true;
+}
+
+function init() {
+  if (!bindManagedComponents()) {
+    print('[LG] Check firmware support and the script @meta declaration');
+    return;
+  }
+
+  if (!resolveComponentIds()) return;
+
   startBridge();
-});
+}
+
+init();

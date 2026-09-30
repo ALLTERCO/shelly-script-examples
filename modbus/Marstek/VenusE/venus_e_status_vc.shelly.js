@@ -1,407 +1,106 @@
+/* @meta {"vc":{"soc":{"type":"number","config":{"name":"Battery SOC","unit":"%"}},"chargeLimit":{"type":"number","config":{"name":"Charge Current Limit","unit":"A"}},"dischargeLimit":{"type":"number","config":{"name":"Discharge Current Limit","unit":"A"}},"internalTemp":{"type":"number","config":{"name":"Internal Temperature","unit":"C"}},"maxCellTemp":{"type":"number","config":{"name":"Max Cell Temperature","unit":"C"}},"dailyCharge":{"type":"number","config":{"name":"Daily Charging Energy","unit":"kWh"}},"dailyDischarge":{"type":"number","config":{"name":"Daily Discharging Energy","unit":"kWh"}},"inverterState":{"type":"number","config":{"name":"Inverter State"}},"alarmFaultCount":{"type":"number","config":{"name":"Alarm/Fault Count"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Marstek"}}}} */
+
 /**
- * @title Marstek VenusE status MODBUS-RTU reader + Virtual Components
+ * @title Marstek VenusE status MODBUS-RTU + managed Virtual Components
  * @description Reads Marstek VenusE SOC, charge/discharge limits,
- *   temperatures, daily energy, operating state, and alarm/fault count
- *   using the native Shelly ModbusController, and self-deploys a status-
- *   focused Virtual Components dashboard.
+ *   temperatures, daily energy, operating state, and alarm/fault count over
+ *   portable MbRtuClient RPC calls, with a firmware-managed status dashboard.
  * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Marstek/VenusE/venus_e_status_vc.shelly.js
  */
 
 /**
- * Marstek VenusE Status MODBUS-RTU Reader + Virtual Components
+ * Marstek VenusE Status MODBUS-RTU Reader + Managed Virtual Components
  *
- * Requires a Shelly Pro device with the RS485 Modbus RTU Add-on.
+ * Device compatibility: Shelly devices exposing an MbRtuClient component
+ * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
+ * Add-on) is detected automatically; other devices use client ID 0.
  *
- * Virtual Components created:
- * - group:220   Marstek VenusE Status
- * - number:220  Battery SOC, 0..100 %
- * - number:221  Charge Current Limit, 0..100 A
- * - number:222  Discharge Current Limit, 0..100 A
- * - number:223  Internal Temperature, -10..55 C
- * - number:224  Max Cell Temperature, -10..80 C
- * - number:225  Daily Charging Energy, 0..100 kWh
- * - number:226  Daily Discharging Energy, 0..100 kWh
- * - number:227  Inverter State, 0..6
- * - number:228  Alarm/Fault Count, 0..45 active bits
+ * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
+ * script containing even a minimal managed VC declaration is started. Keep
+ * using venus_e_status_vc.shelly.js on that firmware.
+ *
+ * Managed Virtual Component roles:
+ * - soc: Battery SOC
+ * - chargeLimit, dischargeLimit: charge/discharge current limits
+ * - internalTemp, maxCellTemp: temperatures
+ * - dailyCharge, dailyDischarge: daily energy counters
+ * - inverterState: raw inverter state code (0..6)
+ * - alarmFaultCount: count of active bits across registers 36000, 36001,
+ *   36100, 36101, 36103, and 36104
+ * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
+ * - group: Home-page group containing all 10 value/config components
+ *
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary. Per-role
+ * min/max/persisted metadata is intentionally omitted from the curated
+ * telemetry roles to stay inside that budget - only the Modbus Slave ID
+ * keeps its full range/persistence/role metadata.
  *
  * Important:
- * - This VC variant is read-only. It does not write control registers.
- * - The alarm/fault component is a count of active bits across registers
- *   36000, 36001, 36100, 36101, 36103, and 36104.
- * - This is a different curated dashboard from venus_e_vc.shelly.js (which
- *   focuses on live power flow); this one focuses on operational status.
+ * - This variant is read-only. It does not write control registers.
+ * - This is a different curated dashboard from venus_e_managed_vc.shelly.js
+ *   (which focuses on live power flow); this one focuses on operational
+ *   status.
+ *
+ * The firmware creates and reconciles all components before the script
+ * starts. Their numeric IDs are intentionally not known or hard-coded by
+ * the script.
+ *
+ * @see https://shelly-api-docs.shelly.cloud/gen2/Scripts/APIs/Virtual/#managed-virtual-components
  */
-
-// ============================================================================
-// VIRTUAL COMPONENT STANDARD HELPER
-// ============================================================================
-
-function ensureVirtualComponents(manifest, done) {
-  var VC_HELPER_DELAY_MS = 150;
-  var state = {
-    existing: [],
-    ids: {},
-    keys: {},
-    handles: {},
-    ok: true
-  };
-
-  function log(msg) {
-    print('[VC] ' + msg);
-  }
-
-  function componentKey(type, id) {
-    return type + ':' + String(id);
-  }
-
-  function shallowConfigMatches(desired, current) {
-    var k;
-
-    if (!desired || !current) return false;
-
-    for (k in desired) {
-      if (k === 'meta') {
-        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
-      } else if (typeof desired[k] === 'object' && desired[k] !== null) {
-        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
-      } else if (desired[k] !== current[k]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function normalizeComponent(spec) {
-    if (!spec.config) spec.config = {};
-    if (!spec.config.name) spec.config.name = spec.key;
-    return spec;
-  }
-
-  function findExistingByName(type, name) {
-    var i;
-    var c;
-
-    for (i = 0; i < state.existing.length; i++) {
-      c = state.existing[i];
-      if (c.type === type && c.name === name) return c;
-    }
-
-    return null;
-  }
-
-  function remember(spec, id) {
-    var key = componentKey(spec.type, id);
-    state.ids[spec.key] = id;
-    state.keys[spec.key] = key;
-    state.handles[spec.key] = Virtual.getHandle(key);
-  }
-
-  function getConfig(type, id) {
-    return Shelly.getComponentConfig(type, id);
-  }
-
-  function deleteComponent(key, cb) {
-    Shelly.call('Virtual.Delete', { key: key }, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Delete skipped for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-      }
-      Timer.set(VC_HELPER_DELAY_MS, false, cb);
-    });
-  }
-
-  function addComponent(spec, cb) {
-    var params = { type: spec.type, config: spec.config };
-    var id;
-
-    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
-
-    Shelly.call('Virtual.Add', params, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Add failed for ' + spec.key + ': ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      id = spec.id;
-      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
-      if (id === undefined || id === null) {
-        log('Virtual.Add did not return id for ' + spec.key);
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      remember(spec, id);
-      log('Created ' + state.keys[spec.key] + ' ' + spec.config.name);
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        cb(true);
-      });
-    });
-  }
-
-  function ensureOne(spec, cb) {
-    var current;
-    var existing;
-    var key;
-
-    spec = normalizeComponent(spec);
-
-    if (spec.id !== undefined && spec.id !== null) {
-      current = getConfig(spec.type, spec.id);
-      key = componentKey(spec.type, spec.id);
-
-      if (current) {
-        if (shallowConfigMatches(spec.config, current)) {
-          remember(spec, spec.id);
-          cb(true);
-          return;
-        }
-
-        log('Recreating mismatched ' + key + ' ' + spec.config.name);
-        deleteComponent(key, function() {
-          addComponent(spec, cb);
-        });
-        return;
-      }
-
-      addComponent(spec, cb);
-      return;
-    }
-
-    existing = findExistingByName(spec.type, spec.config.name);
-    if (existing && shallowConfigMatches(spec.config, existing.config)) {
-      remember(spec, existing.id);
-      cb(true);
-      return;
-    }
-
-    if (existing) {
-      log('Existing ' + existing.key + ' does not fit ' + spec.config.name + '; creating a new one');
-    }
-    addComponent(spec, cb);
-  }
-
-  function ensureList(index, cb) {
-    var list = manifest.components || [];
-    if (index >= list.length) {
-      cb();
-      return;
-    }
-
-    ensureOne(list[index], function() {
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        ensureList(index + 1, cb);
-      });
-    });
-  }
-
-  function createGroupConfig(name) {
-    return { name: name, meta: { ui: { view: 'group' } } };
-  }
-
-  function groupMembers(group) {
-    var members = [];
-    var i;
-    var logicalKey;
-
-    for (i = 0; i < group.components.length; i++) {
-      logicalKey = group.components[i];
-      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
-    }
-
-    return members;
-  }
-
-  function ensureGroup(index, cb) {
-    var groups = manifest.groups || [];
-    var group;
-    var cfg;
-    var current;
-    var key;
-
-    if (index >= groups.length) {
-      cb();
-      return;
-    }
-
-    group = groups[index];
-    cfg = createGroupConfig(group.name);
-    key = componentKey('group', group.id);
-    current = getConfig('group', group.id);
-
-    function setMembersAndContinue() {
-      Shelly.call('Group.Set', { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Group.Set failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-        }
-        Timer.set(VC_HELPER_DELAY_MS, false, function() {
-          ensureGroup(index + 1, cb);
-        });
-      });
-    }
-
-    function addGroup() {
-      Shelly.call('Virtual.Add', { type: 'group', id: group.id, config: cfg }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Virtual.Add group failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-          Timer.set(VC_HELPER_DELAY_MS, false, function() {
-            ensureGroup(index + 1, cb);
-          });
-          return;
-        }
-        setMembersAndContinue();
-      });
-    }
-
-    if (current && shallowConfigMatches(cfg, current)) {
-      setMembersAndContinue();
-      return;
-    }
-
-    if (current) {
-      deleteComponent(key, addGroup);
-    } else {
-      addGroup();
-    }
-  }
-
-  function readExistingPage(offset, cb) {
-    Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
-      var raw;
-      var total;
-      var i;
-      var c;
-      var cfg;
-      var keyParts;
-
-      if (errCode !== 0) {
-        log('Shelly.GetComponents failed: ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb();
-        return;
-      }
-
-      raw = (res && res.components) ? res.components : [];
-      total = res ? (res.total || raw.length) : raw.length;
-
-      for (i = 0; i < raw.length; i++) {
-        c = raw[i];
-        cfg = c.config || {};
-        keyParts = (c.key || '').split(':');
-        state.existing.push({
-          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
-          type: c.type || keyParts[0],
-          id: cfg.id,
-          name: cfg.name,
-          config: cfg
-        });
-      }
-
-      if (offset + raw.length < total && raw.length > 0) {
-        readExistingPage(offset + raw.length, cb);
-      } else {
-        cb();
-      }
-    });
-  }
-
-  readExistingPage(0, function() {
-    ensureList(0, function() {
-      ensureGroup(0, function() {
-        done(state.ok, {
-          ids: state.ids,
-          keys: state.keys,
-          handles: state.handles
-        });
-      });
-    });
-  });
-}
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-var UPDATE_RATE = 15; // seconds
-
-// ============================================================================
-// DYNAMIC MODBUS SLAVE ID
-// ============================================================================
-// The Modbus slave/unit ID must never be hardcoded into script logic. It is
-// exposed as a persisted Virtual Component (number:299, range 1-247) so it
-// can be reconfigured from an app/config UI without redeploying code.
-// getSlaveId() reads the component live on every use, clamps it into range,
-// and writes the clamped value back if it was out of range.
-
-var MIN_SLAVE_ID = 1;
-var MAX_SLAVE_ID = 247;
-var DEFAULT_SLAVE_ID = 1;
-var slaveIdHandle = null;
-
-function getSlaveId() {
-  var value = DEFAULT_SLAVE_ID;
-
-  if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
-  if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
-  value = Math.round(value);
-  if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
-  if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
-
-  if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
-    slaveIdHandle.setValue(value);
-  }
-
-  return value;
-}
-
-// MODBUS-RTU endpoint; rebuilt whenever the slave ID Virtual Component changes.
-var MODBUS_ENDPOINT = null;
-
-function rebuildModbusEndpoint() {
-  var i;
-
-  MODBUS_ENDPOINT = ModbusController.get(getSlaveId(), { baud: 115200, mode: '8N1' });
-
-  for (i = 0; i < COMPONENTS.length; i++) {
-    if (!COMPONENTS[i].computed) {
-      COMPONENTS[i].entity = MODBUS_ENDPOINT.addEntity(COMPONENTS[i].reg);
-    }
-  }
-  for (i = 0; i < ALARM_FAULT_REGS.length; i++) {
-    ALARM_FAULT_REGS[i].entity = MODBUS_ENDPOINT.addEntity(ALARM_FAULT_REGS[i].reg);
-  }
-}
-
-var COMPONENT_IDS = {
-  group: 220,
-  firstNumber: 220
+var CONFIG = {
+  UPDATE_RATE: 15,
+  DEFAULT_SLAVE_ID: 1,
+  MIN_SLAVE_ID: 1,
+  MAX_SLAVE_ID: 247
 };
 
 var COMPONENTS = [
-  { name: 'Battery SOC', reg: { addr: 32104, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1, unit: '%', min: 0, max: 100 },
-  { name: 'Charge Current Limit', reg: { addr: 35111, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1, unit: 'A', min: 0, max: 100 },
-  { name: 'Discharge Current Limit', reg: { addr: 35112, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1, unit: 'A', min: 0, max: 100 },
-  { name: 'Internal Temperature', reg: { addr: 35000, rtype: ModbusController.REGTYPE_HOLDING, itype: 'i16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1, unit: 'C', min: -10, max: 55 },
-  { name: 'Max Cell Temperature', reg: { addr: 35010, rtype: ModbusController.REGTYPE_HOLDING, itype: 'i16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1, unit: 'C', min: -10, max: 80 },
-  { name: 'Daily Charging Energy', reg: { addr: 33004, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01, unit: 'kWh', min: 0, max: 100 },
-  { name: 'Daily Discharging Energy', reg: { addr: 33006, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01, unit: 'kWh', min: 0, max: 100 },
-  { name: 'Inverter State', reg: { addr: 35100, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1, unit: '', min: 0, max: 6, isState: true },
-  { name: 'Alarm/Fault Count', computed: true, scale: 1, unit: '', min: 0, max: 45 }
+  { name: 'Battery SOC', addr: 32104, qty: 1, itype: 'u16', scale: 1, unit: '%', role: 'soc' },
+  { name: 'Charge Current Limit', addr: 35111, qty: 1, itype: 'u16', scale: 0.1, unit: 'A', role: 'chargeLimit' },
+  { name: 'Discharge Current Limit', addr: 35112, qty: 1, itype: 'u16', scale: 0.1, unit: 'A', role: 'dischargeLimit' },
+  { name: 'Internal Temperature', addr: 35000, qty: 1, itype: 'i16', scale: 0.1, unit: 'C', role: 'internalTemp' },
+  { name: 'Max Cell Temperature', addr: 35010, qty: 1, itype: 'i16', scale: 0.1, unit: 'C', role: 'maxCellTemp' },
+  { name: 'Daily Charging Energy', addr: 33004, qty: 2, itype: 'u32', scale: 0.01, unit: 'kWh', role: 'dailyCharge' },
+  { name: 'Daily Discharging Energy', addr: 33006, qty: 2, itype: 'u32', scale: 0.01, unit: 'kWh', role: 'dailyDischarge' },
+  { name: 'Inverter State', addr: 35100, qty: 1, itype: 'u16', scale: 1, unit: '', isState: true, role: 'inverterState' }
 ];
 
 var ALARM_FAULT_REGS = [
-  { name: 'Alarm Word 36000', reg: { addr: 36000, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } },
-  { name: 'Alarm Word 36001', reg: { addr: 36001, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } },
-  { name: 'Fault Word 36100', reg: { addr: 36100, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } },
-  { name: 'Fault Word 36101', reg: { addr: 36101, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } },
-  { name: 'Fault Word 36103', reg: { addr: 36103, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } },
-  { name: 'Fault Word 36104', reg: { addr: 36104, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE } }
+  { name: 'Alarm Word 36000', addr: 36000, qty: 1 },
+  { name: 'Alarm Word 36001', addr: 36001, qty: 1 },
+  { name: 'Fault Word 36100', addr: 36100, qty: 1 },
+  { name: 'Fault Word 36101', addr: 36101, qty: 1 },
+  { name: 'Fault Word 36103', addr: 36103, qty: 1 },
+  { name: 'Fault Word 36104', addr: 36104, qty: 1 }
 ];
+
+var MANAGED_ROLES = [
+  'soc', 'chargeLimit', 'dischargeLimit', 'internalTemp', 'maxCellTemp',
+  'dailyCharge', 'dailyDischarge', 'inverterState', 'alarmFaultCount',
+  'slaveId', 'group'
+];
+
+// ============================================================================
+// STATE
+// ============================================================================
+
+var vc = {};
+var state = {
+  isPolling: false,
+  pollTimer: null
+};
+
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 function stateName(raw) {
   if (raw === 0) return 'sleep';
@@ -426,107 +125,211 @@ function countBits(value) {
   return count;
 }
 
-// ============================================================================
-// VIRTUAL COMPONENT MANIFEST
-// ============================================================================
-
-function numberConfig(component) {
-  return {
-    name: component.name,
-    default_value: 0,
-    min: component.min,
-    max: component.max,
-    meta: {
-      ui: {
-        view: 'progressbar',
-        unit: component.unit,
-        step: component.scale < 1 ? component.scale : 1
-      },
-      cloud: ['measurement']
-    }
-  };
-}
-
-function componentVcKey(index) {
-  return 'component' + String(index);
-}
-
-function buildVirtualComponentsManifest() {
-  var manifest = { components: [] };
-  var members = [];
-  var i;
-
-  for (i = 0; i < COMPONENTS.length; i++) {
-    COMPONENTS[i].vcKey = componentVcKey(i);
-    manifest.components.push({
-      key: COMPONENTS[i].vcKey,
-      type: 'number',
-      id: COMPONENT_IDS.firstNumber + i,
-      config: numberConfig(COMPONENTS[i])
-    });
-    members.push(COMPONENTS[i].vcKey);
-  }
-
-  manifest.components.push({
-    key: 'slaveId',
-    type: 'number',
-    id: 299,
-    config: {
-      name: 'Modbus Slave ID',
-      min: MIN_SLAVE_ID,
-      max: MAX_SLAVE_ID,
-      default_value: DEFAULT_SLAVE_ID,
-      persisted: true,
-      meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
-    }
-  });
-  members.push('slaveId');
-
-  manifest.groups = [
-    { id: COMPONENT_IDS.group, name: 'Marstek VenusE Status', components: members }
-  ];
-
-  return manifest;
-}
-
-var VIRTUAL_COMPONENTS = buildVirtualComponentsManifest();
-var vcHandles = null;
-
-// ============================================================================
-// MAIN LOGIC
-// ============================================================================
-
-function update() {
-  var i;
-  var component;
-  var raw;
+function decodeValue(values, itype) {
   var value;
-  var alarmFaultCount = 0;
 
-  for (i = 0; i < COMPONENTS.length; i++) {
-    component = COMPONENTS[i];
-    if (component.computed) continue;
+  if (itype === 'u16') return values[0];
+  if (itype === 'i16') {
+    value = values[0];
+    return value >= 0x8000 ? value - 0x10000 : value;
+  }
 
-    raw = component.entity.getValue();
-    value = raw * component.scale;
+  value = values[0] * 65536 + values[1];
+  if (itype === 'i32') return value >= 2147483648 ? value - 4294967296 : value;
+  return value;
+}
 
-    console.log(component.name + ': ' + value + (component.unit ? ' [' + component.unit + ']' : '') + (component.isState ? ' (' + stateName(raw) + ')' : ''));
+function clampInteger(value, fallback, min, max) {
+  value = Number(value);
+  if (value !== value) value = fallback;
+  value = Math.round(value);
+  if (value < min) value = min;
+  if (value > max) value = max;
+  return value;
+}
 
-    if (vcHandles && vcHandles[component.vcKey]) {
-      vcHandles[component.vcKey].setValue(value);
+function getSlaveId() {
+  var value = clampInteger(
+    vc.slaveId.getValue(),
+    CONFIG.DEFAULT_SLAVE_ID,
+    CONFIG.MIN_SLAVE_ID,
+    CONFIG.MAX_SLAVE_ID
+  );
+
+  if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
+  return value;
+}
+
+function modbusErrorText(error) {
+  if (!error) return 'unknown error';
+  if (error.message !== undefined && error.code !== undefined) {
+    return error.message + ' (code ' + error.code + ')';
+  }
+  return JSON.stringify(error);
+}
+
+function getModbusClientId() {
+  return Shelly.getComponentConfig('serial', 100) ? 100 : 0;
+}
+
+function isModbusClientReady() {
+  var id = getModbusClientId();
+  var config = Shelly.getComponentConfig('serial', id);
+
+  return config && config.mode === 'mb_client';
+}
+
+function bindManagedComponents() {
+  var i;
+
+  for (i = 0; i < MANAGED_ROLES.length; i++) {
+    vc[MANAGED_ROLES[i]] = Script.getVcHandle(MANAGED_ROLES[i]);
+    if (!vc[MANAGED_ROLES[i]]) {
+      console.log('ERROR: managed Virtual Component role not available: ' + MANAGED_ROLES[i]);
+      return false;
     }
   }
 
-  for (i = 0; i < ALARM_FAULT_REGS.length; i++) {
-    raw = ALARM_FAULT_REGS[i].entity.getValue();
-    alarmFaultCount += countBits(raw);
-    if (raw !== 0) console.log(ALARM_FAULT_REGS[i].name + ': 0x' + raw.toString(16));
+  return true;
+}
+
+function managedComponentKey(role, type) {
+  var config = vc[role].getConfig();
+
+  if (!config || config.id === undefined) return null;
+  return type + ':' + config.id;
+}
+
+function setDashboardGroup() {
+  var groupConfig = vc.group.getConfig();
+  var members = [
+    managedComponentKey('soc', 'number'),
+    managedComponentKey('chargeLimit', 'number'),
+    managedComponentKey('dischargeLimit', 'number'),
+    managedComponentKey('internalTemp', 'number'),
+    managedComponentKey('maxCellTemp', 'number'),
+    managedComponentKey('dailyCharge', 'number'),
+    managedComponentKey('dailyDischarge', 'number'),
+    managedComponentKey('inverterState', 'number'),
+    managedComponentKey('alarmFaultCount', 'number'),
+    managedComponentKey('slaveId', 'number')
+  ];
+  var i;
+
+  if (!groupConfig || groupConfig.id === undefined) {
+    console.log('ERROR: managed dashboard group has no component ID');
+    return;
+  }
+  for (i = 0; i < members.length; i++) {
+    if (!members[i]) {
+      console.log('ERROR: cannot resolve managed dashboard member');
+      return;
+    }
   }
 
-  console.log('Alarm/Fault Count: ' + alarmFaultCount);
-  if (vcHandles && vcHandles[COMPONENTS[8].vcKey]) {
-    vcHandles[COMPONENTS[8].vcKey].setValue(alarmFaultCount);
+  Shelly.call('Group.Set', { id: groupConfig.id, value: members }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      console.log('Group.Set failed: ' + errorCode + ' ' + errorMessage);
+      return;
+    }
+    console.log('Managed dashboard group ready');
+  });
+}
+
+// ============================================================================
+// MODBUS RPC
+// ============================================================================
+
+function readHoldingRegisters(addr, qty, callback) {
+  Shelly.call('MbRtuClient.ReadHoldingRegisters', {
+    id: getModbusClientId(),
+    sid: getSlaveId(),
+    addr: addr,
+    qty: qty
+  }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      callback(null, { code: errorCode, message: errorMessage });
+      return;
+    }
+    callback(result && result.values ? result.values : null, null);
+  });
+}
+
+// ============================================================================
+// TELEMETRY
+// ============================================================================
+
+function finishPoll() {
+  state.isPolling = false;
+}
+
+function pollAlarmFault(index, count) {
+  var item;
+
+  if (index >= ALARM_FAULT_REGS.length) {
+    console.log('Alarm/Fault Count: ' + count);
+    if (vc.alarmFaultCount) vc.alarmFaultCount.setValue(count);
+    finishPoll();
+    return;
   }
+
+  item = ALARM_FAULT_REGS[index];
+  readHoldingRegisters(item.addr, item.qty, function(values, error) {
+    var raw;
+
+    if (error) {
+      console.log(item.name + ' read error: ' + modbusErrorText(error));
+    } else if (!values || values.length < item.qty) {
+      console.log(item.name + ': invalid response');
+    } else {
+      raw = values[0];
+      count += countBits(raw);
+      if (raw !== 0) console.log(item.name + ': 0x' + raw.toString(16));
+    }
+
+    pollAlarmFault(index + 1, count);
+  });
+}
+
+function pollNext(index) {
+  var item;
+
+  if (index >= COMPONENTS.length) {
+    pollAlarmFault(0, 0);
+    return;
+  }
+
+  item = COMPONENTS[index];
+  readHoldingRegisters(item.addr, item.qty, function(values, error) {
+    var raw;
+    var value;
+    var line;
+
+    if (error) {
+      console.log(item.name + ' read error: ' + modbusErrorText(error));
+    } else if (!values || values.length < item.qty) {
+      console.log(item.name + ': invalid response');
+    } else {
+      raw = decodeValue(values, item.itype);
+      value = raw * item.scale;
+
+      line = item.name + ': ' + value;
+      if (item.unit) line += ' [' + item.unit + ']';
+      if (item.isState) line += ' (' + stateName(raw) + ')';
+      console.log(line);
+
+      if (item.role && vc[item.role]) vc[item.role].setValue(item.isState ? raw : value);
+    }
+
+    pollNext(index + 1);
+  });
+}
+
+function poll() {
+  if (state.isPolling) return;
+  state.isPolling = true;
+  console.log('--- Marstek VenusE Status ---');
+  pollNext(0);
 }
 
 // ============================================================================
@@ -534,22 +337,25 @@ function update() {
 // ============================================================================
 
 function init() {
-  ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
-    if (!ok) {
-      console.log('ERROR: Virtual component setup failed');
-      return;
-    }
-    vcHandles = readyVc.handles;
-    slaveIdHandle = readyVc.handles.slaveId;
+  console.log('Marstek VenusE status MODBUS-RTU + managed Virtual Components');
 
-    rebuildModbusEndpoint();
-    slaveIdHandle.on('change', function() {
-      console.log('Modbus Slave ID changed -> ' + getSlaveId());
-      rebuildModbusEndpoint();
-    });
+  if (!bindManagedComponents()) {
+    console.log('Check firmware support and the script @meta declaration');
+    return;
+  }
 
-    Timer.set(UPDATE_RATE * 1000, true, update);
+  if (!isModbusClientReady()) {
+    console.log('ERROR: configure the serial component as mb_client at 115200 8N1');
+    return;
+  }
+
+  setDashboardGroup();
+  vc.slaveId.on('change', function() {
+    console.log('Modbus Slave ID changed -> ' + getSlaveId());
   });
+
+  Timer.set(500, false, poll);
+  state.pollTimer = Timer.set(CONFIG.UPDATE_RATE * 1000, true, poll);
 }
 
 init();
