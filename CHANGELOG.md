@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-10
+- Promote the 97 remaining managed-VC `modbus/` scripts to `@status production` (joining `lg-therma-v-pro-em50_vc.shelly.js` and `sigenstor_plant_vc.shelly.js`) and sync them into `examples-manifest.json`, bringing the manifest to 237 entries
+- Tag all 99 managed-VC `modbus/` manifest entries with a vendor, a model, and a purpose tag, classifying each device family into one of: `pv` (inverters/batteries), `hvac`, `ups`, `energy-meter`, `io-module`, `ir-control`, `circuit-breaker`, `environmental`, or `utility`
+
 ## 2026-09
+- Convert every classical self-provisioning Virtual Component script under `modbus/` to the firmware-managed `@meta`/`Script.getVcHandle` pattern, then delete the superseded classical originals and drop the now-redundant `_managed`/`_managed_vc` filename suffix repo-wide, since each script now has exactly one managed-VC version at its original filename
+  - LG THERMA V (`lg-therma-v-pro-em50_vc.shelly.js`) and Sigenergy SigenStor (`sigenstor_plant_vc.shelly.js`) keep `@status production`, since that's what their classical predecessors had; every other converted script stays `@status under development` pending hardware testing
+  - The two VC-free WB-MIR utility scripts (IR utility, reconfig utility) gained a persisted `slaveId` Virtual Component during conversion and took over their original filenames; every other VC-free diagnostic/reference script (register-table dumps, scan utilities) is left untouched, since it never used Virtual Components to begin with
+  - Fixes a pre-existing `@link` typo in `sg02lp1_vc.shelly.js` that pointed at a nonexistent doubled `_vc_managed_vc` path
+- Add a separate Marstek VenusE controller using a fully managed seven-role Virtual Component dashboard and portable `MbRtuClient` RPC telemetry/control; keep the complete `@meta vc` declaration on the first line at exactly the firmware's 1024-character limit, add repository design rules and integrity enforcement for managed metadata, and document that tested Pill Gen3 firmware 2.0.1-ge1a198b reboots on managed-VC script startup
+- Replace the Marstek VenusE control buttons with a Charge / Stop / Discharge Virtual Component dropdown, migrate obsolete controls automatically, preserve the persisted power setting across script restarts, use spaced Pill FC06 writes for Gen3-compatible VenusE control, and release RS485 control on Stop
 - Add `mqtt/mqtt-jaalee-jht-bridge.shelly.js`, a bridge script that parses Jaalee JHT BLE sensor data (temperature/humidity/battery) via Shelly BLU Gateway and publishes to Home Assistant via MQTT Auto-Discovery
 - Add `power-energy/victron-ble-bridge.shelly.js` (upstream PR #217 by Thiemo van Engelen, Victron Energy): a BLE bridge that forwards BLE advertisement data to a Victron GX device over HTTPS, making bridged sensors appear under Settings → Bluetooth Sensors. Requires Shelly firmware 1.5.0+ and GX firmware 3.80+; configured through Virtual Components where supported, otherwise a `venus-host` KVS key. Cherry-picked from `upstream/main` and adapted to the fork's standard two-header JSDoc convention
 - Backport upstream PR #211 (tscofield): wrap the `HTTP.POST`, `KVS.Set`, and `syncKVSToAll` paths in `switch-input/n-way-dimmer.shelly.js` in try/catch so a failed remote call logs instead of throwing

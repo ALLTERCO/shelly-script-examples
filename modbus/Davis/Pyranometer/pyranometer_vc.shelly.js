@@ -1,401 +1,197 @@
+/* @meta {"vc":{"irradiance":{"type":"number","config":{"name":"Solar Irradiance","min":0,"max":2000,"unit":"W/m2"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Davis"}}}} */
+
 /**
- * @title Davis Pyranometer MODBUS-RTU + Virtual Components
+ * @title Davis Pyranometer with managed Virtual Components
  * @description Reads solar irradiance (W/m2) from a Davis-compatible RS-485
- *   pyranometer over MODBUS-RTU and self-deploys a Virtual Component for it.
- * @status under development
+ *   pyranometer over MODBUS-RTU using portable MbRtuClient RPC calls and a
+ *   firmware-managed Modbus Slave ID.
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Davis/Pyranometer/pyranometer_vc.shelly.js
  */
 
-// ============================================================================
-// VIRTUAL COMPONENT STANDARD HELPER
-// ============================================================================
-
-function ensureVirtualComponents(manifest, done) {
-  var VC_HELPER_DELAY_MS = 150;
-  var state = {
-    existing: [],
-    ids: {},
-    keys: {},
-    handles: {},
-    ok: true
-  };
-
-  function log(msg) {
-    print('[VC] ' + msg);
-  }
-
-  function componentKey(type, id) {
-    return type + ':' + String(id);
-  }
-
-  function shallowConfigMatches(desired, current) {
-    var k;
-
-    if (!desired || !current) return false;
-
-    for (k in desired) {
-      if (k === 'meta') {
-        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
-      } else if (typeof desired[k] === 'object' && desired[k] !== null) {
-        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
-      } else if (desired[k] !== current[k]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function normalizeComponent(spec) {
-    if (!spec.config) spec.config = {};
-    if (!spec.config.name) spec.config.name = spec.key;
-    return spec;
-  }
-
-  function findExistingByName(type, name) {
-    var i;
-    var c;
-
-    for (i = 0; i < state.existing.length; i++) {
-      c = state.existing[i];
-      if (c.type === type && c.name === name) return c;
-    }
-
-    return null;
-  }
-
-  function remember(spec, id) {
-    var key = componentKey(spec.type, id);
-    state.ids[spec.key] = id;
-    state.keys[spec.key] = key;
-    state.handles[spec.key] = Virtual.getHandle(key);
-  }
-
-  function getConfig(type, id) {
-    return Shelly.getComponentConfig(type, id);
-  }
-
-  function deleteComponent(key, cb) {
-    Shelly.call('Virtual.Delete', { key: key }, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Delete skipped for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-      }
-      Timer.set(VC_HELPER_DELAY_MS, false, cb);
-    });
-  }
-
-  function addComponent(spec, cb) {
-    var params = { type: spec.type, config: spec.config };
-    var id;
-
-    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
-
-    Shelly.call('Virtual.Add', params, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Add failed for ' + spec.key + ': ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      id = spec.id;
-      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
-      if (id === undefined || id === null) {
-        log('Virtual.Add did not return id for ' + spec.key);
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      remember(spec, id);
-      log('Created ' + state.keys[spec.key] + ' ' + spec.config.name);
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        cb(true);
-      });
-    });
-  }
-
-  function ensureOne(spec, cb) {
-    var current;
-    var existing;
-    var key;
-
-    spec = normalizeComponent(spec);
-
-    if (spec.id !== undefined && spec.id !== null) {
-      current = getConfig(spec.type, spec.id);
-      key = componentKey(spec.type, spec.id);
-
-      if (current) {
-        if (shallowConfigMatches(spec.config, current)) {
-          remember(spec, spec.id);
-          cb(true);
-          return;
-        }
-
-        log('Recreating mismatched ' + key + ' ' + spec.config.name);
-        deleteComponent(key, function() {
-          addComponent(spec, cb);
-        });
-        return;
-      }
-
-      addComponent(spec, cb);
-      return;
-    }
-
-    existing = findExistingByName(spec.type, spec.config.name);
-    if (existing && shallowConfigMatches(spec.config, existing.config)) {
-      remember(spec, existing.id);
-      cb(true);
-      return;
-    }
-
-    if (existing) {
-      log('Existing ' + existing.key + ' does not fit ' + spec.config.name + '; creating a new one');
-    }
-    addComponent(spec, cb);
-  }
-
-  function ensureList(index, cb) {
-    var list = manifest.components || [];
-    if (index >= list.length) {
-      cb();
-      return;
-    }
-
-    ensureOne(list[index], function() {
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        ensureList(index + 1, cb);
-      });
-    });
-  }
-
-  function createGroupConfig(name) {
-    return { name: name, meta: { ui: { view: 'group' } } };
-  }
-
-  function groupMembers(group) {
-    var members = [];
-    var i;
-    var logicalKey;
-
-    for (i = 0; i < group.components.length; i++) {
-      logicalKey = group.components[i];
-      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
-    }
-
-    return members;
-  }
-
-  function ensureGroup(index, cb) {
-    var groups = manifest.groups || [];
-    var group;
-    var cfg;
-    var current;
-    var key;
-
-    if (index >= groups.length) {
-      cb();
-      return;
-    }
-
-    group = groups[index];
-    cfg = createGroupConfig(group.name);
-    key = componentKey('group', group.id);
-    current = getConfig('group', group.id);
-
-    function setMembersAndContinue() {
-      Shelly.call('Group.Set', { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Group.Set failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-        }
-        Timer.set(VC_HELPER_DELAY_MS, false, function() {
-          ensureGroup(index + 1, cb);
-        });
-      });
-    }
-
-    function addGroup() {
-      Shelly.call('Virtual.Add', { type: 'group', id: group.id, config: cfg }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Virtual.Add group failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-          Timer.set(VC_HELPER_DELAY_MS, false, function() {
-            ensureGroup(index + 1, cb);
-          });
-          return;
-        }
-        setMembersAndContinue();
-      });
-    }
-
-    if (current && shallowConfigMatches(cfg, current)) {
-      setMembersAndContinue();
-      return;
-    }
-
-    if (current) {
-      deleteComponent(key, addGroup);
-    } else {
-      addGroup();
-    }
-  }
-
-  function readExistingPage(offset, cb) {
-    Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
-      var raw;
-      var total;
-      var i;
-      var c;
-      var cfg;
-      var keyParts;
-
-      if (errCode !== 0) {
-        log('Shelly.GetComponents failed: ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb();
-        return;
-      }
-
-      raw = (res && res.components) ? res.components : [];
-      total = res ? (res.total || raw.length) : raw.length;
-
-      for (i = 0; i < raw.length; i++) {
-        c = raw[i];
-        cfg = c.config || {};
-        keyParts = (c.key || '').split(':');
-        state.existing.push({
-          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
-          type: c.type || keyParts[0],
-          id: cfg.id,
-          name: cfg.name,
-          config: cfg
-        });
-      }
-
-      if (offset + raw.length < total && raw.length > 0) {
-        readExistingPage(offset + raw.length, cb);
-      } else {
-        cb();
-      }
-    });
-  }
-
-  readExistingPage(0, function() {
-    ensureList(0, function() {
-      ensureGroup(0, function() {
-        done(state.ok, {
-          ids: state.ids,
-          keys: state.keys,
-          handles: state.handles
-        });
-      });
-    });
-  });
-}
+/**
+ * Davis Pyranometer MODBUS-RTU Reader + Managed Virtual Components
+ *
+ * Discovered parameters: Slave ID 1, baud rate 9600, mode 8N1.
+ *
+ * Device compatibility: Shelly devices exposing an MbRtuClient component
+ * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
+ * Add-on) is detected automatically; other devices use client ID 0.
+ *
+ * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
+ * script containing even a minimal managed VC declaration is started. Keep
+ * using pyranometer_vc.shelly.js on that firmware.
+ *
+ * Managed Virtual Component roles:
+ * - irradiance: Solar irradiance, W/m2
+ * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
+ * - group: Home-page group containing irradiance and slaveId
+ *
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary.
+ *
+ * The firmware creates and reconciles all components before the script
+ * starts. Their numeric IDs are intentionally not known or hard-coded by
+ * the script.
+ *
+ * @see https://shelly-api-docs.shelly.cloud/gen2/Scripts/APIs/Virtual/#managed-virtual-components
+ */
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-var UPDATE_RATE = 5; // seconds
+var CONFIG = {
+  UPDATE_RATE: 5,
+  IRRADIANCE_ADDR: 0,
+  DEFAULT_SLAVE_ID: 1,
+  MIN_SLAVE_ID: 1,
+  MAX_SLAVE_ID: 247
+};
+
+var MANAGED_ROLES = ['irradiance', 'slaveId', 'group'];
 
 // ============================================================================
-// DYNAMIC MODBUS SLAVE ID
+// STATE
 // ============================================================================
-// The Modbus slave/unit ID must never be hardcoded into script logic. It is
-// exposed as a persisted Virtual Component (number:299, range 1-247) so it
-// can be reconfigured from an app/config UI without redeploying code.
-// getSlaveId() reads the component live on every use, clamps it into range,
-// and writes the clamped value back if it was out of range.
 
-var MIN_SLAVE_ID = 1;
-var MAX_SLAVE_ID = 247;
-var DEFAULT_SLAVE_ID = 1;
-var slaveIdHandle = null;
+var vc = {};
+var state = {
+  isPolling: false,
+  pollTimer: null
+};
 
-function getSlaveId() {
-  var value = DEFAULT_SLAVE_ID;
+// ============================================================================
+// HELPERS
+// ============================================================================
 
-  if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
-  if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
+function clampInteger(value, fallback, min, max) {
+  value = Number(value);
+  if (value !== value) value = fallback;
   value = Math.round(value);
-  if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
-  if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
-
-  if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
-    slaveIdHandle.setValue(value);
-  }
-
+  if (value < min) value = min;
+  if (value > max) value = max;
   return value;
 }
 
-// MODBUS-RTU endpoint; rebuilt whenever the slave ID Virtual Component changes.
-var MODBUS_ENDPOINT = null;
-var ENTRY_IRRADIANCE = null;
+function getSlaveId() {
+  var value = clampInteger(
+    vc.slaveId.getValue(),
+    CONFIG.DEFAULT_SLAVE_ID,
+    CONFIG.MIN_SLAVE_ID,
+    CONFIG.MAX_SLAVE_ID
+  );
 
-function rebuildModbusEndpoint() {
-  MODBUS_ENDPOINT = ModbusController.get(getSlaveId(), { baud: 9600, mode: '8N1' });
+  if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
+  return value;
+}
 
-  // Solar Irradiance, input register 0, W/m2.
-  ENTRY_IRRADIANCE = MODBUS_ENDPOINT.addEntity({ addr: 0, rtype: ModbusController.REGTYPE_INPUT, itype: 'u16' });
+function modbusErrorText(error) {
+  if (!error) return 'unknown error';
+  if (error.message !== undefined && error.code !== undefined) {
+    return error.message + ' (code ' + error.code + ')';
+  }
+  return JSON.stringify(error);
+}
+
+function getModbusClientId() {
+  return Shelly.getComponentConfig('serial', 100) ? 100 : 0;
+}
+
+function isModbusClientReady() {
+  var id = getModbusClientId();
+  var config = Shelly.getComponentConfig('serial', id);
+
+  return config && config.mode === 'mb_client';
+}
+
+function bindManagedComponents() {
+  var i;
+
+  for (i = 0; i < MANAGED_ROLES.length; i++) {
+    vc[MANAGED_ROLES[i]] = Script.getVcHandle(MANAGED_ROLES[i]);
+    if (!vc[MANAGED_ROLES[i]]) {
+      console.log('ERROR: managed Virtual Component role not available: ' + MANAGED_ROLES[i]);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function managedComponentKey(role, type) {
+  var config = vc[role].getConfig();
+
+  if (!config || config.id === undefined) return null;
+  return type + ':' + config.id;
+}
+
+function setDashboardGroup() {
+  var groupConfig = vc.group.getConfig();
+  var members = [managedComponentKey('irradiance', 'number'), managedComponentKey('slaveId', 'number')];
+  var i;
+
+  if (!groupConfig || groupConfig.id === undefined) {
+    console.log('ERROR: managed dashboard group has no component ID');
+    return;
+  }
+  for (i = 0; i < members.length; i++) {
+    if (!members[i]) {
+      console.log('ERROR: cannot resolve managed dashboard member');
+      return;
+    }
+  }
+
+  Shelly.call('Group.Set', { id: groupConfig.id, value: members }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      console.log('Group.Set failed: ' + errorCode + ' ' + errorMessage);
+      return;
+    }
+    console.log('Managed dashboard group ready');
+  });
 }
 
 // ============================================================================
-// VIRTUAL COMPONENT MANIFEST
+// MODBUS RPC
 // ============================================================================
 
-var VIRTUAL_COMPONENTS = {
-  components: [
-    {
-      key: 'irradiance',
-      type: 'number',
-      id: 200,
-      config: {
-        name: 'Solar Irradiance',
-        default_value: 0,
-        min: 0,
-        max: 2000,
-        unit: 'W/m2',
-        persisted: false,
-        meta: { ui: { view: 'progressbar' }, cloud: ['measurement'] }
-      }
-    },
-    {
-      key: 'slaveId',
-      type: 'number',
-      id: 299,
-      config: {
-        name: 'Modbus Slave ID',
-        min: MIN_SLAVE_ID,
-        max: MAX_SLAVE_ID,
-        default_value: DEFAULT_SLAVE_ID,
-        persisted: true,
-        meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
-      }
+function readInputRegisters(addr, qty, callback) {
+  Shelly.call('MbRtuClient.ReadInputRegisters', {
+    id: getModbusClientId(),
+    sid: getSlaveId(),
+    addr: addr,
+    qty: qty
+  }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      callback(null, { code: errorCode, message: errorMessage });
+      return;
     }
-  ],
-  groups: [
-    { id: 200, name: 'Davis Pyranometer', components: ['irradiance', 'slaveId'] }
-  ]
-};
-
-var vcHandles = null;
+    callback(result && result.values ? result.values : null, null);
+  });
+}
 
 // ============================================================================
 // MAIN LOGIC
 // ============================================================================
 
-function update() {
-  ENTRY_IRRADIANCE.readOnce();
-  var irradiance = ENTRY_IRRADIANCE.getValue();
-  console.log('Irradiance: ' + irradiance + ' [W/m2]');
+function poll() {
+  if (state.isPolling) return;
+  state.isPolling = true;
 
-  if (vcHandles && vcHandles.irradiance) {
-    vcHandles.irradiance.setValue(irradiance);
-  }
+  readInputRegisters(CONFIG.IRRADIANCE_ADDR, 1, function(values, error) {
+    state.isPolling = false;
+    if (error) {
+      console.log('Irradiance read error: ' + modbusErrorText(error));
+      return;
+    }
+    if (!values || values.length < 1) {
+      console.log('Irradiance: invalid response');
+      return;
+    }
+    console.log('Irradiance: ' + values[0] + ' [W/m2]');
+    if (vc.irradiance) vc.irradiance.setValue(values[0]);
+  });
 }
 
 // ============================================================================
@@ -403,22 +199,25 @@ function update() {
 // ============================================================================
 
 function init() {
-  ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
-    if (!ok) {
-      console.log('ERROR: Virtual component setup failed');
-      return;
-    }
-    vcHandles = readyVc.handles;
-    slaveIdHandle = readyVc.handles.slaveId;
+  console.log('Davis Pyranometer MODBUS-RTU reader + managed Virtual Components');
 
-    rebuildModbusEndpoint();
-    slaveIdHandle.on('change', function() {
-      console.log('Modbus Slave ID changed -> ' + getSlaveId());
-      rebuildModbusEndpoint();
-    });
+  if (!bindManagedComponents()) {
+    console.log('Check firmware support and the script @meta declaration');
+    return;
+  }
 
-    Timer.set(UPDATE_RATE * 1000, true, update);
+  if (!isModbusClientReady()) {
+    console.log('ERROR: configure the serial component as mb_client at 9600 8N1');
+    return;
+  }
+
+  setDashboardGroup();
+  vc.slaveId.on('change', function() {
+    console.log('Modbus Slave ID changed -> ' + getSlaveId());
   });
+
+  Timer.set(500, false, poll);
+  state.pollTimer = Timer.set(CONFIG.UPDATE_RATE * 1000, true, poll);
 }
 
 init();

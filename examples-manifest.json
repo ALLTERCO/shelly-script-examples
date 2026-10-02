@@ -659,9 +659,871 @@
     ]
   },
   {
+    "fname": "modbus/ComWinTop/MB308V/example_discrete_inputs_vc.shelly.js",
+    "title": "Example Discrete Inputs with managed Virtual Components",
+    "description": "Minimal single-channel MODBUS discrete input read example for",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/ComWinTop/MB308V/example_discrete_outputs_vc.shelly.js",
+    "title": "Example Discrete Outputs with managed Virtual Components",
+    "description": "Minimal MODBUS coil (digital output) write example for the",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/ComWinTop/MB308V/example_input_register_vc.shelly.js",
+    "title": "Example Input Register with managed Virtual Components",
+    "description": "Minimal single-channel MODBUS input register read example for",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/ComWinTop/MB308V/example_pot_anim_vc.shelly.js",
+    "title": "Example Pot Anim with managed Virtual Components",
+    "description": "Analog input to digital output animation example for the",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/ComWinTop/MB308V/example_write_holding_register_vc.shelly.js",
+    "title": "Example Write Holding Register with managed Virtual Components",
+    "description": "Minimal MODBUS holding register write example for the",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/ComWinTop/MB308V/mb308v_vc.shelly.js",
+    "title": "ComWinTop CWT-MB308V MODBUS-RTU monitor + managed Virtual Components",
+    "description": "Reads all 8 analog inputs, all 8 digital inputs, all 4 analog",
+    "tags": [
+      "comwintop",
+      "mb308v",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/all_registes_vc.shelly.js",
+    "title": "All Registes with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/cp1600epfclcd_vc.shelly.js",
+    "title": "CyberPower CP1600EPFCLCD MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_battery_vc.shelly.js",
+    "title": "Get Battery with managed Virtual Components",
+    "description": "Modbus RTU example script reading CyberPower CP1600EPFCLCD",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_control_vc.shelly.js",
+    "title": "Get Control with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_input_vc.shelly.js",
+    "title": "Get Input with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_output_vc.shelly.js",
+    "title": "Get Output with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_status_vc.shelly.js",
+    "title": "Get Status with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/CyberPower/CP1600EPFCLCD/get_timers_vc.shelly.js",
+    "title": "Get Timers with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "cyberpower",
+      "cp1600epfclcd",
+      "ups"
+    ]
+  },
+  {
+    "fname": "modbus/DFRobot/SEN0492/sen0492.shelly.js",
+    "title": "DFRobot SEN0492 with managed Virtual Components",
+    "description": "Reads distance and status from a DFRobot SEN0492 RS-485",
+    "tags": [
+      "dfrobot",
+      "sen0492",
+      "environmental"
+    ]
+  },
+  {
+    "fname": "modbus/DFRobot/SEN0492/sen0492_vc.shelly.js",
+    "title": "DFRobot SEN0492 + managed Virtual Components",
+    "description": "Reads distance and status from a DFRobot SEN0492 RS-485",
+    "tags": [
+      "dfrobot",
+      "sen0492",
+      "environmental"
+    ]
+  },
+  {
+    "fname": "modbus/Davis/Pyranometer/pyranometer.shelly.js",
+    "title": "Davis Pyranometer MODBUS example with managed Virtual Components",
+    "description": "Reads solar irradiance (W/m2) from a Davis-compatible RS-485",
+    "tags": [
+      "davis",
+      "pyranometer",
+      "environmental"
+    ]
+  },
+  {
+    "fname": "modbus/Davis/Pyranometer/pyranometer_vc.shelly.js",
+    "title": "Davis Pyranometer with managed Virtual Components",
+    "description": "Reads solar irradiance (W/m2) from a Davis-compatible RS-485",
+    "tags": [
+      "davis",
+      "pyranometer",
+      "environmental"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_battery_vc.shelly.js",
+    "title": "Get Battery with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_bms_vc.shelly.js",
+    "title": "Get Bms with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_core_vc.shelly.js",
+    "title": "Get Core with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_currents_temps_vc.shelly.js",
+    "title": "Get Currents Temps with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_generator_vc.shelly.js",
+    "title": "Get Generator with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_timeofuse_vc.shelly.js",
+    "title": "Get Timeofuse with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/get_ups_vc.shelly.js",
+    "title": "Get Ups with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG01HP3/sg01hp3_vc.shelly.js",
+    "title": "Deye SG01HP3 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg01hp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/display_virtual_components_ui_async_vc.shelly.js",
+    "title": "Display Virtual Components Ui Async with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/display_virtual_components_vc.shelly.js",
+    "title": "Display Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/external_display_vc.shelly.js",
+    "title": "External Display with managed Virtual Components",
+    "description": "Reads Deye SG02LP1 inverter parameters over portable",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/print_parameters_vc.shelly.js",
+    "title": "Print Parameters with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/shekran/shekran_vc.shelly.js",
+    "title": "Shekran External Display with managed Virtual Components",
+    "description": "Reads Deye SG02LP1 inverter data over portable MbRtuClient",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/application_examples/vc_modes_deye_vc.shelly.js",
+    "title": "Vc Modes Deye with managed Virtual Components",
+    "description": "Application example demonstrating enum-based Virtual",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_battery_vc.shelly.js",
+    "title": "Get Battery with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_bms_data_vc.shelly.js",
+    "title": "Get Bms Data with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_grid_vc.shelly.js",
+    "title": "Get Grid with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_inverter_ac_vc.shelly.js",
+    "title": "Get Inverter Ac with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_solar_pv_vc.shelly.js",
+    "title": "Get Solar Pv with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/get_time_use_vc.shelly.js",
+    "title": "Get Time Use with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG02LP1/sg02lp1_vc.shelly.js",
+    "title": "Deye SG02LP1 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg02lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG03LP1/get_grid_vc.shelly.js",
+    "title": "Get Grid with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg03lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG03LP1/get_inverter_ac_vc.shelly.js",
+    "title": "Get Inverter Ac with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg03lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG03LP1/get_solar_pv_vc.shelly.js",
+    "title": "Get Solar Pv with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg03lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG03LP1/sg03lp1_vc.shelly.js",
+    "title": "Deye SG03LP1 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg03lp1",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG04LP3/get_grid_vc.shelly.js",
+    "title": "Get Grid with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg04lp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG04LP3/get_inverter_vc.shelly.js",
+    "title": "Get Inverter with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg04lp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG04LP3/get_solar_vc.shelly.js",
+    "title": "Get Solar with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg04lp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Deye/SG04LP3/sg04lp3_vc.shelly.js",
+    "title": "Deye SG04LP3 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "deye",
+      "sg04lp3",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/GACIA/AICB2SP/aicb2sp.shelly.js",
+    "title": "GACIA AICB2SP Smart IoT MCB - MODBUS-RTU reader/controller with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "gacia",
+      "aicb2sp",
+      "circuit-breaker"
+    ]
+  },
+  {
+    "fname": "modbus/GACIA/AICB2SP/aicb2sp_vc.shelly.js",
+    "title": "GACIA AICB2SP Smart IoT MCB with managed Virtual Components",
+    "description": "Reads metering registers and exposes a remote breaker",
+    "tags": [
+      "gacia",
+      "aicb2sp",
+      "circuit-breaker"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIC_2500TL-X/growatt_battery_entities_vc.shelly.js",
+    "title": "Growatt Battery Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "mic-2500tl-x",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIC_2500TL-X/growatt_input_entities_vc.shelly.js",
+    "title": "Growatt Input Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "mic-2500tl-x",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIC_2500TL-X/mic_2500tl_x_vc.shelly.js",
+    "title": "Growatt MIC 2500TL-X MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "mic-2500tl-x",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIN_4200TL-XE/growatt_battery_entities_vc.shelly.js",
+    "title": "Growatt Battery Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "min-4200tl-xe",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIN_4200TL-XE/growatt_input_entities_vc.shelly.js",
+    "title": "Growatt Input Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "min-4200tl-xe",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/MIN_4200TL-XE/min_4200tl_xe_vc.shelly.js",
+    "title": "Growatt MIN 4200TL-XE MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "min-4200tl-xe",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SFP5000/entire_modbus_table_vc.shelly.js",
+    "title": "Entire Modbus Table with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sfp5000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SFP5000/growatt_battery_entities_vc.shelly.js",
+    "title": "Growatt Battery Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sfp5000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SFP5000/growatt_input_entities_vc.shelly.js",
+    "title": "Growatt Input Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sfp5000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SFP5000/sfp5000_vc.shelly.js",
+    "title": "Growatt SPF5000 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sfp5000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SPH_10000TL3_BH-UP/growatt_battery_entities_vc.shelly.js",
+    "title": "Growatt Battery Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sph-10000tl3-bh-up",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SPH_10000TL3_BH-UP/growatt_input_entities_vc.shelly.js",
+    "title": "Growatt Input Entities with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sph-10000tl3-bh-up",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/SPH_10000TL3_BH-UP/sph_10000tl3_bh_up_vc.shelly.js",
+    "title": "Growatt SPH 10000TL3 BH-UP MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "sph-10000tl3-bh-up",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/application_examples/display_virtual_components_vc.shelly.js",
+    "title": "Display Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/application_examples/example_cli_vc.shelly.js",
+    "title": "Example Cli with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "growatt",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/application_examples/vc_modes_growatt_vc.shelly.js",
+    "title": "Vc Modes Growatt with managed Virtual Components",
+    "description": "Application example demonstrating enum-based Virtual",
+    "tags": [
+      "growatt",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/device_state_vc.shelly.js",
+    "title": "Device State with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/get_energy_vc.shelly.js",
+    "title": "Get Energy with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/get_grid_vc.shelly.js",
+    "title": "Get Grid with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/get_inverter_status_vc.shelly.js",
+    "title": "Get Inverter Status with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/get_pv_vc.shelly.js",
+    "title": "Get Pv with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Huawei/SUN-2000/sun2000_vc.shelly.js",
+    "title": "Huawei SUN2000 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "huawei",
+      "sun-2000",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/IGEN/DTSD422/dtsd422_vc.shelly.js",
+    "title": "IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "igen",
+      "dtsd422",
+      "energy-meter"
+    ]
+  },
+  {
+    "fname": "modbus/IGEN/DTSD422/entire_modbus_table_vc.shelly.js",
+    "title": "Entire Modbus Table with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "igen",
+      "dtsd422",
+      "energy-meter"
+    ]
+  },
+  {
+    "fname": "modbus/JKESS/JK200-MBS/jk200.shelly.js",
+    "title": "JKESS JK200-MBS BMS with managed Virtual Components",
+    "description": "Reads all 16 cell voltages and pack telemetry from a Jikong",
+    "tags": [
+      "jkess",
+      "jk200-mbs",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/JKESS/JK200-MBS/jk200_vc.shelly.js",
+    "title": "JKESS JK200-MBS BMS + managed Virtual Components",
+    "description": "Reads all 16 cell voltages and pack telemetry from a Jikong",
+    "tags": [
+      "jkess",
+      "jk200-mbs",
+      "pv"
+    ]
+  },
+  {
     "fname": "modbus/LG/lg-therma-v-pro-em50_vc.shelly.js",
     "title": "LG THERMA V Modbus bridge for Shelly Pro EM-50",
-    "description": "Self-contained RS-485/Modbus RTU bridge for compatible LG THERMA V"
+    "description": "Self-contained RS-485/Modbus RTU bridge for compatible LG THERMA V",
+    "tags": [
+      "lg",
+      "therma-v-pro-em50",
+      "hvac"
+    ]
+  },
+  {
+    "fname": "modbus/LinkedGo/R290/r290_aw_thermal_pump.shelly.js",
+    "title": "LinkedGo R290 A/W Thermal Pump with managed Virtual Components",
+    "description": "Reads all status registers and exposes write helpers for a",
+    "tags": [
+      "linkedgo",
+      "r290",
+      "hvac"
+    ]
+  },
+  {
+    "fname": "modbus/LinkedGo/R290/r290_aw_thermal_pump_vc.shelly.js",
+    "title": "LinkedGo R290 A/W Thermal Pump + managed Virtual Components",
+    "description": "Reads all status registers from a LinkedGo R290 air-to-water",
+    "tags": [
+      "linkedgo",
+      "r290",
+      "hvac"
+    ]
+  },
+  {
+    "fname": "modbus/LinkedGo/ST802/st802_bms.shelly.js",
+    "title": "LinkedGo ST802 Thermostat + BMS command simulation with managed Virtual Components",
+    "description": "Reads a LinkedGo ST802 Youth Smart Thermostat over portable",
+    "tags": [
+      "linkedgo",
+      "st802",
+      "hvac"
+    ]
+  },
+  {
+    "fname": "modbus/LinkedGo/ST802/st802_bms_vc.shelly.js",
+    "title": "LinkedGo ST802 Thermostat + BMS command simulation (managed Virtual Components)",
+    "description": "Reads a LinkedGo ST802 Youth Smart Thermostat over portable",
+    "tags": [
+      "linkedgo",
+      "st802",
+      "hvac"
+    ]
+  },
+  {
+    "fname": "modbus/MarsRock/G2_SUN_Series_Grid_Tie_Inverter/diagnostic_register_scan.shelly.js",
+    "title": "Diagnostic Register Scan with managed Virtual Components",
+    "description": "One-shot register scan utility for discovering unknown",
+    "tags": [
+      "marsrock",
+      "g2-sun-series",
+      "utility"
+    ]
+  },
+  {
+    "fname": "modbus/MarsRock/G2_SUN_Series_Grid_Tie_Inverter/g2_sun_series_vc.shelly.js",
+    "title": "MarsRock G2 SUN Series MODBUS-RTU monitor + Virtual Components with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "marsrock",
+      "g2-sun-series",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/MarsRock/G2_SUN_Series_Grid_Tie_Inverter/get_live_status_vc.shelly.js",
+    "title": "MarsRock G2 SUN Series Grid-Tie Inverter - MODBUS-RTU reader with managed Virtual Components",
+    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
+    "tags": [
+      "marsrock",
+      "g2-sun-series",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Marstek/VenusE/venus_e.shelly.js",
+    "title": "Marstek VenusE MODBUS-RTU reader with managed Virtual Components",
+    "description": "Reads live battery, AC, energy, temperature, state, alarm, and",
+    "tags": [
+      "marstek",
+      "venus-e",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Marstek/VenusE/venus_e_control_vc.shelly.js",
+    "title": "Marstek VenusE control with managed Virtual Components",
+    "description": "Monitors and controls a Marstek VenusE through MbRtuClient RPC",
+    "tags": [
+      "marstek",
+      "venus-e",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Marstek/VenusE/venus_e_status_vc.shelly.js",
+    "title": "Marstek VenusE status MODBUS-RTU + managed Virtual Components",
+    "description": "Reads Marstek VenusE SOC, charge/discharge limits,",
+    "tags": [
+      "marstek",
+      "venus-e",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Marstek/VenusE/venus_e_vc.shelly.js",
+    "title": "Marstek VenusE MODBUS-RTU + managed Virtual Components",
+    "description": "Reads live battery, AC, energy, temperature, state, alarm, and",
+    "tags": [
+      "marstek",
+      "venus-e",
+      "pv"
+    ]
   },
   {
     "fname": "modbus/Sigenergy/SigenStor/sigenstor_plant_vc.shelly.js",
@@ -675,7 +1537,117 @@
       "battery",
       "monitoring",
       "sigenergy",
-      "modbus-controller"
+      "modbus-controller",
+      "sigenstor",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/V-TAC/VT6607103/vtac_baseline_watch.shelly.js",
+    "title": "V-TAC VT-66036103 baseline MODBUS watcher with managed Virtual Components",
+    "description": "Polls known readable holding registers from the V-TAC",
+    "tags": [
+      "v-tac",
+      "vt6607103",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/V-TAC/VT6607103/vtac_inferred_reader.shelly.js",
+    "title": "V-TAC VT-66036103 inferred MODBUS reader with managed Virtual Components",
+    "description": "Reads a small set of inferred holding registers from the",
+    "tags": [
+      "v-tac",
+      "vt6607103",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/V-TAC/VT6607103/vtac_six_register_example.shelly.js",
+    "title": "V-TAC VT-66036103 six-register example with managed Virtual Components",
+    "description": "Reads six currently inferred live holding registers from the",
+    "tags": [
+      "v-tac",
+      "vt6607103",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/V-TAC/VT6607103/vtac_six_register_example_vc.shelly.js",
+    "title": "V-TAC VT-66036103 six-register example + managed Virtual Components",
+    "description": "Reads six currently inferred live holding registers from the",
+    "tags": [
+      "v-tac",
+      "vt6607103",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/utils/modbus_register_scan.shelly.js",
+    "title": "MODBUS Register Discovery Scanner with managed Virtual Components",
+    "description": "Sweeps a register-address range at each configured baud rate",
+    "tags": [
+      "utility"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-M1W2-v3/wb_m1w2_v3.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU Reader with managed Virtual Components",
+    "description": "MODBUS-RTU reader for the Wirenboard WB-M1W2 v3 1-Wire to",
+    "tags": [
+      "wirenboard",
+      "wb-m1w2-v3",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js",
+    "title": "WB-M1W2 v3 MODBUS-RTU + managed Virtual Components",
+    "description": "MODBUS-RTU reader for the Wirenboard WB-M1W2 v3 1-Wire to",
+    "tags": [
+      "wirenboard",
+      "wb-m1w2-v3",
+      "io-module"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js",
+    "title": "WB-MIR v3 MODBUS-RTU Reader with managed Virtual Components",
+    "description": "MODBUS-RTU reader for the Wirenboard WB-MIR v3 IR",
+    "tags": [
+      "wirenboard",
+      "wb-mir-v3",
+      "ir-control"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js",
+    "title": "WB-MIR v3 IR Utility with managed Virtual Components",
+    "description": "Dedicated MODBUS-RTU utility for WB-MIR v3 infrared",
+    "tags": [
+      "wirenboard",
+      "wb-mir-v3",
+      "ir-control"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js",
+    "title": "WB-MIR v3 MODBUS Reconfiguration Utility with managed Virtual Components",
+    "description": "One-shot utility to change the WB-MIR v3 slave ID over",
+    "tags": [
+      "wirenboard",
+      "wb-mir-v3",
+      "ir-control"
+    ]
+  },
+  {
+    "fname": "modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js",
+    "title": "WB-MIR v3 MODBUS-RTU + managed Virtual Components",
+    "description": "MODBUS-RTU reader for the Wirenboard WB-MIR v3 IR",
+    "tags": [
+      "wirenboard",
+      "wb-mir-v3",
+      "ir-control"
     ]
   },
   {
@@ -813,7 +1785,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_grid_backup_controller.shelly.js",
     "title": "iATS two-channel grid/backup automatic transfer switch controller",
-    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot — this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
+    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot \u2014 this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",
@@ -827,7 +1799,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_sensor_addon_manual_control.shelly.js",
     "title": "iATS Sensor Add-on manual control helper",
-    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs — iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
+    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs \u2014 iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",

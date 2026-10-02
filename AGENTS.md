@@ -155,6 +155,41 @@ Shelly.addEventHandler(function(ev) {
 main();
 ```
 
+### Managed Virtual Component Script Pattern
+
+Scripts that declare firmware-managed Virtual Components have a stricter
+production layout than ordinary scripts. Use this order:
+
+1. Managed VC `@meta` JSON comment
+2. Standard machine-readable JSDoc header
+3. Detailed human-readable documentation block
+4. Configuration constants
+5. State, helpers, main logic, and event handlers
+6. Initialization function
+7. Final `init();` call as the last executable statement
+
+The managed metadata comment has firmware parsing constraints:
+
+- It must be the first non-empty line and first comment in the file.
+- It must occupy exactly one physical line using `/* @meta {...} */` syntax.
+- The complete line, including `/* @meta ` and ` */`, must be no longer than
+  1024 characters. Do not rely on formatting whitespace being ignored.
+- Keep the `group` role last in the `vc` object, but ensure its closing JSON and
+  comment delimiter are still within the 1024-character limit.
+- Access managed components only through `Script.getVcHandle(role)`. Never
+  hard-code firmware-assigned managed component IDs.
+- The detailed documentation must list every declared role, explain the
+  1024-character constraint, and document control sequences and safety limits.
+
+Validate the first line before considering a managed-VC script complete:
+
+```bash
+python3 -c "from pathlib import Path; line=Path('path/to/script.shelly.js').read_text().splitlines()[0]; assert line.startswith('/* @meta {') and line.endswith('} */') and len(line) <= 1024; print(len(line))"
+```
+
+The repository integrity checker enforces these rules for every `.shelly.js`
+file containing a managed `@meta` declaration.
+
 ### Header Guidelines
 
 | Header Type | Purpose | Required |
