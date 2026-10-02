@@ -5,7 +5,7 @@
  * @description Sweeps a register-address range at each configured baud rate
  *   to discover readable holding/input registers, using portable
  *   MbRtuClient RPC calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/utils/modbus_register_scan.shelly.js
  */
 

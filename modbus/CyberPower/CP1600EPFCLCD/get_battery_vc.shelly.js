@@ -5,7 +5,7 @@
  * @description Modbus RTU example script reading CyberPower CP1600EPFCLCD
  *   battery registers using portable MbRtuClient RPC calls and a
  *   firmware-managed Modbus Slave ID. Adjust registers for your target device.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/CyberPower/CP1600EPFCLCD/get_battery_vc.shelly.js
  */
 

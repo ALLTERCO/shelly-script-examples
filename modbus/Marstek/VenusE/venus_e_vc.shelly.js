@@ -6,7 +6,7 @@
  *   limit registers from a Marstek VenusE device over MODBUS-RTU using
  *   portable MbRtuClient RPC calls. Exposes the 9 most valuable parameters
  *   plus a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Marstek/VenusE/venus_e_vc.shelly.js
  */
 

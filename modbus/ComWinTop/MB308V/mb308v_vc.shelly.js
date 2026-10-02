@@ -7,7 +7,7 @@
  *   expansion module over portable MbRtuClient RPC calls. The 8 analog
  *   inputs plus a combined digital-input summary are managed Virtual
  *   Components; every other channel is printed to the console log.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/ComWinTop/MB308V/mb308v_vc.shelly.js
  */
 

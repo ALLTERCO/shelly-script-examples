@@ -6,7 +6,7 @@
  *   MbRtuClient RPC calls, publishes 9 curated parameters as managed
  *   Virtual Components, and rotates disabled-by-default BMS command
  *   simulation scenarios.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/LinkedGo/ST802/st802_bms_vc.shelly.js
  */
 

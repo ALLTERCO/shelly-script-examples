@@ -5,7 +5,7 @@
  * @description Application example demonstrating enum-based Virtual
  *   Component mode selectors for Growatt inverters, using portable
  *   MbRtuClient RPC writes and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/application_examples/vc_modes_growatt_vc.shelly.js
  */
 

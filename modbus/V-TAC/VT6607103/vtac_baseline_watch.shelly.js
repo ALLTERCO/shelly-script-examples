@@ -5,7 +5,7 @@
  * @description Polls known readable holding registers from the V-TAC
  *   VT-66036103, comparing them against embedded baseline values, over
  *   portable MbRtuClient RPC calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/V-TAC/VT6607103/vtac_baseline_watch.shelly.js
  */
 

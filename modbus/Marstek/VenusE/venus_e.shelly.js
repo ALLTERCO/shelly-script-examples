@@ -5,7 +5,7 @@
  * @description Reads live battery, AC, energy, temperature, state, alarm, and
  *   limit registers from a Marstek VenusE device over MODBUS-RTU using
  *   portable MbRtuClient RPC calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Marstek/VenusE/venus_e.shelly.js
  */
 

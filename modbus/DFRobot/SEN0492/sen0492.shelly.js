@@ -5,7 +5,7 @@
  * @description Reads distance and status from a DFRobot SEN0492 RS-485
  *   laser ranging sensor over MODBUS-RTU using portable MbRtuClient RPC
  *   calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/DFRobot/SEN0492/sen0492.shelly.js
  */
 

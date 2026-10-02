@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-10
+- Promote the 97 remaining managed-VC `modbus/` scripts to `@status production` (joining `lg-therma-v-pro-em50_vc.shelly.js` and `sigenstor_plant_vc.shelly.js`) and sync them into `examples-manifest.json`, bringing the manifest to 237 entries
+- Tag all 99 managed-VC `modbus/` manifest entries with a vendor, a model, and a purpose tag, classifying each device family into one of: `pv` (inverters/batteries), `hvac`, `ups`, `energy-meter`, `io-module`, `ir-control`, `circuit-breaker`, `environmental`, or `utility`
+
 ## 2026-09
 - Convert every classical self-provisioning Virtual Component script under `modbus/` to the firmware-managed `@meta`/`Script.getVcHandle` pattern, then delete the superseded classical originals and drop the now-redundant `_managed`/`_managed_vc` filename suffix repo-wide, since each script now has exactly one managed-VC version at its original filename
   - LG THERMA V (`lg-therma-v-pro-em50_vc.shelly.js`) and Sigenergy SigenStor (`sigenstor_plant_vc.shelly.js`) keep `@status production`, since that's what their classical predecessors had; every other converted script stays `@status under development` pending hardware testing

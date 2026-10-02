@@ -4,7 +4,7 @@
  * @title Growatt MIC 2500TL-X MODBUS-RTU monitor + Virtual Components with managed Virtual Components
  * @description Modbus RTU example using portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID. Adjust registers for your target device.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/MIC_2500TL-X/mic_2500tl_x_vc.shelly.js
  */
 

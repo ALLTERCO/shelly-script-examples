@@ -4,7 +4,7 @@
  * @title Print Parameters with managed Virtual Components
  * @description Modbus RTU example using portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID. Adjust registers for your target device.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Deye/SG02LP1/application_examples/print_parameters_vc.shelly.js
  */
 

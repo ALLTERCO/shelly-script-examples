@@ -5,7 +5,7 @@
  * @description Reads a LinkedGo ST802 Youth Smart Thermostat over portable
  *   MbRtuClient RPC calls and a firmware-managed Modbus Slave ID; rotates
  *   disabled-by-default BMS command simulation scenarios.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/LinkedGo/ST802/st802_bms.shelly.js
  */
 

@@ -5,7 +5,7 @@
  * @description Reads solar irradiance (W/m2) from a Davis-compatible RS-485
  *   pyranometer over MODBUS-RTU using portable MbRtuClient RPC calls and a
  *   firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Davis/Pyranometer/pyranometer_vc.shelly.js
  */
 

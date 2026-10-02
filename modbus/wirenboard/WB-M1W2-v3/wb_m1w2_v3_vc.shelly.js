@@ -5,7 +5,7 @@
  * @description MODBUS-RTU reader for the Wirenboard WB-M1W2 v3 1-Wire to
  *   RS-485 converter over portable MbRtuClient RPC calls, publishing the 9
  *   most valuable parameters plus a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-M1W2-v3/wb_m1w2_v3_vc.shelly.js
  */
 

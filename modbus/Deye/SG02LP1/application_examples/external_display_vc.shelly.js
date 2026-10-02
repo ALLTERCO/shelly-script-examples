@@ -5,7 +5,7 @@
  * @description Reads Deye SG02LP1 inverter parameters over portable
  *   MbRtuClient RPC calls, publishes them as managed Virtual Components,
  *   and cycles each value to an external HTTP-controlled display screen.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Deye/SG02LP1/application_examples/external_display_vc.shelly.js
  */
 

@@ -4,7 +4,7 @@
  * @title IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components with managed Virtual Components
  * @description Modbus RTU example using portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID. Adjust registers for your target device.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/IGEN/DTSD422/dtsd422_vc.shelly.js
  */
 

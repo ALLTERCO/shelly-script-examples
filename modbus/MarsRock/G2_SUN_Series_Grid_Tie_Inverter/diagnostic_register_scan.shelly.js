@@ -5,7 +5,7 @@
  * @description One-shot register scan utility for discovering unknown
  *   register values on this device, using portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/MarsRock/G2_SUN_Series_Grid_Tie_Inverter/diagnostic_register_scan.shelly.js
  */
 

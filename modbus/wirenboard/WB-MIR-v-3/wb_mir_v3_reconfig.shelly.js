@@ -6,7 +6,7 @@
  *   portable MbRtuClient RPC calls, using firmware-managed Virtual
  *   Components for both the current and target slave IDs. Writes the new
  *   slave ID to register 128; power-cycle the device afterwards.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_reconfig.shelly.js
  */
 

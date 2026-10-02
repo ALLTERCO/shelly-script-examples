@@ -6,7 +6,7 @@
  *   transceiver and environment sensor over portable MbRtuClient RPC
  *   calls, publishing the 7 most valuable parameters plus a
  *   firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_vc.shelly.js
  */
 

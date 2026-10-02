@@ -5,7 +5,7 @@
  * @description Reads Deye SG02LP1 inverter data over portable MbRtuClient
  *   RPC calls, publishes it as managed Virtual Components, and displays it
  *   on a SHEKRAN IoT ePaper display via JSON-RPC 2.0.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Deye/SG02LP1/application_examples/shekran/shekran_vc.shelly.js
  */
 

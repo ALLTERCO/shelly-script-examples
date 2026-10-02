@@ -6,7 +6,7 @@
  *   functions over portable MbRtuClient RPC calls and a firmware-managed
  *   Modbus Slave ID. Supports learning IR commands to ROM or RAM, playing
  *   stored commands, dumping IR buffers, and erasing all saved commands.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js
  */
 
