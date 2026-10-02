@@ -5,7 +5,7 @@
  * @description Reads all status registers from a LinkedGo R290 air-to-water
  *   thermal pump over portable MbRtuClient RPC calls, publishing 8 curated
  *   parameters plus a failure summary as managed Virtual Components.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/LinkedGo/R290/r290_aw_thermal_pump_vc.shelly.js
  */
 

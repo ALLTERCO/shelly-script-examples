@@ -4,7 +4,7 @@
  * @title Growatt SPH 10000TL3 BH-UP MODBUS-RTU monitor + Virtual Components with managed Virtual Components
  * @description Modbus RTU example using portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID. Adjust registers for your target device.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/SPH_10000TL3_BH-UP/sph_10000tl3_bh_up_vc.shelly.js
  */
 

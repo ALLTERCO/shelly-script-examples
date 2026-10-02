@@ -5,7 +5,7 @@
  * @description Reads metering registers and exposes a remote breaker
  *   switch for the GACIA AICB2SP smart circuit breaker over portable
  *   MbRtuClient RPC calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/GACIA/AICB2SP/aicb2sp_vc.shelly.js
  */
 

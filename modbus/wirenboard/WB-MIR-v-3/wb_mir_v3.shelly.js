@@ -5,7 +5,7 @@
  * @description MODBUS-RTU reader for the Wirenboard WB-MIR v3 IR
  *   transceiver and environment sensor over portable MbRtuClient RPC calls
  *   and a firmware-managed Modbus Slave ID, printing readings to console.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-MIR-v-3/wb_mir_v3.shelly.js
  */
 

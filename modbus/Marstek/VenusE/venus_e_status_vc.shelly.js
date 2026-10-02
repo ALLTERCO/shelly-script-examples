@@ -5,7 +5,7 @@
  * @description Reads Marstek VenusE SOC, charge/discharge limits,
  *   temperatures, daily energy, operating state, and alarm/fault count over
  *   portable MbRtuClient RPC calls, with a firmware-managed status dashboard.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Marstek/VenusE/venus_e_status_vc.shelly.js
  */
 

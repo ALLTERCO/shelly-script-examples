@@ -4,7 +4,7 @@
  * @title Marstek VenusE control with managed Virtual Components
  * @description Monitors and controls a Marstek VenusE through MbRtuClient RPC
  *   and script-owned Virtual Components declared in the @meta block.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Marstek/VenusE/venus_e_control_vc.shelly.js
  */
 

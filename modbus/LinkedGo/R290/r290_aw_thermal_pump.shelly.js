@@ -5,7 +5,7 @@
  * @description Reads all status registers and exposes write helpers for a
  *   LinkedGo R290 air-to-water thermal pump over portable MbRtuClient RPC
  *   calls and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/LinkedGo/R290/r290_aw_thermal_pump.shelly.js
  */
 

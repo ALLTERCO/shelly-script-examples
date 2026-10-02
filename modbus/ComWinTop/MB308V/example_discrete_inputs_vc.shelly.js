@@ -5,7 +5,7 @@
  * @description Minimal single-channel MODBUS discrete input read example for
  *   the ComWinTop CWT-MB308V using portable MbRtuClient RPC calls and a
  *   firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/ComWinTop/MB308V/example_discrete_inputs_vc.shelly.js
  */
 

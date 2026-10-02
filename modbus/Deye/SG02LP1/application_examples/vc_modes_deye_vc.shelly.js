@@ -5,7 +5,7 @@
  * @description Application example demonstrating enum-based Virtual
  *   Component mode selectors for Deye inverters, using portable
  *   MbRtuClient RPC writes and a firmware-managed Modbus Slave ID.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Deye/SG02LP1/application_examples/vc_modes_deye_vc.shelly.js
  */
 

@@ -5,7 +5,7 @@
  * @description Reads all 16 cell voltages and pack telemetry from a Jikong
  *   JK-PB series BMS over portable MbRtuClient RPC calls, publishing the 9
  *   pack-level parameters as managed Virtual Components.
- * @status under development
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/JKESS/JK200-MBS/jk200_vc.shelly.js
  */
 
