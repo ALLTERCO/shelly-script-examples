@@ -15,8 +15,8 @@
  * Device compatibility: Shelly devices exposing an MbRtuClient component
  *
  * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
- * script containing even a minimal managed VC declaration is started. Keep
- * using venus_e_control_vc.shelly.js on that firmware.
+ * script containing even a minimal managed VC declaration is started. This
+ * script does not run on that firmware; there is no non-managed fallback.
  *
  * Managed Virtual Component roles:
  * - soc: Battery state of charge
@@ -35,7 +35,6 @@
  * Their numeric IDs are intentionally not known or hard-coded by the script.
  * MODBUS client component ID 100 (Pro RS485 Add-on) is detected automatically;
  * other devices use client ID 0.
- * Do not run this controller together with venus_e_control_vc.shelly.js.
  *
  * Control sequence:
  * - Charge: write 0x55AA to 42000, power to 42020, then 1 to 42010.
