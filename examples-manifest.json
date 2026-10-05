@@ -1506,26 +1506,6 @@
     ]
   },
   {
-    "fname": "modbus/Marstek/VenusE/venus_e_status_vc.shelly.js",
-    "title": "Marstek VenusE status MODBUS-RTU + managed Virtual Components",
-    "description": "Reads Marstek VenusE SOC, charge/discharge limits,",
-    "tags": [
-      "marstek",
-      "venus-e",
-      "pv"
-    ]
-  },
-  {
-    "fname": "modbus/Marstek/VenusE/venus_e_vc.shelly.js",
-    "title": "Marstek VenusE MODBUS-RTU + managed Virtual Components",
-    "description": "Reads live battery, AC, energy, temperature, state, alarm, and",
-    "tags": [
-      "marstek",
-      "venus-e",
-      "pv"
-    ]
-  },
-  {
     "fname": "modbus/Sigenergy/SigenStor/sigenstor_plant_vc.shelly.js",
     "title": "Sigenergy SigenStor MODBUS-RTU plant monitor",
     "description": "Reads SigenStor plant PV, battery, grid, load, SOC, grid state, and status values into Virtual Components with cloud logging.",
