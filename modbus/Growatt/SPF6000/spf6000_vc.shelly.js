@@ -56,6 +56,57 @@
  * script containing even a minimal managed VC declaration is started. This
  * script does not run on that firmware; there is no non-managed fallback.
  *
+ * Hardware Connection:
+ *
+ * Growatt side (UNVERIFIED for SPF6000 - community-documented for the
+ * SPF/SPH off-grid/hybrid family via an RJ45-style RS485 port, commonly
+ * labeled "RS485-2"; confirm against your unit's manual/label before
+ * wiring):
+ *   RJ45 pin 1 -> RS485 B (inverting)
+ *   RJ45 pin 5 -> RS485 A (non-inverting)
+ *
+ * Shelly Pro device + Pro RS485 Add-on (this script's primary target -
+ * the Add-on's 3-terminal block is officially labeled A / B / GND):
+ *
+ *   +-------------------------+              +----------------------+
+ *   |      Shelly Pro         |              |  Growatt SPF6000     |
+ *   |  +-------------------+  |              |  ES Plus             |
+ *   |  | Pro RS485 Add-on  |  |              |                      |
+ *   |  |   A     B    GND  |  |              |  RS485-2 (RJ45)      |
+ *   |  +---+-----+-----+---+  |              |   pin5   pin1   -    |
+ *   +------|-----|-----|------+              +----|------|-----|----+
+ *          |     |     |                          |      |     |
+ *          +-----|-----|------------ A ------------+      |     |
+ *                +-----|------------------ B --------------+     |
+ *                      +------------------------- GND (optional) -+
+ *
+ * Shelly Pill (no native Modbus client - needs an external TTL-to-RS485
+ * transceiver, e.g. a MAX485 breakout, wired to the Pill's GPIO UART; see
+ * the_pill/MODBUS/README.md for the established wiring diagram and the
+ * hand-rolled Modbus-RTU library that folder uses instead of MbRtuClient):
+ *
+ *                        |=============|              |==============|
+ *                   /====|         VCC |              |              |
+ *                   |    | GND     GND |              | GROWATT      |
+ *   /========\      |    | TX      +5V |              | SPF6000      |
+ *   |The Pill|------|    | RX        A |------\/------| RJ45 pin5(A) |
+ *   \========/      |    | RE/DE     B |------/\------| RJ45 pin1(B) |
+ *                   |    | +5V       A |              |              |
+ *                   \====|           B |              |              |
+ *                        |=============|              |==============|
+ *
+ * Whether the Pill's own GPIO UART can be configured as a native
+ * Serial/mb_client component (making this exact MbRtuClient script run on
+ * it directly, client ID 0) is unconfirmed; the only concrete data point
+ * is the Pill Gen3 firmware reboot bug noted above when a managed-VC
+ * script starts. If that affects your Pill, use the_pill/MODBUS/ family
+ * of scripts instead - same physical wiring, different (hand-rolled)
+ * software stack.
+ *
+ * Reliability notes: use twisted pair for A/B on longer runs, add 120 ohm
+ * termination at bus ends for longer cables, and share GND between nodes
+ * if you share power.
+ *
  * Managed Virtual Component roles:
  * - p1, p2, p3, p4, p5, p6, p8: PV1 Power, PV2 Power, Output Power,
  *   Battery Voltage, Battery SOC, AC Voltage, Battery Power
