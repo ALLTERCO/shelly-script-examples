@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-10
+- Rename `modbus/Growatt/application_examples/` to `modbus/Growatt/common/` (clearer name for generic, non-model-specific demos), rename `display_virtual_components_vc.shelly.js` to `pv_dashboard_vc.shelly.js` with a real title/description (it had a generic auto-extracted one), and delete `example_cli_vc.shelly.js` — a conversion bug had left it byte-for-byte identical to the dashboard example, when its original (pre-managed-VC) purpose was a contrasting console-only readout with no data VCs
 - Remove the redundant `venus_e_vc.shelly.js` and `venus_e_status_vc.shelly.js` read-only dashboards from `modbus/Marstek/VenusE/`, keeping only `venus_e.shelly.js` (full console diagnostic) and `venus_e_control_vc.shelly.js` (the monitor+control dashboard); also fixed two stale self-referential doc comments left over from an earlier rename in `venus_e_control_vc.shelly.js`
 - Promote the 97 remaining managed-VC `modbus/` scripts to `@status production` (joining `lg-therma-v-pro-em50_vc.shelly.js` and `sigenstor_plant_vc.shelly.js`) and sync them into `examples-manifest.json`, bringing the manifest to 237 entries
 - Tag all 99 managed-VC `modbus/` manifest entries with a vendor, a model, and a purpose tag, classifying each device family into one of: `pv` (inverters/batteries), `hvac`, `ups`, `energy-meter`, `io-module`, `ir-control`, `circuit-breaker`, `environmental`, or `utility`
