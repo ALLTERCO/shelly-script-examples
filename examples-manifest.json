@@ -1279,27 +1279,18 @@
     ]
   },
   {
-    "fname": "modbus/Growatt/application_examples/display_virtual_components_vc.shelly.js",
-    "title": "Display Virtual Components with managed Virtual Components",
-    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
-    "tags": [
-      "growatt",
-      "pv"
-    ]
-  },
-  {
-    "fname": "modbus/Growatt/application_examples/example_cli_vc.shelly.js",
-    "title": "Example Cli with managed Virtual Components",
-    "description": "Modbus RTU example using portable MbRtuClient RPC calls",
-    "tags": [
-      "growatt",
-      "pv"
-    ]
-  },
-  {
-    "fname": "modbus/Growatt/application_examples/vc_modes_growatt_vc.shelly.js",
-    "title": "Vc Modes Growatt with managed Virtual Components",
+    "fname": "modbus/Growatt/common/mode_control_vc.shelly.js",
+    "title": "Growatt mode control with enum Virtual Components",
     "description": "Application example demonstrating enum-based Virtual",
+    "tags": [
+      "growatt",
+      "pv"
+    ]
+  },
+  {
+    "fname": "modbus/Growatt/common/pv_dashboard_vc.shelly.js",
+    "title": "Growatt PV dashboard built from an entity table with managed Virtual Components",
+    "description": "Application example demonstrating a 9-value Virtual",
     "tags": [
       "growatt",
       "pv"
@@ -1499,26 +1490,6 @@
     "fname": "modbus/Marstek/VenusE/venus_e_control_vc.shelly.js",
     "title": "Marstek VenusE control with managed Virtual Components",
     "description": "Monitors and controls a Marstek VenusE through MbRtuClient RPC",
-    "tags": [
-      "marstek",
-      "venus-e",
-      "pv"
-    ]
-  },
-  {
-    "fname": "modbus/Marstek/VenusE/venus_e_status_vc.shelly.js",
-    "title": "Marstek VenusE status MODBUS-RTU + managed Virtual Components",
-    "description": "Reads Marstek VenusE SOC, charge/discharge limits,",
-    "tags": [
-      "marstek",
-      "venus-e",
-      "pv"
-    ]
-  },
-  {
-    "fname": "modbus/Marstek/VenusE/venus_e_vc.shelly.js",
-    "title": "Marstek VenusE MODBUS-RTU + managed Virtual Components",
-    "description": "Reads live battery, AC, energy, temperature, state, alarm, and",
     "tags": [
       "marstek",
       "venus-e",

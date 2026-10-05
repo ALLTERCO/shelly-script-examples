@@ -1,43 +1,34 @@
-/* @meta {"vc":{"outputConfig":{"type":"enum","config":{"name":"Output Config","options":["0","1","2"],"default_value":"0"}},"chargeConfig":{"type":"enum","config":{"name":"Charge Config","options":["0","1","2"],"default_value":"0"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Growatt"}}}} */
+/* @meta {"vc":{"p0":{"type":"number","config":{"name":"Total Power","unit":"W"}},"p1":{"type":"number","config":{"name":"Battery Power","unit":"W"}},"p2":{"type":"number","config":{"name":"PV1 Power","unit":"W"}},"p3":{"type":"number","config":{"name":"Total Grid Power","unit":"W"}},"p4":{"type":"number","config":{"name":"Battery SOC","unit":"%"}},"p5":{"type":"number","config":{"name":"PV1 Voltage","unit":"V"}},"p6":{"type":"number","config":{"name":"Grid Voltage","unit":"V"}},"p7":{"type":"number","config":{"name":"AC Load Current","unit":"A"}},"p8":{"type":"number","config":{"name":"AC Frequency","unit":"Hz"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Growatt"}}}} */
 
 /**
- * @title Vc Modes Growatt with managed Virtual Components
- * @description Application example demonstrating enum-based Virtual
- *   Component mode selectors for Growatt inverters, using portable
- *   MbRtuClient RPC writes and a firmware-managed Modbus Slave ID.
+ * @title Growatt PV dashboard built from an entity table with managed Virtual Components
+ * @description Application example demonstrating a 9-value Virtual
+ *   Component dashboard (power, battery, PV, grid, SOC, voltages,
+ *   frequency) built from an ENTITIES table, over portable MbRtuClient
+ *   RPC calls and a firmware-managed Modbus Slave ID. Adjust the register
+ *   addresses in ENTITIES for your specific Growatt model.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/application_examples/vc_modes_growatt_vc.shelly.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/common/pv_dashboard_vc.shelly.js
  */
 
 /**
- * Growatt VC Modes Example (Managed Virtual Components)
- *
- * NOTE: option values are the raw u16 register values this script writes.
- * Adjust the option list to match your inverter's documented mode codes.
+ * Growatt PV Dashboard Built From an Entity Table (Managed Virtual Components)
  *
  * Device compatibility: Shelly devices exposing an MbRtuClient component
  * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
  * Add-on) is detected automatically; other devices use client ID 0.
  *
  * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
- * script containing even a minimal managed VC declaration is started. Keep
- * using vc_modes_growatt.shelly.js on that firmware.
+ * script containing even a minimal managed VC declaration is started.
  *
  * Managed Virtual Component roles:
- * - outputConfig: dropdown, writes register 1 (0/1/2)
- * - chargeConfig: dropdown, writes register 2 (0/1/2)
+ * - p0..p8: Total Power, Battery Power, PV1 Power, Total Grid Power, Battery SOC, PV1 Voltage, Grid Voltage, AC Load Current, AC Frequency
  * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
- * - group: Home-page group containing all three
+ * - group: Home-page group containing p0..p8 and slaveId
  *
  * The @meta block must remain the first comment and one physical line. Its
  * complete comment, including delimiters, must not exceed 1024 characters;
  * firmware silently ignores declarations beyond that boundary.
- *
- * Writes are gated by ENABLE_MODBUS_LOCAL (default off, matching the
- * original example) so this stays UI-demo-only until wired to real
- * hardware. The original's HTTP-remote read path (a second Shelly's
- * RPC proxy) is intentionally not ported - it targets a different
- * device's network address, unrelated to this script's own MbRtuClient.
  *
  * The firmware creates and reconciles all components before the script
  * starts. Their numeric IDs are intentionally not known or hard-coded by
@@ -51,25 +42,53 @@
 // ============================================================================
 
 var CONFIG = {
-  ENABLE_MODBUS_LOCAL: false,
-  OUTPUT_CONFIG_ADDR: 1,
-  CHARGE_CONFIG_ADDR: 2,
+  UPDATE_RATE: 3,
   DEFAULT_SLAVE_ID: 1,
   MIN_SLAVE_ID: 1,
   MAX_SLAVE_ID: 247
 };
 
-var MANAGED_ROLES = ['outputConfig', 'chargeConfig', 'slaveId', 'group'];
+var ENTITIES = [
+  { name: 'Total Power', units: 'W', addr: 9, itype: 'u32', scale: 0.1, role: 'p0' },
+  { name: 'Battery Power', units: 'W', addr: 77, itype: 'i32', scale: 0.1, role: 'p1' },
+  { name: 'PV1 Power', units: 'W', addr: 3, itype: 'u32', scale: 0.1, role: 'p2' },
+  { name: 'Total Grid Power', units: 'W', addr: 41, itype: 'i32', scale: 0.1, role: 'p3' },
+  { name: 'Battery SOC', units: '%', addr: 18, itype: 'u16', scale: 1, role: 'p4' },
+  { name: 'PV1 Voltage', units: 'V', addr: 1, itype: 'u16', scale: 0.1, role: 'p5' },
+  { name: 'Grid Voltage', units: 'V', addr: 20, itype: 'u16', scale: 0.1, role: 'p6' },
+  { name: 'AC Load Current', units: 'A', addr: 22, itype: 'u16', scale: 0.1, role: 'p7' },
+  { name: 'AC Frequency', units: 'Hz', addr: 21, itype: 'u16', scale: 0.01, role: 'p8' }
+];
+
+var MANAGED_ROLES = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'slaveId', 'group'];
 
 // ============================================================================
 // STATE
 // ============================================================================
 
 var vc = {};
+var state = {
+  isPolling: false,
+  pollTimer: null
+};
 
 // ============================================================================
 // HELPERS
 // ============================================================================
+
+function decodeValue(values, itype) {
+  var value;
+
+  if (itype === 'u16') return values[0];
+  if (itype === 'i16') {
+    value = values[0];
+    return value >= 0x8000 ? value - 0x10000 : value;
+  }
+
+  value = values[0] * 65536 + values[1];
+  if (itype === 'i32') return value >= 2147483648 ? value - 4294967296 : value;
+  return value;
+}
 
 function clampInteger(value, fallback, min, max) {
   value = Number(value);
@@ -135,8 +154,15 @@ function managedComponentKey(role, type) {
 function setDashboardGroup() {
   var groupConfig = vc.group.getConfig();
   var members = [
-    managedComponentKey('outputConfig', 'enum'),
-    managedComponentKey('chargeConfig', 'enum'),
+    managedComponentKey('p0', 'number'),
+    managedComponentKey('p1', 'number'),
+    managedComponentKey('p2', 'number'),
+    managedComponentKey('p3', 'number'),
+    managedComponentKey('p4', 'number'),
+    managedComponentKey('p5', 'number'),
+    managedComponentKey('p6', 'number'),
+    managedComponentKey('p7', 'number'),
+    managedComponentKey('p8', 'number'),
     managedComponentKey('slaveId', 'number')
   ];
   var i;
@@ -165,35 +191,59 @@ function setDashboardGroup() {
 // MODBUS RPC
 // ============================================================================
 
-function writeHoldingRegister(addr, value) {
-  if (!CONFIG.ENABLE_MODBUS_LOCAL) return;
-
-  Shelly.call('MbRtuClient.WriteHoldingRegisters', {
+function readInputRegisters(addr, qty, callback) {
+  Shelly.call('MbRtuClient.ReadInputRegisters', {
     id: getModbusClientId(),
     sid: getSlaveId(),
     addr: addr,
-    values: [value]
+    qty: qty
   }, function(result, errorCode, errorMessage) {
     if (errorCode !== 0) {
-      console.log('Write error: ' + modbusErrorText({ code: errorCode, message: errorMessage }));
+      callback(null, { code: errorCode, message: errorMessage });
+      return;
     }
+    callback(result && result.values ? result.values : null, null);
   });
 }
 
 // ============================================================================
-// MODE HANDLERS
+// MAIN LOGIC
 // ============================================================================
 
-function initModes() {
-  vc.outputConfig.on('change', function(ev) {
-    console.log('Output Config: ' + ev.value);
-    writeHoldingRegister(CONFIG.OUTPUT_CONFIG_ADDR, Number(ev.value));
-  });
+function pollNext(index) {
+  var item;
+  var qty;
 
-  vc.chargeConfig.on('change', function(ev) {
-    console.log('Charge Config: ' + ev.value);
-    writeHoldingRegister(CONFIG.CHARGE_CONFIG_ADDR, Number(ev.value));
+  if (index >= ENTITIES.length) {
+    state.isPolling = false;
+    return;
+  }
+
+  item = ENTITIES[index];
+  qty = (item.itype === 'u32' || item.itype === 'i32') ? 2 : 1;
+  readInputRegisters(item.addr, qty, function(values, error) {
+    var raw;
+    var value;
+
+    if (error) {
+      console.log(item.name + ' read error: ' + modbusErrorText(error));
+    } else if (!values || values.length < qty) {
+      console.log(item.name + ': invalid response');
+    } else {
+      raw = decodeValue(values, item.itype);
+      value = raw * item.scale;
+      console.log(item.name + ': ' + value + (item.units ? ' [' + item.units + ']' : ''));
+      if (vc[item.role]) vc[item.role].setValue(value);
+    }
+
+    pollNext(index + 1);
   });
+}
+
+function poll() {
+  if (state.isPolling) return;
+  state.isPolling = true;
+  pollNext(0);
 }
 
 // ============================================================================
@@ -201,14 +251,14 @@ function initModes() {
 // ============================================================================
 
 function init() {
-  console.log('Growatt VC modes example (managed VC)');
+  console.log('Growatt PV dashboard (managed VC)');
 
   if (!bindManagedComponents()) {
     console.log('Check firmware support and the script @meta declaration');
     return;
   }
 
-  if (CONFIG.ENABLE_MODBUS_LOCAL && !isModbusClientReady()) {
+  if (!isModbusClientReady()) {
     console.log('ERROR: configure the serial component as mb_client at 9600 8N1');
     return;
   }
@@ -218,7 +268,9 @@ function init() {
     console.log('Modbus Slave ID changed -> ' + getSlaveId());
   });
 
-  initModes();
+  Timer.set(500, false, poll);
+  state.pollTimer = Timer.set(CONFIG.UPDATE_RATE * 1000, true, poll);
 }
 
 init();
+
