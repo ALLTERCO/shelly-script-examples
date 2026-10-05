@@ -1,18 +1,20 @@
-/* @meta {"vc":{"p0":{"type":"number","config":{"name":"System Status"}},"p1":{"type":"number","config":{"name":"PV1 Power","unit":"W"}},"p2":{"type":"number","config":{"name":"PV2 Power","unit":"W"}},"p3":{"type":"number","config":{"name":"Output Power","unit":"W"}},"p4":{"type":"number","config":{"name":"Battery Voltage","unit":"V"}},"p5":{"type":"number","config":{"name":"Battery SOC","unit":"%"}},"p6":{"type":"number","config":{"name":"AC Input Voltage","unit":"V"}},"p7":{"type":"number","config":{"name":"Inverter Temperature","unit":"C"}},"p8":{"type":"number","config":{"name":"Battery Power","unit":"W"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Growatt"}}}} */
+/* @meta {"vc":{"p1":{"type":"number","config":{"name":"PV1 Power","unit":"W"}},"p2":{"type":"number","config":{"name":"PV2 Power","unit":"W"}},"p3":{"type":"number","config":{"name":"Output Power","unit":"W"}},"p4":{"type":"number","config":{"name":"Battery Voltage","unit":"V"}},"p5":{"type":"number","config":{"name":"Battery SOC","unit":"%"}},"p6":{"type":"number","config":{"name":"AC Voltage","unit":"V"}},"p8":{"type":"number","config":{"name":"Battery Power","unit":"W"}},"surplusPower":{"type":"number","config":{"name":"Surplus Power","unit":"W"}},"surplusThreshold":{"type":"number","config":{"name":"Surplus Threshold","unit":"W","default_value":200,"persisted":true}},"surplusAvailable":{"type":"boolean","config":{"name":"Surplus Available"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Growatt"}}}} */
 
 /**
- * @title Growatt SPF6000 ES Plus MODBUS-RTU monitor with managed Virtual Components
- * @description Read-only MODBUS-RTU monitor for the Growatt SPF6000 ES Plus
- *   off-grid inverter over portable MbRtuClient RPC calls, with a
- *   firmware-managed Modbus Slave ID. Register addresses are carried over
- *   from the SFP5000 (same off-grid family) and NOT independently verified
- *   for this model - see the warning below.
+ * @title Growatt SPF6000 ES Plus support with surplus-power automation trigger
+ * @description MODBUS-RTU monitor for the Growatt SPF6000 ES Plus off-grid
+ *   inverter over portable MbRtuClient RPC calls, computing a Surplus
+ *   Power value (PV power minus load) and a Surplus Available boolean
+ *   Virtual Component usable as an automation trigger, both locally and
+ *   in the Shelly app/cloud. Register addresses are carried over from the
+ *   SFP5000 (same off-grid family) and NOT independently verified for
+ *   this model - see the warning below.
  * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Growatt/SPF6000/spf6000_vc.shelly.js
  */
 
 /**
- * Growatt SPF6000 ES Plus MODBUS-RTU Monitor (Managed Virtual Components)
+ * Growatt SPF6000 ES Plus Support: Monitoring + Surplus-Power Automation
  *
  * UNVERIFIED REGISTER MAP - READ BEFORE USE:
  * The full model is "Growatt SPF 6000 ES Plus (+WiFi-F)", a 6000 W
@@ -28,10 +30,23 @@
  *   - Compare each value against the inverter's own front-panel display.
  *   - Treat System Status / Fault Code / Warning Code values as unverified
  *     until cross-checked against Growatt's documented status codes.
- *   - Do not build a write/control script on top of this file until the
- *     register map is confirmed - an incorrect write to an off-grid
- *     inverter's configuration registers can affect real battery/load
- *     behavior.
+ *   - This script never writes to the inverter - Surplus Power/Available
+ *     are purely computed from readings, not control commands. Do not
+ *     build a script that writes to this inverter's configuration
+ *     registers until the register map is confirmed - an incorrect write
+ *     can affect real battery/load behavior.
+ *
+ * Surplus-power automation:
+ * - Surplus Power (W) = max(0, PV1 Power + PV2 Power - Output Power), i.e.
+ *   solar generation currently exceeding what the connected load is
+ *   drawing.
+ * - Surplus Threshold (W, persisted, editable from the Shelly app) is the
+ *   cutoff above which surplus is considered usable.
+ * - Surplus Available (boolean) is true when Surplus Power > Surplus
+ *   Threshold. This is the Virtual Component to bind automations to: a
+ *   local Shelly script can subscribe to its status/change event, and the
+ *   Shelly app/cloud can use it directly as a scene trigger condition
+ *   ("when Surplus Available turns on, turn on switch X").
  *
  * Device compatibility: Shelly devices exposing an MbRtuClient component
  * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
@@ -42,17 +57,20 @@
  * script does not run on that firmware; there is no non-managed fallback.
  *
  * Managed Virtual Component roles:
- * - p0..p8: System Status, PV1 Power, PV2 Power, Output Power, Battery
- *   Voltage, Battery SOC, AC Input Voltage, Inverter Temperature, Battery
- *   Power
+ * - p1, p2, p3, p4, p5, p6, p8: PV1 Power, PV2 Power, Output Power,
+ *   Battery Voltage, Battery SOC, AC Voltage, Battery Power
+ * - surplusPower: computed PV power minus load, W
+ * - surplusThreshold: persisted, editable cutoff for "surplus available", W
+ * - surplusAvailable: boolean automation trigger
  * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
- * - group: Home-page group containing p0..p8 and slaveId
+ * - group: Home-page group containing all of the above
  *
  * The @meta block must remain the first comment and one physical line. Its
  * complete comment, including delimiters, must not exceed 1024 characters;
- * firmware silently ignores declarations beyond that boundary. Every
- * register not promoted to a Virtual Component is still printed to the
- * console every poll.
+ * firmware silently ignores declarations beyond that boundary. System
+ * Status and Inverter Temperature (and every other register not listed
+ * above) are dropped from the @meta budget to make room for the surplus
+ * roles; they are still printed to the console every poll.
  *
  * The firmware creates and reconciles all components before the script
  * starts. Their numeric IDs are intentionally not known or hard-coded by
@@ -69,13 +87,16 @@ var CONFIG = {
   UPDATE_RATE: 5,
   DEFAULT_SLAVE_ID: 1,
   MIN_SLAVE_ID: 1,
-  MAX_SLAVE_ID: 247
+  MAX_SLAVE_ID: 247,
+  DEFAULT_SURPLUS_THRESHOLD: 200,
+  MIN_SURPLUS_THRESHOLD: 0,
+  MAX_SURPLUS_THRESHOLD: 6000
 };
 
 // Register table copied from SFP5000 - see the UNVERIFIED REGISTER MAP
 // warning above before trusting any of these addresses on a real SPF6000.
 var ENTITIES = [
-  { name: 'System Status', units: '', addr: 0, itype: 'u16', scale: 1, role: 'p0' },
+  { name: 'System Status', units: '', addr: 0, itype: 'u16', scale: 1, role: null },
   { name: 'PV1 Voltage', units: 'V', addr: 1, itype: 'u16', scale: 0.1, role: null },
   { name: 'PV2 Voltage', units: 'V', addr: 2, itype: 'u16', scale: 0.1, role: null },
   { name: 'PV1 Power', units: 'W', addr: 3, itype: 'u32', scale: 0.1, role: 'p1' },
@@ -94,7 +115,7 @@ var ENTITIES = [
   { name: 'Output Voltage', units: 'V', addr: 22, itype: 'u16', scale: 0.1, role: null },
   { name: 'Output Frequency', units: 'Hz', addr: 23, itype: 'u16', scale: 0.01, role: null },
   { name: 'Output DC Voltage', units: 'V', addr: 24, itype: 'u16', scale: 0.1, role: null },
-  { name: 'Inverter Temperature', units: 'C', addr: 25, itype: 'u16', scale: 0.1, role: 'p7' },
+  { name: 'Inverter Temperature', units: 'C', addr: 25, itype: 'u16', scale: 0.1, role: null },
   { name: 'DC-DC Temperature', units: 'C', addr: 26, itype: 'u16', scale: 0.1, role: null },
   { name: 'Load Percent', units: '%', addr: 27, itype: 'u16', scale: 0.1, role: null },
   { name: 'Battery Port Voltage', units: 'V', addr: 28, itype: 'u16', scale: 0.01, role: null },
@@ -138,7 +159,11 @@ var ENTITIES = [
   { name: 'BMS CV Voltage', units: 'V', addr: 98, itype: 'u16', scale: 0.1, role: null }
 ];
 
-var MANAGED_ROLES = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'slaveId', 'group'];
+var MANAGED_ROLES = [
+  'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p8',
+  'surplusPower', 'surplusThreshold', 'surplusAvailable',
+  'slaveId', 'group'
+];
 
 // ============================================================================
 // STATE
@@ -147,7 +172,10 @@ var MANAGED_ROLES = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'slav
 var vc = {};
 var state = {
   isPolling: false,
-  pollTimer: null
+  pollTimer: null,
+  pv1Power: 0,
+  pv2Power: 0,
+  outputPower: 0
 };
 
 // ============================================================================
@@ -187,6 +215,29 @@ function getSlaveId() {
 
   if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
   return value;
+}
+
+function getSurplusThreshold() {
+  var value = clampInteger(
+    vc.surplusThreshold.getValue(),
+    CONFIG.DEFAULT_SURPLUS_THRESHOLD,
+    CONFIG.MIN_SURPLUS_THRESHOLD,
+    CONFIG.MAX_SURPLUS_THRESHOLD
+  );
+
+  if (vc.surplusThreshold.getValue() !== value) vc.surplusThreshold.setValue(value);
+  return value;
+}
+
+function updateSurplus() {
+  var surplus = state.pv1Power + state.pv2Power - state.outputPower;
+  var threshold;
+
+  if (surplus < 0) surplus = 0;
+
+  threshold = getSurplusThreshold();
+  vc.surplusPower.setValue(surplus);
+  vc.surplusAvailable.setValue(surplus > threshold);
 }
 
 function modbusErrorText(error) {
@@ -232,15 +283,16 @@ function managedComponentKey(role, type) {
 function setDashboardGroup() {
   var groupConfig = vc.group.getConfig();
   var members = [
-    managedComponentKey('p0', 'number'),
     managedComponentKey('p1', 'number'),
     managedComponentKey('p2', 'number'),
     managedComponentKey('p3', 'number'),
     managedComponentKey('p4', 'number'),
     managedComponentKey('p5', 'number'),
     managedComponentKey('p6', 'number'),
-    managedComponentKey('p7', 'number'),
     managedComponentKey('p8', 'number'),
+    managedComponentKey('surplusPower', 'number'),
+    managedComponentKey('surplusThreshold', 'number'),
+    managedComponentKey('surplusAvailable', 'boolean'),
     managedComponentKey('slaveId', 'number')
   ];
   var i;
@@ -293,6 +345,7 @@ function pollNext(index) {
   var qty;
 
   if (index >= ENTITIES.length) {
+    updateSurplus();
     state.isPolling = false;
     return;
   }
@@ -312,6 +365,10 @@ function pollNext(index) {
       value = raw * item.scale;
       console.log(item.name + ': ' + value + (item.units ? ' [' + item.units + ']' : ''));
       if (vc[item.role]) vc[item.role].setValue(value);
+
+      if (item.role === 'p1') state.pv1Power = value;
+      else if (item.role === 'p2') state.pv2Power = value;
+      else if (item.role === 'p3') state.outputPower = value;
     }
 
     pollNext(index + 1);
@@ -329,7 +386,7 @@ function poll() {
 // ============================================================================
 
 function init() {
-  console.log('Growatt SPF6000 ES Plus MODBUS-RTU monitor (managed VC) - UNVERIFIED register map, see header');
+  console.log('Growatt SPF6000 ES Plus support (monitoring + surplus-power trigger) - UNVERIFIED register map, see header');
 
   if (!bindManagedComponents()) {
     console.log('Check firmware support and the script @meta declaration');
@@ -344,6 +401,9 @@ function init() {
   setDashboardGroup();
   vc.slaveId.on('change', function() {
     console.log('Modbus Slave ID changed -> ' + getSlaveId());
+  });
+  vc.surplusThreshold.on('change', function() {
+    console.log('Surplus Threshold changed -> ' + getSurplusThreshold() + ' W');
   });
 
   Timer.set(500, false, poll);
