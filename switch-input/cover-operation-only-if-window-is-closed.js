@@ -1,12 +1,14 @@
 /**
- * Cover operation only if addon digital input is on.
- * Motivation is that the digital input is a magnet switch that is 'on' only
- * when the window is closed. Needed for windows that interfere with the cover should they be open.
- * Current logic disables close operations should the addon button signals an open window.
- * Only single push operations are used but your could easily extend it.
- * + Adjust CONFIG to your settings.
- * + Set the buttons to DETACHED state
- * + Install the script and set it to autostart.
+ * @title Cover operation only if window is closed.
+ * @description Motivation is that the digital input is a magnet switch that is 'on' only
+ *   when the window is closed. Needed for windows that interfere with the cover should they be open.
+ *   Current logic disables close operations should the addon button signals an open window.
+ *   Only single push operations are used but you could easily extend it.
+ *   + Adjust CONFIG to your settings.
+ *   + Set the buttons to DETACHED state
+ *   + Install the script and set it to autostart.
+ * @status production
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/cover-operation-only-if-window-is-closed.js
  */
 
 let CONFIG = {
