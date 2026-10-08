@@ -389,7 +389,6 @@ function ensureVirtualComponents(manifest, done) {
 var CONFIG = {
   BAUD_RATE: 115200,
   MODE: '8N1',
-  SLAVE_ID: 1,
   RESPONSE_TIMEOUT: 1000,
   POLL_INTERVAL: 5000,
   INTER_REQUEST_DELAY: 100,
@@ -398,6 +397,36 @@ var CONFIG = {
   MAX_POWER: 2500,
   DEBUG: false
 };
+
+// ============================================================================
+// DYNAMIC MODBUS SLAVE ID
+// ============================================================================
+// The Modbus slave/unit ID must never be hardcoded into script logic. It is
+// exposed as a persisted Virtual Component (number:299, range 1-247) so it
+// can be reconfigured from an app/config UI without redeploying code.
+// getSlaveId() reads the component live on every use, clamps it into range,
+// and writes the clamped value back if it was out of range.
+
+var MIN_SLAVE_ID = 1;
+var MAX_SLAVE_ID = 247;
+var DEFAULT_SLAVE_ID = 1;
+var slaveIdHandle = null;
+
+function getSlaveId() {
+  var value = DEFAULT_SLAVE_ID;
+
+  if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
+  if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
+  value = Math.round(value);
+  if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
+  if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
+
+  if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
+    slaveIdHandle.setValue(value);
+  }
+
+  return value;
+}
 
 var REG = {
   SOC: 32104,
@@ -489,7 +518,7 @@ function bytesToStr(bytes) {
 
 function buildReadFrame(addr, qty) {
   return addCRC([
-    CONFIG.SLAVE_ID & 0xFF,
+    getSlaveId() & 0xFF,
     0x03,
     (addr >> 8) & 0xFF,
     addr & 0xFF,
@@ -500,7 +529,7 @@ function buildReadFrame(addr, qty) {
 
 function buildWriteFrame(addr, value) {
   return addCRC([
-    CONFIG.SLAVE_ID & 0xFF,
+    getSlaveId() & 0xFF,
     0x06,
     (addr >> 8) & 0xFF,
     addr & 0xFF,
@@ -602,10 +631,23 @@ var VIRTUAL_COMPONENTS = {
     { key: 'controlPower', type: 'number', id: 223, config: numberConfig('Control Power', CONFIG.MIN_POWER, CONFIG.MAX_POWER, 'W', CONFIG.DEFAULT_POWER, true, 'slider') },
     { key: 'forceCharge', type: 'button', id: 220, config: buttonConfig('Force Charge', 'mdi:battery-charging') },
     { key: 'stop', type: 'button', id: 221, config: buttonConfig('Stop', 'mdi:stop-circle-outline') },
-    { key: 'discharge', type: 'button', id: 222, config: buttonConfig('Discharge', 'mdi:battery-arrow-down-outline') }
+    { key: 'discharge', type: 'button', id: 222, config: buttonConfig('Discharge', 'mdi:battery-arrow-down-outline') },
+    {
+      key: 'slaveId',
+      type: 'number',
+      id: 299,
+      config: {
+        name: 'Modbus Slave ID',
+        min: MIN_SLAVE_ID,
+        max: MAX_SLAVE_ID,
+        default_value: DEFAULT_SLAVE_ID,
+        persisted: true,
+        meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
+      }
+    }
   ],
   groups: [
-    { id: 220, name: 'Marstek VenusE Control', components: ['soc', 'batteryPower', 'inverterState', 'controlPower', 'forceCharge', 'stop', 'discharge'] }
+    { id: 220, name: 'Marstek VenusE Control', components: ['soc', 'batteryPower', 'inverterState', 'controlPower', 'forceCharge', 'stop', 'discharge', 'slaveId'] }
   ]
 };
 
@@ -699,7 +741,7 @@ function processResponse() {
   state.pendingRequest = null;
   state.rxBuffer = [];
 
-  if (frame[0] !== CONFIG.SLAVE_ID) {
+  if (frame[0] !== getSlaveId()) {
     callback('wrong slave response', null);
     return;
   }
@@ -895,6 +937,11 @@ function init() {
       log('ERROR: Virtual component setup failed');
       return;
     }
+
+    slaveIdHandle = readyVc.handles.slaveId;
+    slaveIdHandle.on('change', function() {
+      log('Slave ID changed -> ' + getSlaveId());
+    });
 
     bindVcHandles(readyVc);
     log('Ready; default control power is ' + getControlPower() + ' W');

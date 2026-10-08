@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen name="main">
+    <view extends="lv_obj" width="122" height="250" flex_flow="column" padding="0" border_width="0">
+        <!-- Header - fixed height, content vertically centered -->
+        <lv_obj id="header" width="100%" height="24" flex_flow="row" align_items="center" border_width="0">
+            <lv_label id="title" text="Inverter" font="montserrat_12" x="4"/>
+        </lv_obj>
+
+        <!-- Main content area - takes remaining space -->
+        <lv_obj id="content" width="100%" flex_grow="1" flex_flow="column"  border_width="0">
+              <lv_label id="battery_lbl" text="Battery SOC" font="montserrat_12"/>
+              <lv_bar id="battery" value="75" range_min="0" range_max="100" width="100%" height="20"/>
+              <lv_obj width="100%" align_items="center" flex_flow="row" height="content" border_width="0" padding="2">
+                <lv_label text="Battery" font="montserrat_12" flex_grow="1"/>
+                <lv_label id="battery_power" text="0" width="content"/>
+              </lv_obj>
+              <lv_obj width="100%" align_items="center" flex_flow="row" height="content" border_width="0" padding="2">
+                <lv_label text="PV Power" font="montserrat_12" flex_grow="1"/>
+                <lv_label id="pv_power" text="0" width="content"/>
+              </lv_obj>
+              <lv_obj width="100%" align_items="center" flex_flow="row" height="content" border_width="0" padding="2">
+                <lv_label text="Grid" font="montserrat_12" flex_grow="1"/>
+                <lv_label id="grid_power" text="0" width="content"/>
+              </lv_obj>
+              <lv_obj width="100%" align_items="center" flex_flow="row" height="content" border_width="0" padding="2">
+                <lv_label text="Load" font="montserrat_12" flex_grow="1"/>
+                <lv_label id="load_power" text="0" width="content"/>
+              </lv_obj>
+        </lv_obj>
+
+        <!-- Footer - fixed height, content vertically centered -->
+        <!-- conn_status: set by firmware on boot. Shows IP address in STA mode, "AP: <name>" in AP mode.
+             If this widget is missing from a screen, the firmware safely skips the update. -->
+        <lv_obj id="footer" width="100%" height="24" flex_flow="row" align_items="center" border_width="0">
+            <lv_label id="conn_status" text="Not connected" font="montserrat_12" x="4"/>
+        </lv_obj>
+    </view>
+</screen>
+
+

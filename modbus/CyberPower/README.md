@@ -1,0 +1,2 @@
+Devices:
+ - CP1600EPFCLCD

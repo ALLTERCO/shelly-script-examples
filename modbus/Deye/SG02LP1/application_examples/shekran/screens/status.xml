@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen name="status">
+    <view extends="lv_obj" width="122" height="250" flex_flow="column">
+        <!-- Title -->
+        <lv_obj width="100%" height="30">
+            <lv_label id="title" text="System Status" x="4" y="8"/>
+        </lv_obj>
+
+        <!-- Status items -->
+        <lv_obj id="status_list" width="100%" height="200" y="30">
+            <lv_label id="wifi_status" text="WiFi: Connected" x="5" y="5"/>
+            <lv_label id="heap_status" text="Heap: --- KB" x="5" y="25"/>
+            <lv_label id="uptime" text="Uptime: 0s" x="5" y="45"/>
+            <lv_label id="display_status" text="Display: OK" x="5" y="65"/>
+            <lv_label id="rpc_status" text="RPC: Ready" x="5" y="85"/>
+        </lv_obj>
+
+        <!-- Back hint -->
+        <lv_obj width="100%" height="20" y="230">
+            <lv_label id="hint" text="screen.load main" x="5" y="2"/>
+        </lv_obj>
+    </view>
+</screen>

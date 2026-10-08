@@ -1,0 +1,4 @@
+Devices:
+ - MIC_2500TL-X
+ - MIN_4200TL-XE
+ - SPH_10000TL3_BH-UP

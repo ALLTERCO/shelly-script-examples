@@ -372,11 +372,41 @@ var AUTO_VC_GROUP_NAME = 'SUN-G2 Inverter   (group)';
 var CONFIG = {
     BAUD_RATE: 9600,
     MODE: "8N1",
-    SLAVE_ID: 1,
     RESPONSE_TIMEOUT: 1000,
     POLL_INTERVAL: 10000,
     DEBUG: false
 };
+
+// ============================================================================
+// DYNAMIC MODBUS SLAVE ID
+// ============================================================================
+// The Modbus slave/unit ID must never be hardcoded into script logic. It is
+// exposed as a persisted Virtual Component (number:299, range 1-247) so it
+// can be reconfigured from an app/config UI without redeploying code.
+// getSlaveId() reads the component live on every use, clamps it into range,
+// and writes the clamped value back if it was out of range.
+
+var MIN_SLAVE_ID = 1;
+var MAX_SLAVE_ID = 247;
+var DEFAULT_SLAVE_ID = 1;
+var slaveIdHandle = null;
+
+function getSlaveId() {
+  var value = DEFAULT_SLAVE_ID;
+
+  if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
+  if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
+  value = Math.round(value);
+  if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
+  if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
+
+  if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
+    slaveIdHandle.setValue(value);
+  }
+
+  return value;
+}
+
 
 /* === REGISTER MAP + VIRTUAL COMPONENT MAPPING === */
 var ENTITIES = [
@@ -537,6 +567,21 @@ function buildVirtualComponentsManifest() {
     ];
   }
 
+  manifest.components.push({
+    key: 'slaveId',
+    type: 'number',
+    id: 299,
+    config: {
+      name: 'Modbus Slave ID',
+      min: MIN_SLAVE_ID,
+      max: MAX_SLAVE_ID,
+      default_value: DEFAULT_SLAVE_ID,
+      persisted: true,
+      meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
+    }
+  });
+  groupMembers.push('slaveId');
+
   return manifest;
 }
 
@@ -570,7 +615,7 @@ function sendRequest(regAddr, qty, callback) {
     if (!state.isReady) { callback("Not ready", null); return; }
     if (state.pendingRequest) { callback("Busy", null); return; }
 
-    var frame = buildFrame(CONFIG.SLAVE_ID, 0x03, regAddr, qty);
+    var frame = buildFrame(getSlaveId(), 0x03, regAddr, qty);
     debug("TX: " + bytesToHex(frame));
 
     state.pendingRequest = { callback: callback };
@@ -713,7 +758,7 @@ function startApp() {
     state.uart.recv(onReceive);
     state.isReady = true;
 
-    print("Slave: " + CONFIG.SLAVE_ID +
+    print("Slave: " + getSlaveId() +
           "  Baud: " + CONFIG.BAUD_RATE +
           "  Mode: " + CONFIG.MODE);
     print("Polling " + ENTITIES.length + " parameters every " + (CONFIG.POLL_INTERVAL / 1000) + "s");
@@ -728,6 +773,11 @@ ensureVirtualComponents(buildVirtualComponentsManifest(), function(ok, readyVc) 
     print('ERROR: Virtual component setup failed');
     return;
   }
+
+  slaveIdHandle = readyVc.handles.slaveId;
+  slaveIdHandle.on('change', function() {
+    debug('Slave ID changed -> ' + getSlaveId());
+  });
 
   bindEntityVirtualComponents(readyVc);
   startApp();

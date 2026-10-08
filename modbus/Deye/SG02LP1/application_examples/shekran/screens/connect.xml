@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen name="connect">
+    <view extends="lv_obj" width="122" height="250" flex_flow="column" align_items="center" padding="0" border_width="0">
+        <!-- Title -->
+        <lv_label text="Scan to Connect" font="montserrat_12" pad_top="8"/>
+
+        <!-- QR code (centered, 100x100) -->
+        <lv_qrcode id="wifi_qr" width="100" pad_top="8"/>
+
+        <!-- SSID display -->
+        <lv_label id="ssid_label" text="" font="montserrat_10" pad_top="8"/>
+
+        <!-- Footer: reuses conn_status widget ID for status updates -->
+        <lv_obj width="100%" height="24" flex_flow="row" align_items="center" border_width="0">
+            <lv_label id="conn_status" text="AP Mode" font="montserrat_12" x="4"/>
+        </lv_obj>
+    </view>
+</screen>

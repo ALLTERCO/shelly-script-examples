@@ -1,0 +1,2 @@
+Devices:
+ - DTSD422
