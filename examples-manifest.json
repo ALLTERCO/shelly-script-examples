@@ -1822,6 +1822,16 @@
     ]
   },
   {
+    "fname": "power-energy/plus-plug-s-led-power-states.shelly.js",
+    "title": "Shelly Plus Plug S LED Power Visualization",
+    "description": "Shows current power consumption as fixed LED ring states or a green-to-red gradient on a Shelly Plus Plug S.",
+    "tags": [
+      "energy",
+      "monitoring",
+      "led"
+    ]
+  },
+  {
     "fname": "power-energy/power-outages.shelly.js",
     "title": "Monitor Power Outages or Crashed Services",
     "description": "Monitors any device or service that returns data from HTTP/HTTPS requests. Executes webhooks and/or updates MQTT topics.",

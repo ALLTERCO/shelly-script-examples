@@ -13,6 +13,7 @@ Use these to monitor consumption, automatically manage loads to stay within powe
 | [`failure-monitor.shelly.js`](failure-monitor.shelly.js) | Alerts when measured power drops to 0 while the switch is still on, indicating a possible load failure. |
 | [`load-shedding.shelly.js`](load-shedding.shelly.js) | Keeps total measured power between a low and high watt threshold by toggling secondary loads on or off (requires Shelly Pro 4PM and Pro 3EM). |
 | [`monitor-production.shelly.js`](monitor-production.shelly.js) | Companion to `advanced-load-shedding.shelly.js` — adds a second power source (PV, generator, grid) to the shedding calculation. |
+| [`plus-plug-s-led-power-states.shelly.js`](plus-plug-s-led-power-states.shelly.js) | Shows Shelly Plus Plug S power consumption as fixed LED ring states or a green-to-red gradient. |
 | [`power-outages.shelly.js`](power-outages.shelly.js) | Monitors any device or service via HTTP/HTTPS and executes webhooks or publishes MQTT topics on failure or recovery. |
 | [`power-threshold-limit-output.shelly.js`](power-threshold-limit-output.shelly.js) | Turns off configured channels when total power consumption exceeds a threshold. |
 | [`pro4pm-load-shedding.shelly.js`](pro4pm-load-shedding.shelly.js) | Monitors the combined current of all four switch channels on a Shelly Pro 4PM and sheds loads in reverse-priority order to stay below 16 A, restoring them highest-priority first once current drops back down. |
