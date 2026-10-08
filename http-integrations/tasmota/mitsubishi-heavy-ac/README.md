@@ -19,22 +19,22 @@ transmits the infrared command.
 
 | File | Status | Description |
 |------|--------|-------------|
-| [`mitsubishi_heavy_ac_vc.shelly.js`](mitsubishi_heavy_ac_vc.shelly.js) | production | Creates Virtual Components and sends `IRHVAC` commands to the selected Tasmota target. |
+| [`mitsubishi_heavy_ac_vc.shelly.js`](mitsubishi_heavy_ac_vc.shelly.js) | production | Creates Virtual Components and automatically sends `IRHVAC` commands to the selected Tasmota target. |
 
 ## How Shelly and Tasmota Work Together
 
 1. The Shelly script creates a Virtual Components control panel.
-2. A user changes power, mode, fan, temperature, swing, and target in the Shelly app.
-3. When `Apply HVAC` is pressed, Shelly builds an `IRHVAC` payload.
-4. Shelly sends an HTTP request to the selected Tasmota endpoint.
-5. The Tasmota IR bridge emits the Mitsubishi Heavy IR frame toward the AC unit.
+2. A user changes mode, fan, temperature, swing, or target in the Shelly app.
+3. Shelly debounces the change, builds an `IRHVAC` payload, and sends it automatically.
+4. The Tasmota IR bridge emits the Mitsubishi Heavy IR frame toward the AC unit.
+5. Selecting `Off` in the mode dropdown maps to `Power: Off`.
 
 ## Control Targets
 
 The script defines named targets that map to Tasmota endpoints:
 
 ```js
-var IR_TARGETS = ['Zone 1', 'Zone 2', 'All'];
+var IR_TARGETS = ['Living Room', 'Bedroom 2', 'All'];
 ```
 
 `All` is a fan-out option. It is not its own endpoint; it sends the same IR
@@ -46,30 +46,28 @@ Edit the target map in the script before uploading:
 
 ```js
 var IR_TARGET_IPS = {
-  'Zone 1': '192.0.2.10',
-  'Zone 2': '192.0.2.11',
+  'Living Room': '192.0.2.10',
+  'Bedroom 2': '192.0.2.11',
 };
 ```
 
-These addresses are placeholder examples. Replace them with the real LAN IPs or
+These are anonymized example addresses. Replace them with the real LAN IPs or
 hostnames of your Tasmota IR devices.
 
 ## Virtual Components Created
 
 - `group:208` Mitsubishi Heavy AC
-- `boolean:200` AC Power
 - `enum:202` AC Mode
 - `enum:203` AC Fan
 - `number:204` AC Temp
 - `enum:205` AC Swing V
-- `button:206` Apply HVAC
 - `enum:209` IR Target
 
 ## Screenshot
 
 This screenshot shows the Mitsubishi Heavy AC Virtual Components group in the
-Shelly app with power, mode, fan, temperature, swing, and target controls ready
-to send through the Tasmota IR bridge.
+Shelly app with mode, fan, temperature, swing, and target controls that send
+through the Tasmota IR bridge automatically after each change.
 
 ![Mitsubishi Heavy AC screenshot](screenshot.png)
 

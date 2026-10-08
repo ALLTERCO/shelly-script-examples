@@ -1,7 +1,7 @@
 # Tools
 
-Helper utilities for uploading scripts to Shelly devices and generating the
-script index.
+Helper utilities for uploading scripts to Shelly devices and maintaining the
+example manifest.
 
 ## put_script.py
 
@@ -30,18 +30,6 @@ Notes:
 - The script slot (`script-id`) must already exist on the device.
 - Exits with error on HTTP or RPC failures.
 
-## sync-manifest-json.py
-
-Generate `SHELLY_MJS.md` from `examples-manifest.json`.
-
-Usage:
-```
-python tools/sync-manifest-json.py ./examples-manifest.json
-```
-
-Output:
-- Writes `SHELLY_MJS.md` next to the manifest file.
-
 ## check-manifest-integrity.py
 
 Validate the integrity of `examples-manifest.json` for CI/CD. This script is
@@ -61,7 +49,6 @@ Defaults:
 Options:
 - `--base-dir <path>` — Override the base directory for script file lookups
 - `--check-docs` — Verify that `doc` files exist (if specified in entries)
-- `--check-index` — Verify that `SHELLY_MJS.md` is in sync with the manifest
 - `--check-headers` — Check scripts for standard headers (`@title`, `@description`, `@status`, `@link`)
 - `--check-indent` — Check scripts for proper 2-space indentation (detects tabs and odd spaces)
 - `--check-sync` — Check that all production `.shelly.js` files are in the manifest and no non-production files are listed
@@ -71,7 +58,6 @@ Checks performed:
 - All entries have non-empty `title` field
 - All entries have non-empty `description` field
 - (Optional) All `doc` files exist
-- (Optional) `SHELLY_MJS.md` matches expected content from manifest
 - (Optional) Script files have standard headers with valid `@status` and `@link` tags
 - (Optional) Script files use 2-space indentation
 - (Optional) Manifest and disk files are in sync
@@ -108,4 +94,4 @@ Workflow:
 1. Run with `--dry-run` to see what changes would be made
 2. Run without flags to update the manifest
 3. Edit the manifest to fill in proper titles and descriptions for new entries
-4. Run `sync-manifest-json.py` to regenerate `SHELLY_MJS.md`
+4. Run `check-manifest-integrity.py --check-headers --check-sync`

@@ -281,8 +281,8 @@ function init() {
   // get the config of ble component
   const BLEConfig = Shelly.getComponentConfig("ble");
 
-  // exit if the BLE isn't enabled
-  if (!BLEConfig.enable) {
+  // exit only if the BLE is explicitly disabled
+  if (BLEConfig && BLEConfig.enable === false) {
     console.log(
       "Error: The Bluetooth is not enabled, please enable it from settings"
     );

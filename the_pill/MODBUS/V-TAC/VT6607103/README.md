@@ -12,7 +12,7 @@ This inverter documents RS485 connectivity, but its public manual does not inclu
 
 ## Files
 - [`vtac_six_register_example.shelly.js`](vtac_six_register_example.shelly.js): compact example reader for the six strongest current live-register candidates
-- [`vtac_six_register_example_vc.shelly.js`](vtac_six_register_example_vc.shelly.js): Virtual Components variant of the six-register example that creates six Number VCs and updates live values every 15 seconds
+- [`vtac_six_register_example_vc.shelly.js`](vtac_six_register_example_vc.shelly.js): Virtual Components variant of the six-register example that creates and binds its own group plus six Number VCs, then updates live values every 15 seconds
 - [`vtac_baseline_watch.shelly.js`](vtac_baseline_watch.shelly.js): baseline watcher that polls all known readable holding and input registers and reports deviations from the saved defaults
 - [`vtac_inferred_reader.shelly.js`](vtac_inferred_reader.shelly.js): console reader built from the current inferred register map
 - [`registers.md`](registers.md): discovered holding and input registers captured as tables

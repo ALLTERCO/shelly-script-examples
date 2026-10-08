@@ -23,9 +23,9 @@ Scripts for controlling iRobot Roomba 500 series vacuum cleaners via the Open In
 
 ## Files
 
-### roomba.shelly.js
+### roomba_vc.shelly.js
 
-**Core API Library** - Full implementation of the iRobot Open Interface protocol.
+**Core API Library** - Full implementation of the iRobot Open Interface protocol with self-created status and battery Virtual Components.
 
 **Features:**
 - Complete OI protocol implementation
@@ -58,23 +58,9 @@ ROOMBA.beep()           // Play beep sound
 
 ---
 
-### roomba_setup.shelly.js
+### roomba_ctrl_vc.shelly.js
 
-**Virtual Components Setup** - Creates the virtual components required by the library.
-
-**Components Created:**
-| Component | Purpose |
-|-----------|---------|
-| text:200 | Roomba status display |
-| number:200 | Battery percentage |
-
-**Usage:** Run once to create components, then disable or delete.
-
----
-
-### roomba_ctrl.shelly.js
-
-**Button Controller** - Control Roomba via virtual buttons and physical inputs.
+**Button Controller** - Control Roomba via self-created virtual buttons and physical inputs.
 
 **Button Mappings:**
 | Button | Single Push | Double Push | Long Push |
@@ -87,27 +73,11 @@ ROOMBA.beep()           // Play beep sound
 - Battery monitoring (configurable interval)
 - Status display via virtual components
 
----
-
-### roomba_ctrl_setup.shelly.js
-
-**Controller Setup** - Creates all virtual components for the button controller.
-
-**Components Created:**
-| Component | Purpose |
-|-----------|---------|
-| text:200 | Roomba status display |
-| number:200 | Battery percentage |
-| button:200 | Main control (Clean/Stop/Dock) |
-| button:201 | Spot clean button |
-
-**Usage:** Run once before using `roomba_ctrl.shelly.js`.
-
 ## Quick Start
 
 1. Wire your Roomba to the Shelly device
-2. Upload and run `roomba_ctrl_setup.shelly.js` (once)
-3. Upload and run `roomba_ctrl.shelly.js`
+2. Upload and run `roomba_ctrl_vc.shelly.js`
+3. The script creates/verifies the required Virtual Components at startup
 4. Press the virtual button to wake and control your Roomba
 
 ## References
