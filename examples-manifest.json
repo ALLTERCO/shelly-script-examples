@@ -493,6 +493,11 @@
     ]
   },
   {
+    "fname": "http-integrations/innova-airleaf/innova-airleaf-ewf644ii_vc.shelly.js",
+    "title": "INNOVA AirLeaf EWF644II local controller",
+    "description": "Memory-optimized local HTTP controller for INNOVA AirLeaf EWF644II deviceType 002 with Shelly Virtual Components."
+  },
+  {
     "fname": "http-integrations/prometheus/prometheus.shelly.js",
     "title": "Prometheus HTTP Endpoint for a single switch",
     "description": "This script exposes a /status endpoint that returns Prometheus metrics that can be scraped.",
