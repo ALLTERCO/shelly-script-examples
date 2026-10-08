@@ -1,557 +1,296 @@
+/* @meta {"vc":{"p0":{"type":"number","config":{"name":"Voltage CT1","unit":"V"}},"p1":{"type":"number","config":{"name":"Active Power CT1","unit":"W"}},"p2":{"type":"number","config":{"name":"Total Positive Energy CT1","unit":"kWh"}},"p3":{"type":"number","config":{"name":"Active Power CT2","unit":"W"}},"p4":{"type":"number","config":{"name":"Total Positive Energy CT2","unit":"kWh"}},"p5":{"type":"number","config":{"name":"Active Power CT3","unit":"W"}},"p6":{"type":"number","config":{"name":"Total Positive Energy CT3","unit":"kWh"}},"p7":{"type":"number","config":{"name":"Active Power CT4","unit":"W"}},"p8":{"type":"number","config":{"name":"Total Positive Energy CT4","unit":"kWh"}},"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"IGEN"}}}} */
+
 /**
- * @title IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components
- * @description Reads the documented IGEN DTSD422-D3 six-circuit energy meter
- *   register set (CT1-CT4: voltage, current, active/reactive/apparent power,
- *   power factor, energy totals) over the native Shelly ModbusController.
- *   The 9 most valuable parameters are published as a self-created, grouped
- *   set of Virtual Components; every other parameter is printed to the
- *   console log each poll.
- * @status under development
+ * @title IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components with managed Virtual Components
+ * @description Modbus RTU example using portable MbRtuClient RPC calls
+ *   and a firmware-managed Modbus Slave ID. Adjust registers for your target device.
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/IGEN/DTSD422/dtsd422_vc.shelly.js
  */
 
 /**
- * IGEN DTSD422-D3 MODBUS-RTU Monitor + Virtual Components
+ * IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components (Managed Virtual Components)
  *
- * Firmware requirements: Shelly firmware with ModbusController support.
- * Device compatibility: Shelly Pro devices with RS485 Modbus RTU Add-on.
- * External hardware: IGEN DTSD422-D3 six-circuit energy meter over RS485.
- * Register map: Six-circuit WiFi DTSD422-D3-W v1.0 EN. Only CT1-CT4 are
- * documented in this source table; CT5/CT6 registers are not included.
+ * Device compatibility: Shelly devices exposing an MbRtuClient component
+ * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
+ * Add-on) is detected automatically; other devices use client ID 0.
  *
- * Virtual Components created (9 + 1 group = 10 total):
- * - group:200   IGEN DTSD422-D3
- * - number:200  Active Power CT1, W
- * - number:201  Active Power CT2, W
- * - number:202  Active Power CT3, W
- * - number:203  Active Power CT4, W
- * - number:204  Voltage CT1, V
- * - number:205  Total Positive Energy CT1, kWh
- * - number:206  Total Positive Energy CT2, kWh
- * - number:207  Total Positive Energy CT3, kWh
- * - number:208  Total Positive Energy CT4, kWh
+ * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
+ * script containing even a minimal managed VC declaration is started.
  *
- * Every other register in the full entity table (per-circuit current,
- * reactive/apparent power, power factor, negative energy totals, ...) is
- * read and printed to the console log every poll, but is not backed by a
- * Virtual Component. Adjust VC_KEYS below to change the selection.
+ * Managed Virtual Component roles:
+ * - p0..p8: Voltage CT1, Active Power CT1, Total Positive Energy CT1, Active Power CT2, Total Positive Energy CT2, Active Power CT3, Total Positive Energy CT3, Active Power CT4, Total Positive Energy CT4
+ * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
+ * - group: Home-page group containing p0..p8 and slaveId
+ *
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary.
+ *
+ * The firmware creates and reconciles all components before the script
+ * starts. Their numeric IDs are intentionally not known or hard-coded by
+ * the script.
+ *
+ * @see https://shelly-api-docs.shelly.cloud/gen2/Scripts/APIs/Virtual/#managed-virtual-components
  */
-
-// ============================================================================
-// VIRTUAL COMPONENT STANDARD HELPER
-// ============================================================================
-
-function ensureVirtualComponents(manifest, done) {
-  var VC_HELPER_DELAY_MS = 150;
-  var state = {
-    existing: [],
-    ids: {},
-    keys: {},
-    handles: {},
-    ok: true
-  };
-
-  function log(msg) {
-    print('[VC] ' + msg);
-  }
-
-  function componentKey(type, id) {
-    return type + ':' + String(id);
-  }
-
-  function shallowConfigMatches(desired, current) {
-    var k;
-
-    if (!desired || !current) return false;
-
-    for (k in desired) {
-      if (k === 'meta') {
-        if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
-      } else if (typeof desired[k] === 'object' && desired[k] !== null) {
-        if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
-      } else if (desired[k] !== current[k]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function normalizeComponent(spec) {
-    if (!spec.config) spec.config = {};
-    if (!spec.config.name) spec.config.name = spec.key;
-    return spec;
-  }
-
-  function findExistingByName(type, name) {
-    var i;
-    var c;
-
-    for (i = 0; i < state.existing.length; i++) {
-      c = state.existing[i];
-      if (c.type === type && c.name === name) return c;
-    }
-
-    return null;
-  }
-
-  function remember(spec, id) {
-    var key = componentKey(spec.type, id);
-    state.ids[spec.key] = id;
-    state.keys[spec.key] = key;
-    state.handles[spec.key] = Virtual.getHandle(key);
-  }
-
-  function getConfig(type, id) {
-    return Shelly.getComponentConfig(type, id);
-  }
-
-  function deleteComponent(key, cb) {
-    Shelly.call('Virtual.Delete', { key: key }, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Delete skipped for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-      }
-      Timer.set(VC_HELPER_DELAY_MS, false, cb);
-    });
-  }
-
-  function addComponent(spec, cb) {
-    var params = { type: spec.type, config: spec.config };
-    var id;
-
-    if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
-
-    Shelly.call('Virtual.Add', params, function(res, errCode, errMsg) {
-      if (errCode !== 0) {
-        log('Virtual.Add failed for ' + spec.key + ': ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      id = spec.id;
-      if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
-      if (id === undefined || id === null) {
-        log('Virtual.Add did not return id for ' + spec.key);
-        state.ok = false;
-        cb(false);
-        return;
-      }
-
-      remember(spec, id);
-      log('Created ' + state.keys[spec.key] + ' ' + spec.config.name);
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        cb(true);
-      });
-    });
-  }
-
-  function ensureOne(spec, cb) {
-    var current;
-    var existing;
-    var key;
-
-    spec = normalizeComponent(spec);
-
-    if (spec.id !== undefined && spec.id !== null) {
-      current = getConfig(spec.type, spec.id);
-      key = componentKey(spec.type, spec.id);
-
-      if (current) {
-        if (shallowConfigMatches(spec.config, current)) {
-          remember(spec, spec.id);
-          cb(true);
-          return;
-        }
-
-        log('Recreating mismatched ' + key + ' ' + spec.config.name);
-        deleteComponent(key, function() {
-          addComponent(spec, cb);
-        });
-        return;
-      }
-
-      addComponent(spec, cb);
-      return;
-    }
-
-    existing = findExistingByName(spec.type, spec.config.name);
-    if (existing && shallowConfigMatches(spec.config, existing.config)) {
-      remember(spec, existing.id);
-      cb(true);
-      return;
-    }
-
-    if (existing) {
-      log('Existing ' + existing.key + ' does not fit ' + spec.config.name + '; creating a new one');
-    }
-    addComponent(spec, cb);
-  }
-
-  function ensureList(index, cb) {
-    var list = manifest.components || [];
-    if (index >= list.length) {
-      cb();
-      return;
-    }
-
-    ensureOne(list[index], function() {
-      Timer.set(VC_HELPER_DELAY_MS, false, function() {
-        ensureList(index + 1, cb);
-      });
-    });
-  }
-
-  function createGroupConfig(name) {
-    return { name: name, meta: { ui: { view: 'group' } } };
-  }
-
-  function groupMembers(group) {
-    var members = [];
-    var i;
-    var logicalKey;
-
-    for (i = 0; i < group.components.length; i++) {
-      logicalKey = group.components[i];
-      if (state.keys[logicalKey]) members.push(state.keys[logicalKey]);
-    }
-
-    return members;
-  }
-
-  function ensureGroup(index, cb) {
-    var groups = manifest.groups || [];
-    var group;
-    var cfg;
-    var current;
-    var key;
-
-    if (index >= groups.length) {
-      cb();
-      return;
-    }
-
-    group = groups[index];
-    cfg = createGroupConfig(group.name);
-    key = componentKey('group', group.id);
-    current = getConfig('group', group.id);
-
-    function setMembersAndContinue() {
-      Shelly.call('Group.Set', { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Group.Set failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-        }
-        Timer.set(VC_HELPER_DELAY_MS, false, function() {
-          ensureGroup(index + 1, cb);
-        });
-      });
-    }
-
-    function addGroup() {
-      Shelly.call('Virtual.Add', { type: 'group', id: group.id, config: cfg }, function(res, errCode, errMsg) {
-        if (errCode !== 0) {
-          log('Virtual.Add group failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
-          state.ok = false;
-          Timer.set(VC_HELPER_DELAY_MS, false, function() {
-            ensureGroup(index + 1, cb);
-          });
-          return;
-        }
-        setMembersAndContinue();
-      });
-    }
-
-    if (current && shallowConfigMatches(cfg, current)) {
-      setMembersAndContinue();
-      return;
-    }
-
-    if (current) {
-      deleteComponent(key, addGroup);
-    } else {
-      addGroup();
-    }
-  }
-
-  function readExistingPage(offset, cb) {
-    Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
-      var raw;
-      var total;
-      var i;
-      var c;
-      var cfg;
-      var keyParts;
-
-      if (errCode !== 0) {
-        log('Shelly.GetComponents failed: ' + String(errCode) + ' ' + String(errMsg));
-        state.ok = false;
-        cb();
-        return;
-      }
-
-      raw = (res && res.components) ? res.components : [];
-      total = res ? (res.total || raw.length) : raw.length;
-
-      for (i = 0; i < raw.length; i++) {
-        c = raw[i];
-        cfg = c.config || {};
-        keyParts = (c.key || '').split(':');
-        state.existing.push({
-          key: c.key || componentKey(c.type || keyParts[0], cfg.id),
-          type: c.type || keyParts[0],
-          id: cfg.id,
-          name: cfg.name,
-          config: cfg
-        });
-      }
-
-      if (offset + raw.length < total && raw.length > 0) {
-        readExistingPage(offset + raw.length, cb);
-      } else {
-        cb();
-      }
-    });
-  }
-
-  readExistingPage(0, function() {
-    ensureList(0, function() {
-      ensureGroup(0, function() {
-        done(state.ok, {
-          ids: state.ids,
-          keys: state.keys,
-          handles: state.handles
-        });
-      });
-    });
-  });
-}
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-var UPDATE_RATE = 5; // ============================================================================
-// DYNAMIC MODBUS SLAVE ID
-// ============================================================================
-// The Modbus slave/unit ID must never be hardcoded into script logic. It is
-// exposed as a persisted Virtual Component (number:299, range 1-247) so it
-// can be reconfigured from an app/config UI without redeploying code.
-// getSlaveId() reads the component live on every use, clamps it into range,
-// and writes the clamped value back if it was out of range.
-
-var MIN_SLAVE_ID = 1;
-var MAX_SLAVE_ID = 247;
-var DEFAULT_SLAVE_ID = 1;
-var slaveIdHandle = null;
-
-function getSlaveId() {
-  var value = DEFAULT_SLAVE_ID;
-
-  if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
-  if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
-  value = Math.round(value);
-  if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
-  if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
-
-  if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
-    slaveIdHandle.setValue(value);
-  }
-
-  return value;
-}
-
-// MODBUS-RTU endpoint; rebuilt whenever the slave ID Virtual Component changes.
-var MODBUS_ENDPOINT = null;
-var MODBUS_ENDPOINT_OPTS = { baud: 9600, mode: '8N1' };
-
-function rebuildModbusEndpoint() {
-  MODBUS_ENDPOINT = ModbusController.get(getSlaveId(), MODBUS_ENDPOINT_OPTS);
-  registerEntities();
-}
-
-
-// Logical keys of the 9 parameters promoted to Virtual Components below.
-var VC_KEYS = {
-  activePowerCt1: true,
-  activePowerCt2: true,
-  activePowerCt3: true,
-  activePowerCt4: true,
-  voltageCt1: true,
-  totalPositiveEnergyCt1: true,
-  totalPositiveEnergyCt2: true,
-  totalPositiveEnergyCt3: true,
-  totalPositiveEnergyCt4: true
+var CONFIG = {
+  UPDATE_RATE: 5,
+  DEFAULT_SLAVE_ID: 1,
+  MIN_SLAVE_ID: 1,
+  MAX_SLAVE_ID: 247
 };
 
-// Full IGEN DTSD422-D3 register catalog (CT1-CT4; CT5/CT6 not documented
-// in the source register table).
 var ENTITIES = [
-  // -------- CT1 --------
-  { name: 'Voltage CT1', units: 'V', vcKey: 'voltageCt1', reg: { addr: 0x01, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1 },
-  { name: 'Current CT1', units: 'A', reg: { addr: 0x07, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Active Power CT1', units: 'W', vcKey: 'activePowerCt1', reg: { addr: 0x0F, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Reactive Power CT1', units: 'Var', reg: { addr: 0x17, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Apparent Power CT1', units: 'VA', reg: { addr: 0x1F, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Power Factor CT1', units: '', reg: { addr: 0x26, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Total Positive Energy CT1', units: 'kWh', vcKey: 'totalPositiveEnergyCt1', reg: { addr: 0x3E, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-  { name: 'Total Negative Energy CT1', units: 'kWh', reg: { addr: 0x48, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-
-  // -------- CT2 --------
-  { name: 'Voltage CT2', units: 'V', reg: { addr: 0x02, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1 },
-  { name: 'Current CT2', units: 'A', reg: { addr: 0x09, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Active Power CT2', units: 'W', vcKey: 'activePowerCt2', reg: { addr: 0x11, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Reactive Power CT2', units: 'Var', reg: { addr: 0x19, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Apparent Power CT2', units: 'VA', reg: { addr: 0x21, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Power Factor CT2', units: '', reg: { addr: 0x27, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Total Positive Energy CT2', units: 'kWh', vcKey: 'totalPositiveEnergyCt2', reg: { addr: 0x52, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-  { name: 'Total Negative Energy CT2', units: 'kWh', reg: { addr: 0x5C, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-
-  // -------- CT3 --------
-  { name: 'Voltage CT3', units: 'V', reg: { addr: 0x03, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1 },
-  { name: 'Current CT3', units: 'A', reg: { addr: 0x0B, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Active Power CT3', units: 'W', vcKey: 'activePowerCt3', reg: { addr: 0x13, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Reactive Power CT3', units: 'Var', reg: { addr: 0x1B, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Apparent Power CT3', units: 'VA', reg: { addr: 0x23, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Power Factor CT3', units: '', reg: { addr: 0x28, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Total Positive Energy CT3', units: 'kWh', vcKey: 'totalPositiveEnergyCt3', reg: { addr: 0x66, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-  { name: 'Total Negative Energy CT3', units: 'kWh', reg: { addr: 0x70, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-
-  // -------- CT4 --------
-  { name: 'Voltage CT4', units: 'V', reg: { addr: 0x1001, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.1 },
-  { name: 'Current CT4', units: 'A', reg: { addr: 0x1007, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Active Power CT4', units: 'W', vcKey: 'activePowerCt4', reg: { addr: 0x100F, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Reactive Power CT4', units: 'Var', reg: { addr: 0x1017, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Apparent Power CT4', units: 'VA', reg: { addr: 0x101F, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 1 },
-  { name: 'Power Factor CT4', units: '', reg: { addr: 0x1026, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u16', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.001 },
-  { name: 'Total Positive Energy CT4', units: 'kWh', vcKey: 'totalPositiveEnergyCt4', reg: { addr: 0x103E, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 },
-  { name: 'Total Negative Energy CT4', units: 'kWh', reg: { addr: 0x1048, rtype: ModbusController.REGTYPE_HOLDING, itype: 'u32', bo: ModbusController.BE, wo: ModbusController.BE }, scale: 0.01 }
+  { name: 'Voltage CT1', units: 'V', addr: 1, itype: 'u16', scale: 0.1, role: 'p0' },
+  { name: 'Current CT1', units: 'A', addr: 7, itype: 'u32', scale: 0.001, role: null },
+  { name: 'Active Power CT1', units: 'W', addr: 15, itype: 'u32', scale: 1, role: 'p1' },
+  { name: 'Reactive Power CT1', units: 'Var', addr: 23, itype: 'u32', scale: 1, role: null },
+  { name: 'Apparent Power CT1', units: 'VA', addr: 31, itype: 'u32', scale: 1, role: null },
+  { name: 'Power Factor CT1', units: '', addr: 38, itype: 'u16', scale: 0.001, role: null },
+  { name: 'Total Positive Energy CT1', units: 'kWh', addr: 62, itype: 'u32', scale: 0.01, role: 'p2' },
+  { name: 'Total Negative Energy CT1', units: 'kWh', addr: 72, itype: 'u32', scale: 0.01, role: null },
+  { name: 'Voltage CT2', units: 'V', addr: 2, itype: 'u16', scale: 0.1, role: null },
+  { name: 'Current CT2', units: 'A', addr: 9, itype: 'u32', scale: 0.001, role: null },
+  { name: 'Active Power CT2', units: 'W', addr: 17, itype: 'u32', scale: 1, role: 'p3' },
+  { name: 'Reactive Power CT2', units: 'Var', addr: 25, itype: 'u32', scale: 1, role: null },
+  { name: 'Apparent Power CT2', units: 'VA', addr: 33, itype: 'u32', scale: 1, role: null },
+  { name: 'Power Factor CT2', units: '', addr: 39, itype: 'u16', scale: 0.001, role: null },
+  { name: 'Total Positive Energy CT2', units: 'kWh', addr: 82, itype: 'u32', scale: 0.01, role: 'p4' },
+  { name: 'Total Negative Energy CT2', units: 'kWh', addr: 92, itype: 'u32', scale: 0.01, role: null },
+  { name: 'Voltage CT3', units: 'V', addr: 3, itype: 'u16', scale: 0.1, role: null },
+  { name: 'Current CT3', units: 'A', addr: 11, itype: 'u32', scale: 0.001, role: null },
+  { name: 'Active Power CT3', units: 'W', addr: 19, itype: 'u32', scale: 1, role: 'p5' },
+  { name: 'Reactive Power CT3', units: 'Var', addr: 27, itype: 'u32', scale: 1, role: null },
+  { name: 'Apparent Power CT3', units: 'VA', addr: 35, itype: 'u32', scale: 1, role: null },
+  { name: 'Power Factor CT3', units: '', addr: 40, itype: 'u16', scale: 0.001, role: null },
+  { name: 'Total Positive Energy CT3', units: 'kWh', addr: 102, itype: 'u32', scale: 0.01, role: 'p6' },
+  { name: 'Total Negative Energy CT3', units: 'kWh', addr: 112, itype: 'u32', scale: 0.01, role: null },
+  { name: 'Voltage CT4', units: 'V', addr: 4097, itype: 'u16', scale: 0.1, role: null },
+  { name: 'Current CT4', units: 'A', addr: 4103, itype: 'u32', scale: 0.001, role: null },
+  { name: 'Active Power CT4', units: 'W', addr: 4111, itype: 'u32', scale: 1, role: 'p7' },
+  { name: 'Reactive Power CT4', units: 'Var', addr: 4119, itype: 'u32', scale: 1, role: null },
+  { name: 'Apparent Power CT4', units: 'VA', addr: 4127, itype: 'u32', scale: 1, role: null },
+  { name: 'Power Factor CT4', units: '', addr: 4134, itype: 'u16', scale: 0.001, role: null },
+  { name: 'Total Positive Energy CT4', units: 'kWh', addr: 4158, itype: 'u32', scale: 0.01, role: 'p8' },
+  { name: 'Total Negative Energy CT4', units: 'kWh', addr: 4168, itype: 'u32', scale: 0.01, role: null }
 ];
 
-// ============================================================================
-// VIRTUAL COMPONENT MANIFEST
-// ============================================================================
-
-function vcComponentSpec(id, entity) {
-  return {
-    key: entity.vcKey,
-    type: 'number',
-    id: id,
-    config: {
-      name: entity.name,
-      default_value: 0,
-      unit: entity.units,
-      persisted: false,
-      meta: { ui: { view: 'label' }, cloud: ['measurement'] }
-    }
-  };
-}
-
-function buildVirtualComponentsManifest() {
-  var components = [];
-  var groupMembers = [];
-  var nextId = 200;
-  var i;
-  var entity;
-
-  for (i = 0; i < ENTITIES.length; i++) {
-    entity = ENTITIES[i];
-    if (!entity.vcKey || !VC_KEYS[entity.vcKey]) continue;
-
-    components.push(vcComponentSpec(nextId, entity));
-    groupMembers.push(entity.vcKey);
-    nextId += 1;
-  }
-
-  components.push({
-    key: 'slaveId',
-    type: 'number',
-    id: 299,
-    config: {
-      name: 'Modbus Slave ID',
-      min: MIN_SLAVE_ID,
-      max: MAX_SLAVE_ID,
-      default_value: DEFAULT_SLAVE_ID,
-      persisted: true,
-      meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
-    }
-  });
-  groupMembers.push('slaveId');
-
-  return {
-    components: components,
-    groups: [
-      { id: 200, name: 'IGEN DTSD422-D3', components: groupMembers }
-    ]
-  };
-}
-
-var VIRTUAL_COMPONENTS = buildVirtualComponentsManifest();
+var MANAGED_ROLES = ['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'slaveId', 'group'];
 
 // ============================================================================
 // STATE
 // ============================================================================
 
-var vcHandles = null;
+var vc = {};
+var state = {
+  isPolling: false,
+  pollTimer: null
+};
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+function decodeValue(values, itype) {
+  var value;
+
+  if (itype === 'u16') return values[0];
+  if (itype === 'i16') {
+    value = values[0];
+    return value >= 0x8000 ? value - 0x10000 : value;
+  }
+
+  value = values[0] * 65536 + values[1];
+  if (itype === 'i32') return value >= 2147483648 ? value - 4294967296 : value;
+  return value;
+}
+
+function clampInteger(value, fallback, min, max) {
+  value = Number(value);
+  if (value !== value) value = fallback;
+  value = Math.round(value);
+  if (value < min) value = min;
+  if (value > max) value = max;
+  return value;
+}
+
+function getSlaveId() {
+  var value = clampInteger(
+    vc.slaveId.getValue(),
+    CONFIG.DEFAULT_SLAVE_ID,
+    CONFIG.MIN_SLAVE_ID,
+    CONFIG.MAX_SLAVE_ID
+  );
+
+  if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
+  return value;
+}
+
+function modbusErrorText(error) {
+  if (!error) return 'unknown error';
+  if (error.message !== undefined && error.code !== undefined) {
+    return error.message + ' (code ' + error.code + ')';
+  }
+  return JSON.stringify(error);
+}
+
+function getModbusClientId() {
+  return Shelly.getComponentConfig('serial', 100) ? 100 : 0;
+}
+
+function isModbusClientReady() {
+  var id = getModbusClientId();
+  var config = Shelly.getComponentConfig('serial', id);
+
+  return config && config.mode === 'mb_client';
+}
+
+function bindManagedComponents() {
+  var i;
+
+  for (i = 0; i < MANAGED_ROLES.length; i++) {
+    vc[MANAGED_ROLES[i]] = Script.getVcHandle(MANAGED_ROLES[i]);
+    if (!vc[MANAGED_ROLES[i]]) {
+      console.log('ERROR: managed Virtual Component role not available: ' + MANAGED_ROLES[i]);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function managedComponentKey(role, type) {
+  var config = vc[role].getConfig();
+
+  if (!config || config.id === undefined) return null;
+  return type + ':' + config.id;
+}
+
+function setDashboardGroup() {
+  var groupConfig = vc.group.getConfig();
+  var members = [
+    managedComponentKey('p0', 'number'),
+    managedComponentKey('p1', 'number'),
+    managedComponentKey('p2', 'number'),
+    managedComponentKey('p3', 'number'),
+    managedComponentKey('p4', 'number'),
+    managedComponentKey('p5', 'number'),
+    managedComponentKey('p6', 'number'),
+    managedComponentKey('p7', 'number'),
+    managedComponentKey('p8', 'number'),
+    managedComponentKey('slaveId', 'number')
+  ];
+  var i;
+
+  if (!groupConfig || groupConfig.id === undefined) {
+    console.log('ERROR: managed dashboard group has no component ID');
+    return;
+  }
+  for (i = 0; i < members.length; i++) {
+    if (!members[i]) {
+      console.log('ERROR: cannot resolve managed dashboard member');
+      return;
+    }
+  }
+
+  Shelly.call('Group.Set', { id: groupConfig.id, value: members }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      console.log('Group.Set failed: ' + errorCode + ' ' + errorMessage);
+      return;
+    }
+    console.log('Managed dashboard group ready');
+  });
+}
+
+// ============================================================================
+// MODBUS RPC
+// ============================================================================
+
+function readHoldingRegisters(addr, qty, callback) {
+  Shelly.call('MbRtuClient.ReadHoldingRegisters', {
+    id: getModbusClientId(),
+    sid: getSlaveId(),
+    addr: addr,
+    qty: qty
+  }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      callback(null, { code: errorCode, message: errorMessage });
+      return;
+    }
+    callback(result && result.values ? result.values : null, null);
+  });
+}
 
 // ============================================================================
 // MAIN LOGIC
 // ============================================================================
 
-function update() {
-  var i;
-  var ent;
-  var raw;
-  var value;
+function pollNext(index) {
+  var item;
+  var qty;
 
-  for (i = 0; i < ENTITIES.length; i++) {
-    ent = ENTITIES[i];
-
-    ent.handle.readOnce();
-    raw = ent.handle.getValue();
-    value = raw * ent.scale;
-
-    console.log(ent.name + ': ' + value + ' [' + ent.units + ']');
-
-    if (ent.vcKey && vcHandles && vcHandles[ent.vcKey]) {
-      vcHandles[ent.vcKey].setValue(value);
-    }
+  if (index >= ENTITIES.length) {
+    state.isPolling = false;
+    return;
   }
+
+  item = ENTITIES[index];
+  qty = (item.itype === 'u32' || item.itype === 'i32') ? 2 : 1;
+  readHoldingRegisters(item.addr, qty, function(values, error) {
+    var raw;
+    var value;
+
+    if (error) {
+      console.log(item.name + ' read error: ' + modbusErrorText(error));
+    } else if (!values || values.length < qty) {
+      console.log(item.name + ': invalid response');
+    } else {
+      raw = decodeValue(values, item.itype);
+      value = raw * item.scale;
+      console.log(item.name + ': ' + value + (item.units ? ' [' + item.units + ']' : ''));
+      if (vc[item.role]) vc[item.role].setValue(value);
+    }
+
+    pollNext(index + 1);
+  });
 }
 
-function registerEntities() {
-  var i;
-  for (i = 0; i < ENTITIES.length; i++) {
-    ENTITIES[i].handle = MODBUS_ENDPOINT.addEntity(ENTITIES[i].reg);
-  }
+function poll() {
+  if (state.isPolling) return;
+  state.isPolling = true;
+  pollNext(0);
 }
 
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
 
-function main() {
-  print('IGEN DTSD422-D3 MODBUS-RTU monitor + VC');
+function init() {
+  console.log('IGEN DTSD422-D3 MODBUS-RTU monitor + Virtual Components (managed VC)');
 
-  ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
-    if (!ok) {
-      print('ERROR: Virtual component setup failed');
-      return;
-    }
+  if (!bindManagedComponents()) {
+    console.log('Check firmware support and the script @meta declaration');
+    return;
+  }
 
-    vcHandles = readyVc.handles;
-    slaveIdHandle = readyVc.handles.slaveId;
+  if (!isModbusClientReady()) {
+    console.log('ERROR: configure the serial component as mb_client at 9600 8N1');
+    return;
+  }
 
-    rebuildModbusEndpoint();
-    slaveIdHandle.on('change', function() {
-      print('Modbus Slave ID changed -> ' + getSlaveId());
-      rebuildModbusEndpoint();
-    });
-    print('Ready; polling every ' + UPDATE_RATE + 's, ' + ENTITIES.length + ' parameters (' +
-      VIRTUAL_COMPONENTS.components.length + ' on Virtual Components)');
-
-    Timer.set(UPDATE_RATE * 1000, true, update);
+  setDashboardGroup();
+  vc.slaveId.on('change', function() {
+    console.log('Modbus Slave ID changed -> ' + getSlaveId());
   });
+
+  Timer.set(500, false, poll);
+  state.pollTimer = Timer.set(CONFIG.UPDATE_RATE * 1000, true, poll);
 }
 
-main();
+init();
+

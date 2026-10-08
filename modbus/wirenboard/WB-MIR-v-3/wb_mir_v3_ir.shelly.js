@@ -1,15 +1,17 @@
+/* @meta {"vc":{"slaveId":{"type":"number","config":{"name":"Slave ID","min":1,"max":247,"default_value":62,"persisted":true,"meta":{"ui":{"view":"field","step":1},"cloud":["status"],"role":"modbus_id"}}},"group":{"type":"group","config":{"name":"Wirenboard"}}}} */
+
 /**
- * @title WB-MIR v3 IR Utility
- * @description Dedicated MODBUS-RTU utility for WB-MIR v3 infrared functions
- *   using the native Shelly ModbusController. Supports learning IR commands
- *   to ROM or RAM, playing stored commands, dumping IR buffers, and erasing
- *   all saved IR commands.
- * @status under development
+ * @title WB-MIR v3 IR Utility with managed Virtual Components
+ * @description Dedicated MODBUS-RTU utility for WB-MIR v3 infrared
+ *   functions over portable MbRtuClient RPC calls and a firmware-managed
+ *   Modbus Slave ID. Supports learning IR commands to ROM or RAM, playing
+ *   stored commands, dumping IR buffers, and erasing all saved commands.
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/wirenboard/WB-MIR-v-3/wb_mir_v3_ir.shelly.js
  */
 
 /**
- * Wirenboard WB-MIR v3 - Infrared Utility
+ * Wirenboard WB-MIR v3 - Infrared Utility (Managed Virtual Components)
  *
  * This script is dedicated to the WB-MIR v3 IR transceiver registers.
  * It does not poll temperature or button counters. Instead, it performs a
@@ -39,21 +41,40 @@
  *   - For reliable learning, point the remote at the WB-MIR receiver and press
  *     the remote button once from close range during the learn window.
  *
- * Requires a Shelly Pro device with the RS485 Modbus RTU Add-on.
+ * Device compatibility: Shelly devices exposing an MbRtuClient component
+ * (e.g. Pro RS485 Add-on). MODBUS client component ID 100 (Pro RS485
+ * Add-on) is detected automatically; other devices use client ID 0.
+ *
+ * Known limitation: Shelly Pill Gen3 firmware 2.0.1-ge1a198b reboots when a
+ * script containing even a minimal managed VC declaration is started. Keep
+ * using wb_mir_v3_ir.shelly.js on that firmware.
+ *
+ * Managed Virtual Component roles:
+ * - slaveId: Persisted MODBUS server ID (configuration, not sensor data)
+ * - group: Home-page group containing slaveId
+ *
+ * The @meta block must remain the first comment and one physical line. Its
+ * complete comment, including delimiters, must not exceed 1024 characters;
+ * firmware silently ignores declarations beyond that boundary.
+ *
+ * The firmware creates and reconciles all components before the script
+ * starts. Their numeric IDs are intentionally not known or hard-coded by
+ * the script.
  *
  * References:
  *   WB-MIR v3 Register Map: https://wiki.wirenboard.com/wiki/WB-MIR_v3_Registers
  *   WB-MIR IR Manual: https://wiki.wirenboard.com/wiki/WB-MSx_Consumer_IR_Manual
+ *
+ * @see https://shelly-api-docs.shelly.cloud/gen2/Scripts/APIs/Virtual/#managed-virtual-components
  */
 
-/* === CONFIG === */
-var CONFIG = {
-  BAUD_RATE: 9600,
-  MODE: "8N2",
-  SLAVE_ID: 62,
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
+var CONFIG = {
   // play_rom | learn_rom | learn_ram | play_ram | dump_rom | erase_all_rom
-  ACTION: "play_rom",
+  ACTION: 'play_rom',
 
   // WB-MIR IR banks are 1-based.
   ROM_SLOT: 1,
@@ -64,10 +85,13 @@ var CONFIG = {
 
   BUFFER_START: 2000,
   BUFFER_CHUNK_REGS: 32,
-  BUFFER_MAX_REGS: 256
+  BUFFER_MAX_REGS: 256,
+
+  DEFAULT_SLAVE_ID: 62,
+  MIN_SLAVE_ID: 1,
+  MAX_SLAVE_ID: 247
 };
 
-/* === REGISTER MAP === */
 var REG = {
   ERASE_ALL_ROM: 5000,
   LEARN_RAM: 5001,
@@ -78,44 +102,141 @@ var REG = {
   BUFFER_START: 2000
 };
 
-var MODBUS_ENDPOINT = ModbusController.get(CONFIG.SLAVE_ID, { baud: CONFIG.BAUD_RATE, mode: CONFIG.MODE });
+var MANAGED_ROLES = ['slaveId', 'group'];
 
-/* === STATE === */
+// ============================================================================
+// STATE
+// ============================================================================
+
+var vc = {};
 var state = {
   opTimer: null
 };
+
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 function fail(msg) {
   if (state.opTimer) {
     Timer.clear(state.opTimer);
     state.opTimer = null;
   }
-  print("[WB-MIR IR] ERROR: " + msg);
+  print('[WB-MIR IR] ERROR: ' + msg);
 }
 
-/* === MODBUS HELPERS === */
+function clampInteger(value, fallback, min, max) {
+  value = Number(value);
+  if (value !== value) value = fallback;
+  value = Math.round(value);
+  if (value < min) value = min;
+  if (value > max) value = max;
+  return value;
+}
+
+function getSlaveId() {
+  var value = clampInteger(
+    vc.slaveId.getValue(),
+    CONFIG.DEFAULT_SLAVE_ID,
+    CONFIG.MIN_SLAVE_ID,
+    CONFIG.MAX_SLAVE_ID
+  );
+
+  if (vc.slaveId.getValue() !== value) vc.slaveId.setValue(value);
+  return value;
+}
+
+function getModbusClientId() {
+  return Shelly.getComponentConfig('serial', 100) ? 100 : 0;
+}
+
+function isModbusClientReady() {
+  var id = getModbusClientId();
+  var config = Shelly.getComponentConfig('serial', id);
+
+  return config && config.mode === 'mb_client';
+}
+
+function bindManagedComponents() {
+  var i;
+
+  for (i = 0; i < MANAGED_ROLES.length; i++) {
+    vc[MANAGED_ROLES[i]] = Script.getVcHandle(MANAGED_ROLES[i]);
+    if (!vc[MANAGED_ROLES[i]]) {
+      print('[WB-MIR IR] ERROR: managed Virtual Component role not available: ' + MANAGED_ROLES[i]);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function managedComponentKey(role, type) {
+  var config = vc[role].getConfig();
+
+  if (!config || config.id === undefined) return null;
+  return type + ':' + config.id;
+}
+
+function setDashboardGroup() {
+  var groupConfig = vc.group.getConfig();
+  var members = [managedComponentKey('slaveId', 'number')];
+
+  if (!groupConfig || groupConfig.id === undefined) {
+    print('[WB-MIR IR] ERROR: managed dashboard group has no component ID');
+    return;
+  }
+  if (!members[0]) {
+    print('[WB-MIR IR] ERROR: cannot resolve managed dashboard member');
+    return;
+  }
+
+  Shelly.call('Group.Set', { id: groupConfig.id, value: members }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0) {
+      print('[WB-MIR IR] Group.Set failed: ' + errorCode + ' ' + errorMessage);
+      return;
+    }
+    print('[WB-MIR IR] Managed dashboard group ready');
+  });
+}
+
+// ============================================================================
+// MODBUS RPC
+// ============================================================================
 
 function writeSingleRegister(addr, value, callback) {
-  MODBUS_ENDPOINT.writeRegisters({ addr: addr, rtype: ModbusController.REGTYPE_HOLDING, itype: "u16" }, [value], function(success, error) {
-    callback(success ? null : error);
+  Shelly.call('MbRtuClient.WriteSingleRegister', {
+    id: getModbusClientId(),
+    sid: getSlaveId(),
+    addr: addr,
+    value: value
+  }, function(result, errorCode, errorMessage) {
+    callback(errorCode === 0 ? null : { code: errorCode, message: errorMessage });
   });
 }
 
 function readHoldingRegisters(addr, qty, callback) {
-  MODBUS_ENDPOINT.readRegisters({ rtype: ModbusController.REGTYPE_HOLDING, addr: addr, qty: qty }, function(result, error) {
-    if (result === undefined || result === null) {
-      callback(error, null);
+  Shelly.call('MbRtuClient.ReadHoldingRegisters', {
+    id: getModbusClientId(),
+    sid: getSlaveId(),
+    addr: addr,
+    qty: qty
+  }, function(result, errorCode, errorMessage) {
+    if (errorCode !== 0 || !result || !result.values) {
+      callback({ code: errorCode, message: errorMessage }, null);
       return;
     }
-    callback(null, result);
+    callback(null, result.values);
   });
 }
 
-/* === IR HELPERS === */
+// ============================================================================
+// IR HELPERS
+// ============================================================================
 
 function validateSlot() {
   if (CONFIG.ROM_SLOT < 1 || CONFIG.ROM_SLOT > 80) {
-    fail("CONFIG.ROM_SLOT must be between 1 and 80");
+    fail('CONFIG.ROM_SLOT must be between 1 and 80');
     return false;
   }
   return true;
@@ -132,18 +253,18 @@ function monitorRegisterZero(reg, label, callback) {
         return;
       }
       v = regs[0];
-      print(label + " reg " + reg + " = " + v);
+      print(label + ' reg ' + reg + ' = ' + v);
       if (v === 0) {
         callback(null);
         return;
       }
       if (v === 0xFFFF) {
-        callback("Device reported error 0xFFFF");
+        callback('Device reported error 0xFFFF');
         return;
       }
       remainingMs -= CONFIG.POLL_INTERVAL;
       if (remainingMs <= 0) {
-        callback(label + " timeout");
+        callback(label + ' timeout');
         return;
       }
       Timer.set(CONFIG.POLL_INTERVAL, false, poll);
@@ -165,9 +286,9 @@ function printIrBuffer(buf) {
   var term = findDoubleZero(buf);
   var last = term >= 0 ? term + 2 : buf.length;
   var i;
-  print("IR buffer words: " + last);
+  print('IR buffer words: ' + last);
   for (i = 0; i < last; i++) {
-    print("  [" + i + "] = " + buf[i]);
+    print('  [' + i + '] = ' + buf[i]);
   }
 }
 
@@ -209,67 +330,69 @@ function dumpIrBuffer(callback) {
   readChunk(0);
 }
 
-/* === ACTIONS === */
+// ============================================================================
+// ACTIONS
+// ============================================================================
 
 function actionPlayRom() {
   if (!validateSlot()) return;
-  print("Playing IR command from ROM slot " + CONFIG.ROM_SLOT + "...");
+  print('Playing IR command from ROM slot ' + CONFIG.ROM_SLOT + '...');
   writeSingleRegister(REG.PLAY_ROM, CONFIG.ROM_SLOT, function(err) {
     if (err) {
-      fail("play_rom start failed: " + err);
+      fail('play_rom start failed: ' + JSON.stringify(err));
       return;
     }
-    monitorRegisterZero(REG.PLAY_ROM, "play_rom", function(err) {
+    monitorRegisterZero(REG.PLAY_ROM, 'play_rom', function(err) {
       if (err) {
-        fail("play_rom failed: " + err);
+        fail('play_rom failed: ' + err);
         return;
       }
-      print("IR playback complete.");
+      print('IR playback complete.');
     });
   });
 }
 
 function actionLearnRom() {
   if (!validateSlot()) return;
-  print("Learning IR command into ROM slot " + CONFIG.ROM_SLOT + "...");
-  print("Point the remote at WB-MIR and press the desired button once.");
+  print('Learning IR command into ROM slot ' + CONFIG.ROM_SLOT + '...');
+  print('Point the remote at WB-MIR and press the desired button once.');
   writeSingleRegister(REG.LEARN_ROM, CONFIG.ROM_SLOT, function(err) {
     if (err) {
-      fail("learn_rom start failed: " + err);
+      fail('learn_rom start failed: ' + JSON.stringify(err));
       return;
     }
 
     state.opTimer = Timer.set(CONFIG.LEARN_WINDOW_MS, false, function() {
       writeSingleRegister(REG.LEARN_ROM, 0, function(stopErr) {
         if (stopErr) {
-          fail("learn_rom stop failed: " + stopErr);
+          fail('learn_rom stop failed: ' + JSON.stringify(stopErr));
           return;
         }
-        print("Learn window closed for ROM slot " + CONFIG.ROM_SLOT + ".");
+        print('Learn window closed for ROM slot ' + CONFIG.ROM_SLOT + '.');
       });
     });
   });
 }
 
 function actionLearnRam() {
-  print("Learning IR command into RAM...");
-  print("Point the remote at WB-MIR and press the desired button once.");
+  print('Learning IR command into RAM...');
+  print('Point the remote at WB-MIR and press the desired button once.');
   writeSingleRegister(REG.LEARN_RAM, 1, function(err) {
     if (err) {
-      fail("learn_ram start failed: " + err);
+      fail('learn_ram start failed: ' + JSON.stringify(err));
       return;
     }
 
     state.opTimer = Timer.set(CONFIG.LEARN_WINDOW_MS, false, function() {
       writeSingleRegister(REG.LEARN_RAM, 0, function(stopErr) {
         if (stopErr) {
-          fail("learn_ram stop failed: " + stopErr);
+          fail('learn_ram stop failed: ' + JSON.stringify(stopErr));
           return;
         }
-        print("Learn window closed. Dumping RAM buffer...");
+        print('Learn window closed. Dumping RAM buffer...');
         dumpIrBuffer(function(dumpErr, buf) {
           if (dumpErr) {
-            fail("buffer dump failed: " + dumpErr);
+            fail('buffer dump failed: ' + JSON.stringify(dumpErr));
             return;
           }
           printIrBuffer(buf);
@@ -280,83 +403,100 @@ function actionLearnRam() {
 }
 
 function actionPlayRam() {
-  print("Playing IR command from RAM buffer...");
+  print('Playing IR command from RAM buffer...');
   writeSingleRegister(REG.PLAY_RAM, 1, function(err) {
     if (err) {
-      fail("play_ram start failed: " + err);
+      fail('play_ram start failed: ' + JSON.stringify(err));
       return;
     }
-    monitorRegisterZero(REG.PLAY_RAM, "play_ram", function(doneErr) {
+    monitorRegisterZero(REG.PLAY_RAM, 'play_ram', function(doneErr) {
       if (doneErr) {
-        fail("play_ram failed: " + doneErr);
+        fail('play_ram failed: ' + doneErr);
         return;
       }
-      print("RAM playback complete.");
+      print('RAM playback complete.');
     });
   });
 }
 
 function actionDumpRom() {
   if (!validateSlot()) return;
-  print("Opening ROM slot " + CONFIG.ROM_SLOT + " for buffer dump...");
+  print('Opening ROM slot ' + CONFIG.ROM_SLOT + ' for buffer dump...');
   writeSingleRegister(REG.EDIT_ROM, CONFIG.ROM_SLOT, function(err) {
     if (err) {
-      fail("dump_rom open failed: " + err);
+      fail('dump_rom open failed: ' + JSON.stringify(err));
       return;
     }
 
     dumpIrBuffer(function(dumpErr, buf) {
       if (dumpErr) {
-        fail("dump_rom read failed: " + dumpErr);
+        fail('dump_rom read failed: ' + JSON.stringify(dumpErr));
         return;
       }
       printIrBuffer(buf);
       writeSingleRegister(REG.EDIT_ROM, 0, function(closeErr) {
         if (closeErr) {
-          fail("dump_rom close failed: " + closeErr);
+          fail('dump_rom close failed: ' + JSON.stringify(closeErr));
           return;
         }
-        print("ROM slot " + CONFIG.ROM_SLOT + " closed.");
+        print('ROM slot ' + CONFIG.ROM_SLOT + ' closed.');
       });
     });
   });
 }
 
 function actionEraseAllRom() {
-  print("Erasing all IR commands from ROM...");
+  print('Erasing all IR commands from ROM...');
   writeSingleRegister(REG.ERASE_ALL_ROM, 1, function(err) {
     if (err) {
-      fail("erase_all_rom failed: " + err);
+      fail('erase_all_rom failed: ' + JSON.stringify(err));
       return;
     }
-    print("All ROM IR commands erase requested.");
+    print('All ROM IR commands erase requested.');
   });
 }
 
-/* === INIT === */
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 
 function init() {
-  print("WB-MIR v3 - IR Utility");
-  print("======================");
-  print("Action: " + CONFIG.ACTION);
-  print("Slave ID: " + CONFIG.SLAVE_ID);
-  print("");
+  if (!bindManagedComponents()) {
+    print('[WB-MIR IR] Check firmware support and the script @meta declaration');
+    return;
+  }
+
+  if (!isModbusClientReady()) {
+    print('[WB-MIR IR] ERROR: configure the serial component as mb_client at 9600 8N2');
+    return;
+  }
+
+  setDashboardGroup();
+  vc.slaveId.on('change', function() {
+    print('[WB-MIR IR] Modbus Slave ID changed -> ' + getSlaveId());
+  });
+
+  print('WB-MIR v3 - IR Utility (managed VC)');
+  print('======================');
+  print('Action: ' + CONFIG.ACTION);
+  print('Slave ID: ' + getSlaveId());
+  print('');
 
   Timer.set(300, false, function() {
-    if (CONFIG.ACTION === "play_rom") {
+    if (CONFIG.ACTION === 'play_rom') {
       actionPlayRom();
-    } else if (CONFIG.ACTION === "learn_rom") {
+    } else if (CONFIG.ACTION === 'learn_rom') {
       actionLearnRom();
-    } else if (CONFIG.ACTION === "learn_ram") {
+    } else if (CONFIG.ACTION === 'learn_ram') {
       actionLearnRam();
-    } else if (CONFIG.ACTION === "play_ram") {
+    } else if (CONFIG.ACTION === 'play_ram') {
       actionPlayRam();
-    } else if (CONFIG.ACTION === "dump_rom") {
+    } else if (CONFIG.ACTION === 'dump_rom') {
       actionDumpRom();
-    } else if (CONFIG.ACTION === "erase_all_rom") {
+    } else if (CONFIG.ACTION === 'erase_all_rom') {
       actionEraseAllRom();
     } else {
-      fail("Unknown CONFIG.ACTION: " + CONFIG.ACTION);
+      fail('Unknown CONFIG.ACTION: ' + CONFIG.ACTION);
     }
   });
 }
