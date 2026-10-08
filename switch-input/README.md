@@ -8,6 +8,7 @@ Use these to customize switch/input behavior and cover control beyond default de
 
 - `activation-switch.shelly.js`
 - `cover-scheduled-event-handlers.shelly.js`
+- `cover-operation-only-if-window-is-closed.js`
 - `cycle-switch.shelly.js`
 - `double-press-double-switch.shelly.js`
 - `double-press-switch.shelly.js`
