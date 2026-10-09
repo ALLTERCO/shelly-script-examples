@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-10
+- Add a Local Network Messaging starter collection for firmware 2.0+: message diagnostics, remote switch mirroring, received button control, input-driven multicast group commands, and a TV power follower with configurable hysteresis and delayed OFF control, plus complete setup and troubleshooting documentation
 - Add the Shelly Plus Plug S LED power visualization from upstream PR #204, with fixed threshold states or a green-to-red gradient, repository-standard headers, and manifest/README integration
 - Add `modbus/Growatt/SPF6000/spf6000_vc.shelly.js` for the Growatt SPF 6000 ES Plus off-grid inverter, reusing the input-register map from `SFP5000` (same off-grid family, different power rating). No official protocol document for this exact model was found, so the register addresses are explicitly flagged as unverified in the file header and `@status under development` until confirmed on real hardware
 - Rename `modbus/Growatt/application_examples/` to `modbus/Growatt/common/` (clearer name for generic, non-model-specific demos), rename `display_virtual_components_vc.shelly.js` to `pv_dashboard_vc.shelly.js` with a real title/description (it had a generic auto-extracted one), and delete `example_cli_vc.shelly.js` — a conversion bug had left it byte-for-byte identical to the dashboard example, when its original (pre-managed-VC) purpose was a contrasting console-only readout with no data VCs
