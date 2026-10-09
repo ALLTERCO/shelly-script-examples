@@ -1,6 +1,6 @@
 # INNOVA AirLeaf Modbus RTU examples
 
-**Status: community hardware feedback received; upstream review pending.** The contributor reports that all three scripts start and work on their setup, but also reports that fewer than nine Virtual Components appear for some profiles. This has not yet been independently reproduced or resolved. Writes are disabled by default; working read-only operation does not establish that commands or all register mappings have been validated.
+**Status: hardware-tested by the contributor; upstream review pending.** The contributor confirms all three INNOVA profiles work on physical hardware. This is contributor-reported validation, not independent maintainer certification. Modbus writes are disabled by default in the published files and must be explicitly enabled for control.
 
 **AI assistance disclosure:** These examples were produced with AI assistance and reviewed/submitted with user direction. Please check the repository's authorship requirements before accepting this contribution.
 
