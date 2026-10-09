@@ -109,7 +109,7 @@ function listen(role) {
     verifiedCommand(role, ev.value);
   });
 }
-function start() {
+function init() {
   var roles = ['power','room','target','mode','fan','aux','motor','alarm','online'];
   var j;
   for (j=0; j<roles.length; j++) {
@@ -133,4 +133,4 @@ function start() {
     readNext();
   });
 }
-start();
+init();
