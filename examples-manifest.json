@@ -545,6 +545,69 @@
     ]
   },
   {
+    "fname": "lnm/input-group-switch-control.shelly.js",
+    "title": "LNM Input to Group Switch Control",
+    "description": "Sends multicast switch commands with LNM.Call when a local input receives single, double, or long push gestures.",
+    "doc": "lnm/README.md",
+    "tags": [
+      "lnm",
+      "local-network",
+      "input",
+      "switch",
+      "automation"
+    ]
+  },
+  {
+    "fname": "lnm/message-monitor.shelly.js",
+    "title": "LNM Message Monitor",
+    "description": "Logs Local Network Messaging status updates and events with optional sender and LNM-instance filtering for setup and troubleshooting.",
+    "doc": "lnm/README.md",
+    "tags": [
+      "lnm",
+      "local-network",
+      "diagnostics",
+      "monitoring"
+    ]
+  },
+  {
+    "fname": "lnm/received-button-switch-control.shelly.js",
+    "title": "LNM Received Button Switch Control",
+    "description": "Converts remote input gestures received through Local Network Messaging into local switch toggle, on, and off actions.",
+    "doc": "lnm/README.md",
+    "tags": [
+      "lnm",
+      "local-network",
+      "input",
+      "switch",
+      "automation"
+    ]
+  },
+  {
+    "fname": "lnm/switch-state-follower.shelly.js",
+    "title": "LNM Switch State Follower",
+    "description": "Mirrors a remote switch output received through Local Network Messaging onto a configurable local switch output.",
+    "doc": "lnm/README.md",
+    "tags": [
+      "lnm",
+      "local-network",
+      "switch",
+      "automation"
+    ]
+  },
+  {
+    "fname": "lnm/tv-power-av-follower.shelly.js",
+    "title": "TV Power to AV Outputs over LNM",
+    "description": "Follows a TV's remotely measured power over Local Network Messaging and switches selected local AV outputs using configurable hysteresis and an OFF delay.",
+    "doc": "lnm/README.md",
+    "tags": [
+      "lnm",
+      "local-network",
+      "energy",
+      "automation",
+      "audio"
+    ]
+  },
+  {
     "fname": "lora/lora-covercontrol-receiver/lora-covercontrol-bthome-emitter.shelly.js",
     "title": "Receive cover control commands over LoRa and send BTHome sensor data",
     "description": "Example how to handle commands over LoRa to control Cover device and data from BTHome sensors. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
