@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-10
+- Add a hardware-tested Midea/Clivet R32 Modbus RTU bridge with exactly nine Virtual Components, guarded zone-1/DHW/Silent Mode control, fresh masked writes, physical readback, setup documentation and 33 RPC/Modbus tests
 - Add a Local Network Messaging starter collection for firmware 2.0+: message diagnostics, remote switch mirroring, received button control, input-driven multicast group commands, and a TV power follower with configurable hysteresis and delayed OFF control, plus complete setup and troubleshooting documentation
 - Add the Shelly Plus Plug S LED power visualization from upstream PR #204, with fixed threshold states or a green-to-red gradient, repository-standard headers, and manifest/README integration
 - Add `modbus/Growatt/SPF6000/spf6000_vc.shelly.js` for the Growatt SPF 6000 ES Plus off-grid inverter, reusing the input-register map from `SFP5000` (same off-grid family, different power rating). No official protocol document for this exact model was found, so the register addresses are explicitly flagged as unverified in the file header and `@status under development` until confirmed on real hardware
