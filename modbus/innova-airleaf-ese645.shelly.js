@@ -1,7 +1,6 @@
-/* @meta {"vc":{"power":{"type":"boolean","config":{"name":"INNOVA Power","default_value":false}},"room":{"type":"number","config":{"name":"Room temperature","min":0,"max":100,"default_value":0}},"target":{"type":"number","config":{"name":"Target temperature","min":5,"max":40,"default_value":20}},"mode":{"type":"enum","config":{"name":"Operating mode","options":["auto","heating","cooling","unknown"],"default_value":"unknown"}},"fan":{"type":"enum","config":{"name":"Fan mode","options":["auto","silent","night","maximum","unknown"],"default_value":"unknown"}},"aux":{"type":"number","config":{"name":"Actual setpoint","min":0,"max":100,"default_value":0}},"motor":{"type":"number","config":{"name":"Raw program flags","min":0,"max":65535,"default_value":0}},"alarm":{"type":"text","config":{"name":"Modbus diagnostics","default_value":"Starting"}},"online":{"type":"boolean","config":{"name":"Modbus online","default_value":false}}}} */
 /**
  * @title INNOVA AirLeaf ESE645 Modbus RTU
- * @description Read-only by default; nine managed VCs for documented N273025C controllers.
+ * @description Read-only by default; nine self-provisioned VCs for documented N273025C controllers.
  * @status under development
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/innova-airleaf-ese645.shelly.js
  */
@@ -9,8 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * Hardware: The Pill + Modbus RS485 add-on; 9600 8N1 expected, verify on controller.
  * Modbus FC03/FC06, zero-based address notation, slave ID configurable below.
- * Managed VCs use @meta as first line, <=1024 chars, and Script.getVcHandle(role).
- * Nine roles: power, room, target, mode, fan, aux, motor, alarm, online.
+ * Nine fixed-ID VCs are created/reused with Virtual.Add; Virtual.getHandle binds them.
+ * Nine roles (IDs VC_BASE..VC_BASE+8): power, room, target, mode, fan, aux, motor, alarm, online.
  * power/target/mode/fan are commands ONLY when ENABLE_WRITES=true after commissioning.
  * Safety: read-only by default; no serial auto-configuration; no output on boot.
  * Auxiliary readings vary with controller profile, see README.
@@ -109,19 +108,133 @@ function listen(role) {
     verifiedCommand(role, ev.value);
   });
 }
-function init() {
-  var roles = ['power','room','target','mode','fan','aux','motor','alarm','online'];
-  var j;
-  for (j=0; j<roles.length; j++) {
-    VC[roles[j]] = Script.getVcHandle(roles[j]);
-    if (!VC[roles[j]]) { log('Managed VC missing: ' + roles[j]); return; }
+
+var VC_BASE = 220; // Nine fixed IDs: 220..228.
+var POINTS = [
+  ['boolean', 'power', 'Power'],
+  ['number', 'room', 'Room temperature'],
+  ['number', 'target', 'Target temperature'],
+  ['enum', 'mode', 'Operating mode'],
+  ['enum', 'fan', 'Fan mode'],
+  ['number', 'aux', 'Auxiliary temperature / setpoint'],
+  ['number', 'motor', 'Motor command / PRG flags'],
+  ['text', 'alarm', 'Modbus diagnostics'],
+  ['boolean', 'online', 'Modbus online']
+];
+var existingComponents = [];
+
+function pointId(n) { return VC_BASE + n; }
+function pointKey(n) { return POINTS[n][0] + ':' + pointId(n); }
+function pointName(n) { return 'INNOVA ' + PROFILE.toUpperCase() + ' ' + POINTS[n][2]; }
+
+function componentConfig(n) {
+  var type = POINTS[n][0];
+  var cfg = { name: pointName(n), persisted: false, meta: { ui: { view: 'label' } } };
+  if (type === 'boolean') {
+    cfg.default_value = false;
+    if (n === 0 && ENABLE_WRITES) cfg.meta.ui.view = 'toggle';
+  } else if (type === 'enum') {
+    cfg.options = n === 3 ? ['auto', 'heating', 'cooling', 'unknown'] :
+      ['auto', 'silent', 'night', 'maximum', 'unknown'];
+    cfg.default_value = 'unknown';
+    if (ENABLE_WRITES) cfg.meta.ui.view = 'dropdown';
+  } else if (type === 'number') {
+    cfg.default_value = n === 2 ? 20 : 0;
+    cfg.min = 0;
+    cfg.max = n === 6 ? 65535 : 100;
+    if (n === 2) { cfg.min = 5; cfg.max = 40; }
+    if (n !== 6) cfg.meta.ui.unit = 'C';
+    if (n === 2 && ENABLE_WRITES) {
+      cfg.meta.ui.view = 'field';
+      cfg.meta.ui.step = 0.1;
+    }
+  } else if (type === 'text') {
+    cfg.default_value = 'Starting';
+    cfg.max_len = 255;
+  }
+  return cfg;
+}
+
+function provisionNext(n) {
+  var type, cfg, old;
+  if (n === POINTS.length) {
+    Timer.set(100, false, startBridge);
+    return;
+  }
+  type = POINTS[n][0];
+  cfg = componentConfig(n);
+  old = Shelly.getComponentConfig(type, pointId(n));
+  if (old && old.name !== cfg.name) {
+    log('STOPPED: component ID conflict at ' + pointKey(n) + '. Change VC_BASE.');
+    return;
+  }
+  Shelly.call(old ? type[0].toUpperCase() + type.slice(1) + '.SetConfig' : 'Virtual.Add',
+    old ? { id: pointId(n), config: cfg } :
+      { type: type, id: pointId(n), config: cfg },
+    function(result, code, message) {
+      if (code !== 0) {
+        log('STOPPED: VC setup failed for ' + pointKey(n) + ': ' + String(message));
+        return;
+      }
+      Timer.set(100, false, function() { provisionNext(n + 1); });
+    });
+}
+
+function inspectComponents(offset) {
+  Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset },
+    function(res, code, message) {
+      var list, total, i, key, kind, owned, used, cfg, next;
+      if (code !== 0 || !res || !res.components) {
+        log('STOPPED: cannot inspect existing virtual components: ' + String(message));
+        return;
+      }
+      list = res.components;
+      for (i = 0; i < list.length; i++) existingComponents.push(list[i]);
+      total = typeof res.total === 'number' ? res.total : existingComponents.length;
+      next = offset + list.length;
+      if (next < total && list.length > 0) {
+        Timer.set(100, false, function() { inspectComponents(next); });
+        return;
+      }
+      used = 0;
+      for (i = 0; i < existingComponents.length; i++) {
+        key = existingComponents[i].key || '';
+        kind = key.split(':')[0];
+        if (kind === 'boolean' || kind === 'number' || kind === 'enum' ||
+            kind === 'text' || kind === 'button' || kind === 'group') used++;
+      }
+      owned = 0;
+      for (i = 0; i < POINTS.length; i++) {
+        cfg = Shelly.getComponentConfig(POINTS[i][0], pointId(i));
+        if (cfg && cfg.name !== pointName(i)) {
+          log('STOPPED: ' + pointKey(i) + ' is owned by another script.');
+          return;
+        }
+        if (cfg) owned++;
+      }
+      if (used + POINTS.length - owned > 10) {
+        log('STOPPED: ' + (POINTS.length - owned) +
+          ' additional VC slots needed; device limit is 10. Nothing was deleted.');
+        return;
+      }
+      existingComponents = [];
+      provisionNext(0);
+    });
+}
+
+function startBridge() {
+  var j, handle;
+  for (j = 0; j < POINTS.length; j++) {
+    handle = Virtual.getHandle(pointKey(j));
+    if (!handle) { log('STOPPED: VC handle missing: ' + pointKey(j)); return; }
+    VC[POINTS[j][1]] = handle;
   }
   put('online', false);
   fault('Waiting for Modbus');
   Shelly.call('Serial.GetConfig', {id:CLIENT_ID}, function(cfg, err) {
     if (err !== 0 || !cfg || cfg.mode !== 'mb_client' || !cfg.serial ||
         cfg.serial.baud !== EXPECTED_BAUD || cfg.serial.format !== '8N1') {
-      log('Serial must be mb_client, 9600 8N1; configuration NOT changed');
+      log('Serial must be mb_client, ' + EXPECTED_BAUD + ' 8N1; configuration NOT changed');
       fault('Serial configuration mismatch');
       return;
     }
@@ -132,5 +245,16 @@ function init() {
     Timer.set(POLL_MS, true, readNext);
     readNext();
   });
+}
+function init() {
+  if (VC_BASE < 200 || VC_BASE + POINTS.length - 1 > 299) {
+    log('STOPPED: VC_BASE must leave nine IDs within 200..299');
+    return;
+  }
+  if (typeof Virtual === 'undefined' || !Virtual.getHandle) {
+    log('STOPPED: Virtual Components API unavailable on this firmware');
+    return;
+  }
+  inspectComponents(0);
 }
 init();
