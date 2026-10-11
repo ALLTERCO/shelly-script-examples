@@ -1565,6 +1565,22 @@
     ]
   },
   {
+    "fname": "modbus/Midea/midea-clivet-r32-pro-modbus-vc.shelly.js",
+    "title": "Midea/Clivet R32 Modbus RTU bridge",
+    "description": "Local zone-1, DHW and Silent Mode control with nine Virtual Components. Requires firmware 2.0.0+ and Shelly Pro Modbus Add-on.",
+    "doc": "modbus/Midea/README.md",
+    "tags": [
+      "modbus-controller",
+      "modbus-rtu",
+      "hvac",
+      "midea",
+      "clivet",
+      "r32",
+      "heat-pump",
+      "virtual-components"
+    ]
+  },
+  {
     "fname": "modbus/Sigenergy/SigenStor/sigenstor_plant_vc.shelly.js",
     "title": "Sigenergy SigenStor MODBUS-RTU plant monitor",
     "description": "Reads SigenStor plant PV, battery, grid, load, SOC, grid state, and status values into Virtual Components with cloud logging.",
@@ -1824,7 +1840,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_grid_backup_controller.shelly.js",
     "title": "iATS two-channel grid/backup automatic transfer switch controller",
-    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot \u2014 this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
+    "description": "Controls K1 (grid) and K2 (backup) contactors on a two-channel Shelly device (Pro 2, Pro 2PM, Plus 2PM, 2PM Gen3/Gen4 in switch profile). SW1/input:0 = grid available; SW2/input:1 = backup available. Grid is preferred when both sources are present. Physical inputs are detached from outputs on boot — this script is the sole owner of switch:0 (K2) and switch:1 (K1). Both outputs are opened before a transfer; a configurable delay prevents contactor overlap. Optional manual override is received from the Sensor Add-on helper via KVS; a stale-sequence watchdog reverts to AUTO when the helper stops publishing.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",
@@ -1838,7 +1854,7 @@
   {
     "fname": "power-energy/automatic-transfer-switch/iats_sensor_addon_manual_control.shelly.js",
     "title": "iATS Sensor Add-on manual control helper",
-    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs \u2014 iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
+    "description": "Companion script for the iATS controller, running on the Shelly Pro Sensor Add-on. DIN0 (input:100) selects AUTO vs MANUAL mode; DIN1 (input:101) selects GRID vs PV target. Publishes the current selection to KVS at a configurable interval. Does not touch relay outputs — iats_grid_backup_controller.shelly.js remains the sole owner of switch:0/1 and validates source availability before acting on any manual request.",
     "doc": "power-energy/automatic-transfer-switch/README.md",
     "tags": [
       "energy",

@@ -43,6 +43,7 @@ simpler starting points.
 - [`IGEN/DTSD422/`](IGEN/DTSD422/): six-circuit energy meter (CT1-CT4 documented) - `dtsd422_vc.shelly.js`
 - [`JKESS/JK200-MBS/`](JKESS/JK200-MBS/): Jikong JK-PB series BMS (cell voltages + pack telemetry) - `jk200_vc.shelly.js`
 - [`LG/`](LG/): LG THERMA V heat pump via Shelly Pro EM-50 - `lg-therma-v-pro-em50_vc.shelly.js`
+- [`Midea/`](Midea/): Midea/Clivet R32 heat pump bridge with nine self-provisioned controls/measurements, controller guards and command readback - `midea-clivet-r32-pro-modbus-vc.shelly.js`
 - [`LinkedGo/R290/`](LinkedGo/R290/): R290 air-to-water thermal pump - `r290_aw_thermal_pump_vc.shelly.js`
 - [`LinkedGo/ST802/`](LinkedGo/ST802/): Youth Smart Thermostat + BMS command simulation - `st802_bms_vc.shelly.js`
 - [`MarsRock/G2_SUN_Series_Grid_Tie_Inverter/`](MarsRock/G2_SUN_Series_Grid_Tie_Inverter/): micro-inverter, only 5 registers total (all promoted to VC) - `g2_sun_series_vc.shelly.js`
