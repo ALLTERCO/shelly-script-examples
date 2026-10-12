@@ -25,6 +25,23 @@ function emulator(config = {}, initial = {}) {
   let pendingReadback = false;
   let serial = { mode: 'mb_client', serial: { baud: 9600, format: '8N1' } };
   const clone = x => JSON.parse(JSON.stringify(x));
+  // Firmware creates the declared VCs before it evaluates the script.
+  // Tests assign deterministic IDs for convenience; production uses role handles.
+  const manifest = JSON.parse(source.split('\\n')[0].slice('/* @meta '.length, -' */'.length)).vc;
+  const entries = Object.entries(manifest);
+  const baseId = config.mockManagedIdStart || 220;
+  const roleIds = {};
+  for (let i = 0; i < entries.length; i++) {
+    const [role, definition] = entries[i];
+    if (role === config.mockMissingManagedRole) continue;
+    const id = baseId + i;
+    const type = definition.type;
+    const cfg = { ...clone(definition.config), id };
+    const value = cfg.default_value === undefined ?
+      (type === 'boolean' ? false : type === 'number' ? 0 : '') : cfg.default_value;
+    components.set(type + ':' + id, { config: cfg, value });
+    roleIds[role] = { type, id };
+  }
   function call(method, params, callback) {
     trace.push({ time: now, method, params: clone(params) });
     if (beforeRpc) beforeRpc(method, params, api);
@@ -32,12 +49,7 @@ function emulator(config = {}, initial = {}) {
       const items = [...components.entries()].map(([key, x]) => ({ key, config: x.config, status: { value: x.value } }));
       callback({ total: items.length, components: items.slice(params.offset, params.offset + 4) }, 0, ''); return;
     }
-    if (method === 'Virtual.Add') {
-      const key = params.type + ':' + params.id;
-      if (components.size >= 10 || components.has(key)) { callback(null, -1, 'Capacity/conflict'); return; }
-      components.set(key, { config: clone(params.config), value: params.config.default_value });
-      callback({ id: params.id }, 0, ''); return;
-    }
+    if (method === 'Virtual.Add') throw new Error('Managed VC scripts must not call Virtual.Add');
     if (method.endsWith('.SetConfig')) {
       if (method === 'Serial.SetConfig') { serial = clone(params.config); callback({ restart_required: false }, 0, ''); return; }
       const key = method.split('.')[0].toLowerCase() + ':' + params.id;
@@ -85,6 +97,17 @@ function emulator(config = {}, initial = {}) {
       getComponentStatus: (type, id) => {
         const c = components.get(type + ':' + id); return c ? { value: c.value } : undefined;
       } },
+    Script: { getVcHandle: role => {
+      const point = roleIds[role];
+      if (!point) return null;
+      const item = () => components.get(point.type + ':' + point.id);
+      return {
+        getConfig: () => item()?.config,
+        getValue: () => item()?.value,
+        setValue: value => { item().value = value; },
+        on: () => 1
+      };
+    } },
     Timer: { set: (delay, repeat, callback) => {
       assert.equal(repeat, false);
       timers.push({ id: ++timerId, at: now + delay, callback });
@@ -246,22 +269,25 @@ test('DHW reads and writes are omitted when the tank is not configured', () => {
   assert.equal(e.writes().length, 0);
   assert.ok(!e.trace.some(x => x.method === 'MbRtuClient.ReadHoldingRegisters' && (x.params.addr === 115 || x.params.addr === 207)));
 });
-test('a foreign component ID is left untouched', () => {
-  const e = emulator();
-  e.components.set('boolean:220', { config: { name: 'Other application' }, value: true });
-  e.advance(5000);
-  assert.equal(e.components.size, 1); assert.equal(e.value('boolean', 220), true);
-  assert.ok(!e.trace.some(x => /Virtual.Add|SetConfig/.test(x.method)));
+test('firmware-managed handles have no runtime VC creation or deletion', () => {
+  const e = emulator(); e.sync();
+  assert.equal(e.components.size, 9);
+  assert.ok(!e.trace.some(x => x.method === 'Virtual.Add' || x.method === 'Virtual.Delete'));
+  assert.ok(e.context.vcIds.length === 9);
 });
-test('capacity is checked before any components are created', () => {
-  const e = emulator();
-  for (let id = 200; id < 202; id++) e.components.set('boolean:' + id, { config: { name: 'Other' }, value: false });
-  e.advance(5000); assert.equal(e.components.size, 2);
-  assert.ok(!e.trace.some(x => x.method === 'Virtual.Add'));
+test('managed VCs resolve arbitrary firmware-assigned IDs', () => {
+  const e = emulator({ mockManagedIdStart: 260, ...control });
+  e.sync(); e.change('number', 263, 40); e.advance(15000);
+  assert.equal(e.context.vcIds[3], 263);
+  assert.equal(e.registers[2], (42 << 8) | 40);
+  assert.match(e.value('text', 268), /ONLINE.*CONTROL/);
 });
-test('one unrelated virtual component is compatible with nine bridge components', () => {
-  const e = emulator(); e.components.set('boolean:200', { config: { name: 'Other' }, value: true });
-  e.sync(); assert.equal(e.components.size, 10); assert.equal(e.value('boolean', 200), true);
+test('missing managed role aborts safely before Modbus access', () => {
+  const e = emulator({ mockMissingManagedRole: 'status' });
+  e.advance(1000);
+  assert.equal(e.components.size, 8);
+  assert.ok(e.logs.some(x => /missing managed VC role status/.test(x)));
+  assert.ok(!e.trace.some(x => /Serial\.|MbRtuClient\./.test(x.method)));
 });
 test('all reads use Holding Registers; no installer or mode register is written', () => {
   const e = emulator(control); e.sync(); e.change('boolean', 220, true); e.change('number', 223, 40); e.advance(20000);
