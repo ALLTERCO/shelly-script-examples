@@ -1,12 +1,12 @@
 # INNOVA AirLeaf Modbus RTU examples
 
-**Status: under upstream review.** The contributor previously reported successful physical-device testing of the three INNOVA Modbus profiles. This revision replaces managed VC creation with self-provisioning; the revised startup/provisioning path still requires a fresh on-device smoke test. This is contributor-reported validation, not maintainer certification. Writes remain disabled by default.
+**Status: under upstream review.** Contributor-reported physical Modbus tests preceded this managed-VC refactor. The new managed startup/lifecycle still needs a fresh device smoke test; writes remain disabled by default.
 
 **AI assistance disclosure:** These examples were produced with AI assistance and reviewed/submitted with user direction. Please check the repository's authorship requirements before accepting this contribution.
 
 # INNOVA AirLeaf ↔ Shelly The Pill (Modbus RTU)
 
-Three standalone variants are provided for distinct controller boards; install **only one**. Each script automatically creates or reuses nine fixed-ID Virtual Components via `Virtual.Add` and binds them via `Virtual.getHandle`. The scripts remain marked `under development` pending a fresh hardware smoke test of this provisioning change.
+Three standalone variants are provided for distinct controller boards; install **only one**. Each script declares nine firmware-managed VCs through the first-line `@meta` and binds them by `Script.getVcHandle(role)`. Component IDs are assigned by firmware, not hard-coded. The modified startup has not yet been tested on a real Pill.
 
 ## Source profile selection
 
@@ -30,16 +30,16 @@ The source document lists common register parameters resident on INN-FR-B32, ESE
 8. Modbus diagnostics / alarm flags (text) — register 105 and communication errors.
 9. Modbus online (boolean) — tracks read outcomes.
 
-No group component is declared (nine of the device-wide limit of ten VCs). `VC_BASE=220` reserves IDs 220–228 across the nine component types. The script checks all dynamic components and refuses to provision when another component occupies a required ID or insufficient slots remain. On restart, matching components are reused and their configurations reconciled. Nothing is deleted or overwritten without an exact name match. Do not run more than one INNOVA profile at a time.
+No group component is declared (nine of the ten device-wide VC slots). Firmware creates/reconciles managed components at startup and removes them when their owning script is deleted. Old manually created VCs do not migrate automatically. Never run multiple profiles on the same host.
 
 ## First commissioning steps
 
-1. Back up existing scripts and VCs. Stop/remove the earlier `@meta`-based INNOVA script and confirm its former managed VCs no longer occupy slots. Do not delete other scripts' components. If any remain, remove only the known obsolete INNOVA components manually.
+1. Back up scripts/scenes and VCs; stop the old INNOVA `Virtual.Add` script. Manually remove **only confirmed obsolete INNOVA-created VCs** before switching, or there may be insufficient capacity. Do not delete unrelated components.
 2. Identify the actual INNOVA controller board, its slave address, and its serial settings. *Never* scan/write unknown devices blindly.
 3. Confirm electrical connection A↔A, B↔B, common/reference and termination according to hardware manuals; never connect mains to RS485.
 4. In The Pill, verify the `Serial` mode is `mb_client`, and set the serial settings to **match the INNOVA**. The scripts check but never alter serial config. They expect **9600 8N1**; the Pill previously reported **115200 8N1**, which will cause a deliberate refusal to start polling.
 5. Set `SLAVE_ID` to the actual device ID (default **1**, not verified for your device).
-6. Upload and start the correct standalone profile in the Shelly script UI with `ENABLE_WRITES=false`. It provisions nine VCs at `VC_BASE` through `VC_BASE+8` (220–228 by default); no manual VC setup is necessary. Existing matching IDs are reused; foreign IDs/insufficient capacity stop startup without deleting components.
+6. Upload/start the appropriate profile with `ENABLE_WRITES=false`. Firmware creates nine managed VCs from `@meta` and the script obtains role handles without any fixed component IDs.
 7. Confirm room temperature, setpoint, alarm flags, and online status against the physical controller. Allow enough time for each register to be read; each polls at approximately one register per 3.5 s.
 8. Only after checking Modbus scaling, bit maps, terminal wiring, physical reactions, and the installation safety design, consider changing `ENABLE_WRITES=true` to allow four user-facing command VCs. Writes use FC06 and read-back polling. Treat any mismatch as a failed commissioning test.
 
@@ -50,15 +50,15 @@ No group component is declared (nine of the device-wide limit of ten VCs). `VC_B
 - `http://<SHELLY_IP>/rpc/Shelly.GetComponents?dynamic_only=true`
 - `http://<SHELLY_IP>/rpc/Script.GetStatus?id=1` (replace `1` with the actual script ID)
 
-Read `Shelly.GetComponents` to confirm all nine keys exist at the configured IDs. No live network connection to the Pill was used for validating this revision.
+Read `Shelly.GetComponents` to verify all nine managed roles exist (the component IDs are firmware-assigned). No live connection to the Pill was used to validate this revision.
 
 ## Limitations / safety
 
 - **Not production-certified**. Earlier contributor-reported controller tests do not validate the new VC provisioning on every The Pill firmware; verify on real hardware before production use.
-- VCs are runtime-provisioned using `Virtual.Add` (no managed `@meta` metadata). The script reuses its named components; they may persist after script deletion and must be removed manually if no longer needed.
-- UI controls are displayed as labels when `ENABLE_WRITES=false`; enabling writes exposes the supported toggle, numeric field and enum dropdown controls.
-- Changing `VC_BASE` changes the binding IDs. Existing components are not migrated or deleted automatically.
-- For firmware on which managed `@meta` scripts restart The Pill, this variant avoids `@meta` but still needs a physical smoke test.
+- The `@meta` declaration must be the first physical line and remain within 1024 characters (B32: 944, ESE645/ESE648: 940).
+- Managed component IDs may differ after migration. Update any external scripts/scenes referring to old IDs.
+- On firmware `2.0.1-ge1a198b`, Shelly The Pill Gen3 has a documented restart problem when starting managed VC scripts. Test on a firmware known to support managed VCs; this code change does not fix firmware crashes.
+- Modbus writes remain explicitly disabled by `ENABLE_WRITES=false` until commissioning and verification.
 - The `power` VC reflects requested standby configuration, not measured electrical power.
 - A successful FC06 reply does not prove the mechanical output changed; poll read-back and physical inspection remain required.
 - Actual setpoint can be modified by local controls and limits. Commission write permissions cautiously.
