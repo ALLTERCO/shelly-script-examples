@@ -27,7 +27,7 @@ function emulator(config = {}, initial = {}) {
   const clone = x => JSON.parse(JSON.stringify(x));
   // Firmware creates the declared VCs before it evaluates the script.
   // Tests assign deterministic IDs for convenience; production uses role handles.
-  const manifest = JSON.parse(source.split('\\n')[0].slice('/* @meta '.length, -' */'.length)).vc;
+  const manifest = JSON.parse(source.split(/\r?\n/)[0].slice('/* @meta '.length, -' */'.length)).vc;
   const entries = Object.entries(manifest);
   const baseId = config.mockManagedIdStart || 220;
   const roleIds = {};
