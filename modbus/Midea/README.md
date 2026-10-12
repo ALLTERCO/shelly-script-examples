@@ -32,8 +32,10 @@ Use twisted-pair cable, one Modbus client on the line, and the termination and
 shield arrangement specified for the installation. The original controller
 and the heat pump's built-in protections remain in service.
 
-Use a compatible Shelly Pro host, its Pro Modbus Add-on, and firmware 2.0.0 or
-later with `Serial`, `MbRtuClient`, scripting and Virtual Components. Select
+Use a compatible Shelly Pro host, its Pro Modbus Add-on, and firmware with
+`Serial`, `MbRtuClient`, scripting and **managed** Virtual Components
+(`Script.getVcHandle`). Do not assume every version from 2.0.0 supports
+firmware-managed script metadata. Select
 the RS485 add-on in the device configuration and reboot if requested.
 
 ## Nine components
