@@ -48,13 +48,22 @@ retrieves them regardless of their numeric IDs. Do **not** hard-code old IDs.
 | --- | --- | --- |
 | `zone` | Boolean | Zone 1 Enable |
 | `dhw` | Boolean | DHW Enable |
-| `silent` | Boolean | Silent Mode |
+| `slaveId` | Number | **Modbus Slave ID (1–247), persistent and editable** |
 | `water` | Number | Zone 1 Water Target |
 | `dhwTarget` | Number | DHW Target |
 | `inlet` | Number | Inlet Temperature |
 | `outlet` | Number | Outlet Temperature |
 | `tank` | Number | Tank Temperature, if equipped |
 | `status` | Text | Operating mode and diagnostics |
+
+The `slaveId` field selects the **Modbus address used by Shelly** when
+communicating with the controller. It does not change the controller's actual
+hardware Modbus address. Firmware persists the selected value across Shelly
+restarts. The default is **1**; select the controller's assigned address using
+the managed Virtual Component instead of editing `CONFIG`. Inputs must be
+whole numbers from 1 to 247. Changing this value clears old controller
+snapshots, rejects stale replies and triggers fresh synchronization before
+control resumes. The `Status` VC reports the selected `SID` and link errors.
 
 The operating mode is set on the original controller. Zone 1 Enable is
 not a mains switch or zone-2 override. There are no groups; the nine managed
@@ -79,7 +88,6 @@ Create one Shelly script, paste the complete `.shelly.js` file and edit `CONFIG`
 
 ```javascript
 serialId: 100,
-slaveId: 1,
 baud: 9600,
 format: '8N1',
 enableWrites: false,
@@ -88,10 +96,11 @@ hasDhwTank: false,
 allowCooling: false
 ```
 
-`serialId` identifies the Shelly Serial/MbRtuClient instance. `slaveId` is the
-address configured on the heat-pump controller. They are different identifiers.
-Address 1 is an example; some controllers use a different address, including 16.
-Find the Serial instance with `Shelly.GetComponents` if its ID differs from 100.
+`serialId` identifies the local Shelly Serial/MbRtuClient instance. The
+**Modbus Slave ID** Virtual Component instead selects the *remote controller's*
+address (for example, 16). They are different identifiers. Find the Serial
+instance with `Shelly.GetComponents` if its ID differs from 100. The saved
+managed slave-ID setting replaces the previous hardcoded `CONFIG.slaveId`.
 
 Set `hasDhwTank: true` only when the tank and T5 sensor are present and correctly
 configured. Otherwise tank-temperature and DHW-limit reads are omitted, DHW
@@ -99,7 +108,7 @@ writes are blocked, and the tank-temperature tile is unused. The default
 zero in that unused tile is not a physical measurement.
 
 Start in read-only mode. Firmware creates/reconciles the nine managed VCs;
-the script binds them by role, configures
+the script binds them by role, reads the saved Modbus Slave ID, configures
 `mode: 'mb_client'`, reads the physical values, and publishes them. It logs:
 
 ```text
@@ -111,7 +120,9 @@ Compare temperatures, flags and targets with the original controller and
 verify the register layout. Set `expectedControllerVersion` to the reported
 word, configure the installed temperature limits, then set `enableWrites: true`
 and restart. A matching version is an additional guard, not automatic model
-identification. Configured controls become toggles/fields after restart.
+identification. The remaining four device-control VCs are Zone 1 Enable,
+DHW Enable, Zone 1 Water Target and DHW Target; the slave-ID setting is
+configuration-only and never writes a Modbus address-changing register.
 
 ## Temperature limits and controller behavior
 
@@ -141,7 +152,7 @@ Addresses below are wire offsets, not 4xxxx reference numbers.
 | 1 | Configured mode | Read only: 1 Auto, 2 Cool, 3 Heat |
 | 2, low byte | Zone-1 water target | Mask 0x00ff; preserve zone-2 high byte |
 | 4 | DHW target | Integer C |
-| 5, bit 6 | Silent Mode | Mask 0x0040; preserve other bits |
+| 5, bit 12 | Weather curve active | Read-only guard blocking manual water-target writes |
 | 100/101 | Compressor frequency / actual mode | Status diagnostics |
 | 104/105 | Inlet/outlet water temperature | Signed 16-bit, integer C |
 | 115 | Tank temperature | Signed 16-bit, integer C; optional |
@@ -162,27 +173,30 @@ left in the app or changed while the bridge is offline are not replayed on
 startup/reconnect. Every changed control is checked, relevant guards refreshed,
 and the target register read again before writing.
 
-Registers 0, 2 and 5 use a masked read-modify-write. For example, changing the
+Registers 0 and 2 use a masked read-modify-write. For example, changing the
 zone-1 target keeps the latest zone-2 high byte. After each write the script
 waits `settleMs`, reads back the register and publishes the reported value.
 Unconfirmed writes are logged rather than presented as successful commands.
 
 On a communication error, Status shows `OFFLINE | last readings stale`, commands
 are blocked, and a full physical synchronization is required before control
-resumes. Commands are sequential, with `gapMs` between operations and `pollMs`
+resumes. Changing Modbus Slave ID invalidates in-flight callbacks and all
+cached controller values and refreshes Status before starting communication
+with the newly selected address. Already transmitted commands cannot be
+cancelled; never change the address while the machine is in a hazardous state. Commands are sequential, with `gapMs` between operations and `pollMs`
 between completed cycles. Normal defaults are 100 ms gaps, 700 ms settling,
 and a 10-second polling pause.
 
 ## Troubleshooting and software checks
 
-- No response: check H1/H2, polarity, configured server address, baud/format,
+- No response: check H1/H2, polarity, the persisted **Modbus Slave ID** field, baud/format,
   add-on selection, Serial ID and competing Modbus clients.
 - Illegal address: verify the controller family and register table.
 - Implausible temperatures: this map uses signed **whole degrees**, not LG's
   tenths-of-a-degree conversion.
 - Read-only status: check `enableWrites`, expected version and room-control flag.
 - Rejected targets: check active faults, mode, weather curve and both sets of limits.
-- Setup stops: check component capacity and ID/name conflicts.
+- Setup stops: check managed-VC support, nine available component slots, valid persisted Slave ID (1–247), and firmware compatibility.
 
 Run the deterministic RPC/Modbus tests from the repository root:
 
@@ -191,6 +205,7 @@ node --check modbus/Midea/midea-clivet-r32-pro-modbus-vc.shelly.js
 node --test modbus/Midea/tests/bridge.test.cjs
 ```
 
-The harness checks managed role binding and dynamic component IDs, fresh bit/byte preservation,
+The harness checks managed role binding, persisted Modbus address selection,
+dynamic component IDs, stale callback rejection and fresh bit/byte preservation,
 signed temperatures, target limits, readback, timeout/reconnect handling and
 UI synchronization. Details are recorded in [TECHNICAL_NOTES.md](TECHNICAL_NOTES.md).
