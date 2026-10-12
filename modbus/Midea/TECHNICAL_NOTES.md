@@ -21,12 +21,14 @@ classes, external services or manually constructed RTU frames.
 
 ## Software verification
 
-On 2026-10-07, Node.js 24 ran 33 deterministic RPC/Modbus integration tests with
-33 passes. Syntax validation used `node --check`. The harness executes the
+The previously released implementation passed 33 Node.js RPC/Modbus
+integration tests on 2026-10-07. This managed-VC revision retains 33 updated
+tests; its CI must be checked independently. Syntax validation used `node --check`. The harness executes the
 complete standalone script with a register-server emulator and injected
 transport faults. It checks the resulting Modbus writes and UI values.
 
-The checks cover startup/reconnect read-before-write, register-0 bit preservation,
+The checks cover dynamic managed VC binding, startup/reconnect read-before-write,
+register-0 bit preservation,
 register-2 high-byte preservation, register-5 function-bit preservation, signed
 temperature conversion, current fault and curve guards, changed controller mode,
 controller version, configured/live limits, explicit FC16, missing DHW hardware,
@@ -39,10 +41,14 @@ test. The script is marked `production` and included in the example manifest.
 This confirmation applies to the integration's documented R32 profile, not to
 every heat pump sold under the Midea or Clivet brand.
 
-The validated script retains its fixed-ID, self-provisioned nine-component
-layout. Its ownership and capacity preflight deliberately stops on an unrelated
-component conflict instead of deleting or replacing another integration's VCs.
-It starts Modbus operations only after all nine components have been prepared.
+The merged October 11 release used nine fixed-ID, self-provisioned VCs.
+This follow-up changes the provisioning model to nine firmware-managed roles
+in first-line `@meta`. The script resolves component IDs dynamically using
+`Script.getVcHandle(role).getConfig().id`, and verifies each handle before
+starting Modbus. Firmware manages ownership and cleanup on script deletion.
+Existing manually created components are not adopted automatically; migrating
+requires backing up and removing only positively identified obsolete VCs.
+Hardware validation of this new provisioning behavior is still pending.
 
 ## Integration boundaries
 
