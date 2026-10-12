@@ -1,7 +1,8 @@
+/* @meta {"vc":{"zone":{"type":"boolean","config":{"name":"Midea/Clivet Zone 1 Enable","default_value":false}},"dhw":{"type":"boolean","config":{"name":"Midea/Clivet DHW Enable","default_value":false}},"slaveId":{"type":"number","config":{"name":"Modbus Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1}}}},"water":{"type":"number","config":{"name":"Midea/Clivet Zone 1 Water Target","min":5,"max":75,"default_value":35,"meta":{"ui":{"view":"field"}}}},"dhwTarget":{"type":"number","config":{"name":"Midea/Clivet DHW Target","min":20,"max":75,"default_value":50,"meta":{"ui":{"view":"field"}}}},"inlet":{"type":"number","config":{"name":"Midea/Clivet Inlet Temperature","min":-50,"max":100}},"outlet":{"type":"number","config":{"name":"Midea/Clivet Outlet Temperature","min":-50,"max":100}},"tank":{"type":"number","config":{"name":"Midea/Clivet Tank Temperature","min":-50,"max":100}},"status":{"type":"text","config":{"name":"Midea/Clivet Status","max_len":255}}}} */
 /**
  * @title Midea/Clivet R32 Modbus RTU bridge
- * @description Local zone-1, DHW and Silent Mode control with nine Virtual
- *   Components. Requires firmware 2.0.0+ and Shelly Pro Modbus Add-on.
+ * @description Local zone-1/DHW control and persisted Modbus address with nine Virtual
+ *   Components. Requires managed-VC-capable firmware and Pro Modbus Add-on.
  * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Midea/midea-clivet-r32-pro-modbus-vc.shelly.js
  */
@@ -10,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright 2026 Georgi Germanov and contributors
  *
- * Real-device validation: successful test confirmed by the contributor on
- * 2026-10-10. Compatibility remains limited to the documented R32 profile.
+ * The previous fixed-ID bridge was hardware-tested on 2026-10-10.
+ * Managed VCs and selectable Modbus ID require renewed on-device testing.
  *
  * Standalone adaptation of the LG THERMA V bridge in
  * drHouse-gif/lg-therma-v-shelly (upstream/lg-therma-v-pro-em50_vc.shelly.js).
@@ -23,15 +24,16 @@
  * On the documented controller: H2 -> RS485 A+, H1 -> RS485 B-.
  * Follow the model manual for the signal reference and cable shield.
  *
- * Every read is FC03. Shared words 0, 2 and 5 use a fresh read-modify-write.
+ * Every read is FC03. Shared words 0 and 2 use fresh read-modify-write.
  * No force-heater, disinfection, installer-setting or mains-switching commands.
  * enableWrites defaults to false. Check the exact register map, then set
  * expectedControllerVersion to the word reported at address 131 before control.
  * hasDhwTank must match the installed tank/sensor; false skips its reads/writes.
  * allowCooling must match the commissioned system. Select the operating mode
  * on the original controller; Auto water-target writes are intentionally blocked.
- * Nine components, no groups: Boolean 220-222; Number 223-227; Text 228.
- * The base is adjustable. Other components are never deleted.
+ * Nine firmware-managed Virtual Components (two Boolean, six Number,
+ * one Text). Firmware assigns IDs; Script.getVcHandle(role) resolves them.
+ * Managed VC lifecycle is owned by firmware, with no runtime Virtual.Add.
  * @see ./README.md
  */
 
@@ -39,7 +41,6 @@
 var CONFIG = {
   profile: 'midea-r32-171h120f',
   serialId: 100,
-  slaveId: 1, // Example only: use the address configured on the wired controller.
   baud: 9600,
   format: '8N1',
   enableWrites: false,
@@ -53,18 +54,17 @@ var CONFIG = {
   dhwMin: 20,
   dhwMax: 60,
   writeFunction: 6, // 6: WriteSingleRegister; 16: one-word WriteHoldingRegisters.
-  vcBase: 220,
   pollMs: 10000,
   retryMs: 10000,
   gapMs: 100,
   settleMs: 700
 };
 
-// Five controls followed by three temperatures and a status text.
+// Four control points, one persisted slave-address setting, three temperatures and status.
 var POINTS = [
   ['Boolean', 'Zone 1 Enable', 0, 0x0002],
   ['Boolean', 'DHW Enable', 0, 0x0004],
-  ['Boolean', 'Silent Mode', 5, 0x0040],
+  ['Number', 'Modbus Slave ID', -1],
   ['Number', 'Zone 1 Water Target', 2, 0x00ff],
   ['Number', 'DHW Target', 4, 0xffff],
   ['Number', 'Inlet Temperature', 104],
@@ -85,18 +85,48 @@ var publishIndex = 0;
 var lastFault = '';
 var lastVersion = null;
 var lastNotice = '';
-var components = [];
+var vcIds = [];
+var managedVc = [];
+var slaveGeneration = 0;
+var VC_ROLES = ["zone","dhw","slaveId","water","dhwTarget","inlet","outlet","tank","status"];
 
 // HELPERS
-function later(fn, ms) { Timer.set(typeof ms === 'number' ? ms : CONFIG.gapMs, false, fn); }
+function later(fn, ms) {
+  var generation = slaveGeneration;
+  Timer.set(typeof ms === 'number' ? ms : CONFIG.gapMs, false, function() {
+    if (generation === slaveGeneration) fn();
+  });
+}
 function log(message) { print('[Midea] ' + message); }
 function isIntegerInRange(v, min, max) { return typeof v === 'number' && v >= min && v <= max && v === Math.floor(v); }
 function isWord(v) { return isIntegerInRange(v, 0, 65535); }
 function signed(v) { return v > 32767 ? v - 65536 : v; }
 function same(a, b) { return typeof a === typeof b && a === b; }
 function rpc(method, params, done) {
+  var generation = slaveGeneration;
   Shelly.call(method, params, function(result, code, message) {
+    if (generation !== slaveGeneration) return;
     later(function() { done(result, code, message); }, 1);
+  });
+}
+function selectSlaveId(id) {
+  if (!isIntegerInRange(id, 1, 247)) {
+    log('Invalid Modbus Slave ID ' + String(id) + '; expected integer 1..247');
+    managedVc[2].setValue(CONFIG.slaveId);
+    return;
+  }
+  if (id === CONFIG.slaveId) return;
+  var previous = CONFIG.slaveId;
+  ++slaveGeneration;
+  CONFIG.slaveId = id;
+  // All old controller snapshots and pending callbacks are invalid.
+  ready = false; raw = {}; actual = []; baseline = []; observed = [];
+  readIndex = 0; controlIndex = 0; publishIndex = 0;
+  lastFault = ''; lastVersion = null; lastNotice = '';
+  log('Modbus target switched ' + previous + ' -> ' + id + '; resynchronizing');
+  rpc('Text.Set', {id:pointId(8),
+    value:'OFFLINE | switching Modbus slave ' + previous + ' -> ' + id}, function() {
+      later(begin, 1);
   });
 }
 function readWords(addr, qty, done) {
@@ -113,21 +143,22 @@ function readWords(addr, qty, done) {
     done(result.values, null);
   });
 }
-function pointId(i) { return CONFIG.vcBase + i; }
+function pointId(i) { return vcIds[i]; }
 function pointKey(i) { return POINTS[i][0].toLowerCase() + ':' + pointId(i); }
 function uiValue(i) {
   var status = Shelly.getComponentStatus(POINTS[i][0].toLowerCase(), pointId(i));
   return status ? status.value : undefined;
 }
 function validValue(i, value) {
-  if (i < 3) return typeof value === 'boolean';
+  if (i === 2) return isIntegerInRange(value, 1, 247);
+  if (i < 2) return typeof value === 'boolean';
   if (i === 3) return isWord(value) && value >= 5 && value <= 75;
   if (i === 4) return isWord(value) && value >= 20 && value <= 75;
   if (i < 8) return typeof value === 'number' && value >= -50 && value <= 100;
   return typeof value === 'string';
 }
 function controlValue(i, word) {
-  if (i < 3) return (word & POINTS[i][3]) !== 0;
+  if (i < 2) return (word & POINTS[i][3]) !== 0;
   return word & POINTS[i][3];
 }
 function writesAllowed() {
@@ -141,7 +172,7 @@ function liveStatus() {
   if (raw[101] === 2) operating = 'Cool';
   if (raw[101] === 3) operating = 'Heat';
   if (raw[101] === 5) operating = 'DHW';
-  value = 'ONLINE | ' + (writesAllowed() ? 'CONTROL' : 'READ ONLY') +
+  value = 'ONLINE | SID=' + CONFIG.slaveId + ' | ' + (writesAllowed() ? 'CONTROL' : 'READ ONLY') +
     ' | ' + operating + ' | Hz=' + raw[100] + ' | fault=' + raw[124] + ' | controller=' + raw[131];
   if ((raw[128] & 2) !== 0) value += ' | DEFROST';
   if ((raw[0] & 1) !== 0) value += ' | ROOM CONTROL';
@@ -160,8 +191,7 @@ function fault(message) {
 }
 function configurationError() {
   if (CONFIG.profile !== 'midea-r32-171h120f') return 'Unsupported profile';
-  if (!isWord(CONFIG.serialId) || !isWord(CONFIG.slaveId) || CONFIG.slaveId < 1 || CONFIG.slaveId > 247) return 'Invalid serialId/slaveId';
-  if (!isWord(CONFIG.vcBase) || CONFIG.vcBase < 200 || CONFIG.vcBase > 291) return 'vcBase must be 200..291';
+  if (!isWord(CONFIG.serialId)) return 'Invalid serialId';
   if (CONFIG.expectedControllerVersion !== null && !isWord(CONFIG.expectedControllerVersion)) return 'Invalid expectedControllerVersion';
   if (typeof CONFIG.enableWrites !== 'boolean' || typeof CONFIG.hasDhwTank !== 'boolean' || typeof CONFIG.allowCooling !== 'boolean') return 'Feature flags must be Boolean';
   if (CONFIG.writeFunction !== 6 && CONFIG.writeFunction !== 16) return 'writeFunction must be 6 or 16';
@@ -174,70 +204,43 @@ function configurationError() {
   return null;
 }
 
-// NON-DESTRUCTIVE VIRTUAL COMPONENT PROVISIONING
-function desiredConfig(i) {
-  var cfg = { name: 'Midea/Clivet ' + POINTS[i][1], persisted: false,
-    meta: { ui: { view: 'label' } } };
-  var interactive = CONFIG.enableWrites;
-  if (i < 3) {
-    cfg.default_value = false;
-    cfg.meta.ui.titles = ['Off', 'On'];
-    if (interactive && (i !== 1 || CONFIG.hasDhwTank)) cfg.meta.ui.view = 'toggle';
-  } else if (i < 8) {
-    cfg.default_value = i === 3 ? 35 : i === 4 ? 50 : 0;
-    cfg.min = i === 3 ? 5 : i === 4 ? 20 : -50;
-    cfg.max = i < 5 ? 75 : 100;
-    cfg.meta.ui.unit = 'C'; cfg.meta.ui.step = 1;
-    if (interactive && (i === 3 || (i === 4 && CONFIG.hasDhwTank))) cfg.meta.ui.view = 'field';
-  } else {
-    cfg.default_value = 'STARTING | awaiting physical readings'; cfg.max_len = 255;
+// FIRMWARE-MANAGED VIRTUAL COMPONENT BINDING
+// The firmware reconciles @meta VCs before the script begins. Numeric IDs are
+// not stable across recreation and must be resolved from the role handles.
+function bindManagedComponents() {
+  var i, handle, cfg, type, actualConfig;
+  if (typeof Script === 'undefined' || !Script.getVcHandle) {
+    log('STOPPED: firmware-managed VC API is unavailable'); return;
   }
-  return cfg;
-}
-function provisionNext(i) {
-  var cfg, existing;
-  if (i === POINTS.length) { later(begin, 1); return; }
-  cfg = desiredConfig(i);
-  existing = Shelly.getComponentConfig(POINTS[i][0].toLowerCase(), pointId(i));
-  if (existing && existing.name !== cfg.name) {
-    log('STOPPED: ' + pointKey(i) + ' belongs to another component. Change vcBase.'); return;
+  for (i = 0; i < VC_ROLES.length; i++) {
+    handle = Script.getVcHandle(VC_ROLES[i]);
+    if (!handle) { log('STOPPED: missing managed VC role ' + VC_ROLES[i]); return; }
+    cfg = handle.getConfig();
+    type = POINTS[i][0].toLowerCase();
+    if (!cfg || !isIntegerInRange(cfg.id, 200, 299)) {
+      log('STOPPED: invalid managed VC ID for ' + VC_ROLES[i]); return;
+    }
+    if (cfg.name !== (i === 2 ? 'Modbus Slave ID' : 'Midea/Clivet ' + POINTS[i][1])) {
+      log('STOPPED: unexpected managed VC name for ' + VC_ROLES[i]); return;
+    }
+    actualConfig = Shelly.getComponentConfig(type, cfg.id);
+    if (!actualConfig) {
+      log('STOPPED: managed VC is unavailable: ' + VC_ROLES[i]); return;
+    }
+    managedVc[i] = handle;
+    vcIds[i] = cfg.id;
   }
-  if (existing) {
-    rpc(POINTS[i][0] + '.SetConfig', { id: pointId(i), config: cfg }, function(result, code, message) {
-      if (code !== 0) { log('Component setup failed: ' + pointKey(i) + ': ' + message); return; }
-      later(function() { provisionNext(i + 1); });
-    });
-  } else {
-    rpc('Virtual.Add', { type: POINTS[i][0].toLowerCase(), id: pointId(i), config: cfg }, function(result, code, message) {
-      if (code !== 0) { log('Component creation failed: ' + pointKey(i) + ': ' + message); return; }
-      later(function() { provisionNext(i + 1); });
-    });
+  var selected = managedVc[2].getValue();
+  if (!isIntegerInRange(selected, 1, 247)) {
+    log('STOPPED: saved Modbus Slave ID must be an integer 1..247');
+    return;
   }
-}
-function inspectComponents(offset) {
-  rpc('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(result, code, message) {
-    var list, i, total, owned = 0, virtualCount = 0, key, kind, cfg;
-    if (code !== 0 || !result || !result.components) { log('Cannot inspect components: ' + message); return; }
-    list = result.components;
-    for (i = 0; i < list.length; i++) components.push(list[i]);
-    total = typeof result.total === 'number' ? result.total : components.length;
-    if (offset + list.length < total && list.length > 0) {
-      later(function() { inspectComponents(offset + list.length); }); return;
-    }
-    for (i = 0; i < components.length; i++) {
-      key = components[i].key || ''; kind = key.split(':')[0];
-      if (kind === 'boolean' || kind === 'number' || kind === 'enum' || kind === 'text' || kind === 'button' || kind === 'group') virtualCount++;
-    }
-    for (i = 0; i < POINTS.length; i++) {
-      cfg = Shelly.getComponentConfig(POINTS[i][0].toLowerCase(), pointId(i));
-      if (cfg && cfg.name !== desiredConfig(i).name) { log('STOPPED: ID conflict at ' + pointKey(i)); return; }
-      if (cfg) owned++;
-    }
-    if (virtualCount + POINTS.length - owned > 10) {
-      log('STOPPED: nine free/reusable Virtual Component slots are required. No components were deleted.'); return;
-    }
-    components = []; later(function() { provisionNext(0); });
+  CONFIG.slaveId = selected;
+  managedVc[2].on('change', function(ev) {
+    if (ev.source && String(ev.source).indexOf('script:') === 0) return;
+    selectSlaveId(ev.value);
   });
+  later(begin, 1);
 }
 
 // SERIAL CONFIGURATION AND PHYSICAL READS
@@ -275,7 +278,11 @@ function readNext() {
 }
 function decodeCycle() {
   var i;
-  for (i = 0; i < 5; i++) actual[i] = controlValue(i, raw[POINTS[i][2]]);
+  actual[0] = controlValue(0, raw[POINTS[0][2]]);
+  actual[1] = controlValue(1, raw[POINTS[1][2]]);
+  actual[2] = CONFIG.slaveId;
+  actual[3] = controlValue(3, raw[POINTS[3][2]]);
+  actual[4] = controlValue(4, raw[POINTS[4][2]]);
   actual[5] = signed(raw[104]); actual[6] = signed(raw[105]);
   if (CONFIG.hasDhwTank) actual[7] = signed(raw[115]);
   if (raw[1] !== 1 && raw[1] !== 2 && raw[1] !== 3) { fault('Unexpected configured mode at register 1'); return; }
@@ -296,6 +303,7 @@ function decodeCycle() {
 // FRESH READ-MODIFY-WRITE WITH PER-COMMAND READBACK
 function commandError(i, requested) {
   var low, high, factoryLow, factoryHigh, currentMode = raw[1];
+  if (i === 2) return 'SLAVE ADDRESS IS CONFIGURATION';
   if (!writesAllowed()) return 'WRITES BLOCKED';
   if (raw[124] !== 0) return 'ACTIVE FAULT';
   if ((i === 1 || i === 4) && !CONFIG.hasDhwTank) return 'DHW NOT CONFIGURED';
@@ -321,7 +329,7 @@ function commandError(i, requested) {
 }
 function mergeWord(i, original, requested) {
   var mask = POINTS[i][3];
-  var encoded = i < 3 ? (requested ? mask : 0) : requested;
+  var encoded = i < 2 ? (requested ? mask : 0) : requested;
   return ((original & (0xffff ^ mask)) | (encoded & mask)) & 0xffff;
 }
 function applyReadback(addr, word) {
@@ -352,7 +360,9 @@ function refreshCommandGuards(i, done) {
 function controlNext() {
   var i, requested, error, addr;
   if (controlIndex === 5) { later(publishNext); return; }
-  i = controlIndex++; requested = uiValue(i); observed[i] = requested;
+  i = controlIndex++;
+  if (i === 2) { later(controlNext, 1); return; }
+  requested = uiValue(i); observed[i] = requested;
   if (!validValue(i, requested)) { fault('Invalid command: ' + POINTS[i][1]); return; }
   if (same(requested, baseline[i]) || same(requested, actual[i])) { later(controlNext); return; }
   error = commandError(i, requested);
@@ -404,6 +414,7 @@ function publishNext() {
     lastFault = ''; later(begin, CONFIG.pollMs); return;
   }
   i = publishIndex++;
+  if (i === 2) { later(publishNext, 1); return; }
   if (!CONFIG.hasDhwTank && i === 7) { later(publishNext, 1); return; }
   if (i === 8) actual[i] = liveStatus();
   current = uiValue(i);
@@ -418,10 +429,16 @@ function publishNext() {
 }
 
 // INITIALIZATION
-var configError = configurationError();
-if (configError !== null) log('STOPPED: ' + configError);
-else {
-  log('R32 profile; RTU ' + CONFIG.baud + ' ' + CONFIG.format + '; server ' + CONFIG.slaveId);
-  if (CONFIG.enableWrites && CONFIG.expectedControllerVersion === null) log('Set expectedControllerVersion after reading register 131; writes remain blocked.');
-  later(function() { inspectComponents(0); }, 1);
+function init() {
+  var configError = configurationError();
+  if (configError !== null) {
+    log('STOPPED: ' + configError);
+    return;
+  }
+  log('R32 profile; RTU ' + CONFIG.baud + ' ' + CONFIG.format + '; managed Modbus Slave ID');
+  if (CONFIG.enableWrites && CONFIG.expectedControllerVersion === null) {
+    log('Set expectedControllerVersion after reading register 131; writes remain blocked.');
+  }
+  later(bindManagedComponents, 1);
 }
+init();
