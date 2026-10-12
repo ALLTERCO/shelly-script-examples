@@ -1,3 +1,4 @@
+/* @meta {"vc":{"zone":{"type":"boolean","config":{"name":"Midea/Clivet Zone 1 Enable","meta":{"ui":{"view":"toggle"}}}},"dhw":{"type":"boolean","config":{"name":"Midea/Clivet DHW Enable","meta":{"ui":{"view":"toggle"}}}},"silent":{"type":"boolean","config":{"name":"Midea/Clivet Silent Mode","meta":{"ui":{"view":"toggle"}}}},"water":{"type":"number","config":{"name":"Midea/Clivet Zone 1 Water Target","min":5,"max":75,"default_value":35,"meta":{"ui":{"view":"field"}}}},"dhwTarget":{"type":"number","config":{"name":"Midea/Clivet DHW Target","min":20,"max":75,"default_value":50,"meta":{"ui":{"view":"field"}}}},"inlet":{"type":"number","config":{"name":"Midea/Clivet Inlet Temperature","min":-50,"max":100}},"outlet":{"type":"number","config":{"name":"Midea/Clivet Outlet Temperature","min":-50,"max":100}},"tank":{"type":"number","config":{"name":"Midea/Clivet Tank Temperature","min":-50,"max":100}},"status":{"type":"text","config":{"name":"Midea/Clivet Status","max_len":255}}}} */
 /**
  * @title Midea/Clivet R32 Modbus RTU bridge
  * @description Local zone-1, DHW and Silent Mode control with nine Virtual
@@ -30,8 +31,9 @@
  * hasDhwTank must match the installed tank/sensor; false skips its reads/writes.
  * allowCooling must match the commissioned system. Select the operating mode
  * on the original controller; Auto water-target writes are intentionally blocked.
- * Nine components, no groups: Boolean 220-222; Number 223-227; Text 228.
- * The base is adjustable. Other components are never deleted.
+ * Nine firmware-managed Virtual Components (three Boolean, five Number,
+ * one Text). Firmware assigns IDs; Script.getVcHandle(role) resolves them.
+ * Managed VC lifecycle is owned by firmware, with no runtime Virtual.Add.
  * @see ./README.md
  */
 
@@ -53,7 +55,6 @@ var CONFIG = {
   dhwMin: 20,
   dhwMax: 60,
   writeFunction: 6, // 6: WriteSingleRegister; 16: one-word WriteHoldingRegisters.
-  vcBase: 220,
   pollMs: 10000,
   retryMs: 10000,
   gapMs: 100,
@@ -85,7 +86,9 @@ var publishIndex = 0;
 var lastFault = '';
 var lastVersion = null;
 var lastNotice = '';
-var components = [];
+var vcIds = [];
+var managedVc = [];
+var VC_ROLES = ["zone","dhw","silent","water","dhwTarget","inlet","outlet","tank","status"];
 
 // HELPERS
 function later(fn, ms) { Timer.set(typeof ms === 'number' ? ms : CONFIG.gapMs, false, fn); }
@@ -113,7 +116,7 @@ function readWords(addr, qty, done) {
     done(result.values, null);
   });
 }
-function pointId(i) { return CONFIG.vcBase + i; }
+function pointId(i) { return vcIds[i]; }
 function pointKey(i) { return POINTS[i][0].toLowerCase() + ':' + pointId(i); }
 function uiValue(i) {
   var status = Shelly.getComponentStatus(POINTS[i][0].toLowerCase(), pointId(i));
@@ -161,7 +164,6 @@ function fault(message) {
 function configurationError() {
   if (CONFIG.profile !== 'midea-r32-171h120f') return 'Unsupported profile';
   if (!isWord(CONFIG.serialId) || !isWord(CONFIG.slaveId) || CONFIG.slaveId < 1 || CONFIG.slaveId > 247) return 'Invalid serialId/slaveId';
-  if (!isWord(CONFIG.vcBase) || CONFIG.vcBase < 200 || CONFIG.vcBase > 291) return 'vcBase must be 200..291';
   if (CONFIG.expectedControllerVersion !== null && !isWord(CONFIG.expectedControllerVersion)) return 'Invalid expectedControllerVersion';
   if (typeof CONFIG.enableWrites !== 'boolean' || typeof CONFIG.hasDhwTank !== 'boolean' || typeof CONFIG.allowCooling !== 'boolean') return 'Feature flags must be Boolean';
   if (CONFIG.writeFunction !== 6 && CONFIG.writeFunction !== 16) return 'writeFunction must be 6 or 16';
@@ -174,70 +176,33 @@ function configurationError() {
   return null;
 }
 
-// NON-DESTRUCTIVE VIRTUAL COMPONENT PROVISIONING
-function desiredConfig(i) {
-  var cfg = { name: 'Midea/Clivet ' + POINTS[i][1], persisted: false,
-    meta: { ui: { view: 'label' } } };
-  var interactive = CONFIG.enableWrites;
-  if (i < 3) {
-    cfg.default_value = false;
-    cfg.meta.ui.titles = ['Off', 'On'];
-    if (interactive && (i !== 1 || CONFIG.hasDhwTank)) cfg.meta.ui.view = 'toggle';
-  } else if (i < 8) {
-    cfg.default_value = i === 3 ? 35 : i === 4 ? 50 : 0;
-    cfg.min = i === 3 ? 5 : i === 4 ? 20 : -50;
-    cfg.max = i < 5 ? 75 : 100;
-    cfg.meta.ui.unit = 'C'; cfg.meta.ui.step = 1;
-    if (interactive && (i === 3 || (i === 4 && CONFIG.hasDhwTank))) cfg.meta.ui.view = 'field';
-  } else {
-    cfg.default_value = 'STARTING | awaiting physical readings'; cfg.max_len = 255;
+// FIRMWARE-MANAGED VIRTUAL COMPONENT BINDING
+// The firmware reconciles @meta VCs before the script begins. Numeric IDs are
+// not stable across recreation and must be resolved from the role handles.
+function bindManagedComponents() {
+  var i, handle, cfg, type, actualConfig;
+  if (typeof Script === 'undefined' || !Script.getVcHandle) {
+    log('STOPPED: firmware-managed VC API is unavailable'); return;
   }
-  return cfg;
-}
-function provisionNext(i) {
-  var cfg, existing;
-  if (i === POINTS.length) { later(begin, 1); return; }
-  cfg = desiredConfig(i);
-  existing = Shelly.getComponentConfig(POINTS[i][0].toLowerCase(), pointId(i));
-  if (existing && existing.name !== cfg.name) {
-    log('STOPPED: ' + pointKey(i) + ' belongs to another component. Change vcBase.'); return;
+  for (i = 0; i < VC_ROLES.length; i++) {
+    handle = Script.getVcHandle(VC_ROLES[i]);
+    if (!handle) { log('STOPPED: missing managed VC role ' + VC_ROLES[i]); return; }
+    cfg = handle.getConfig();
+    type = POINTS[i][0].toLowerCase();
+    if (!cfg || !isIntegerInRange(cfg.id, 200, 299)) {
+      log('STOPPED: invalid managed VC ID for ' + VC_ROLES[i]); return;
+    }
+    if (cfg.name !== 'Midea/Clivet ' + POINTS[i][1]) {
+      log('STOPPED: unexpected managed VC name for ' + VC_ROLES[i]); return;
+    }
+    actualConfig = Shelly.getComponentConfig(type, cfg.id);
+    if (!actualConfig) {
+      log('STOPPED: managed VC is unavailable: ' + VC_ROLES[i]); return;
+    }
+    managedVc[i] = handle;
+    vcIds[i] = cfg.id;
   }
-  if (existing) {
-    rpc(POINTS[i][0] + '.SetConfig', { id: pointId(i), config: cfg }, function(result, code, message) {
-      if (code !== 0) { log('Component setup failed: ' + pointKey(i) + ': ' + message); return; }
-      later(function() { provisionNext(i + 1); });
-    });
-  } else {
-    rpc('Virtual.Add', { type: POINTS[i][0].toLowerCase(), id: pointId(i), config: cfg }, function(result, code, message) {
-      if (code !== 0) { log('Component creation failed: ' + pointKey(i) + ': ' + message); return; }
-      later(function() { provisionNext(i + 1); });
-    });
-  }
-}
-function inspectComponents(offset) {
-  rpc('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(result, code, message) {
-    var list, i, total, owned = 0, virtualCount = 0, key, kind, cfg;
-    if (code !== 0 || !result || !result.components) { log('Cannot inspect components: ' + message); return; }
-    list = result.components;
-    for (i = 0; i < list.length; i++) components.push(list[i]);
-    total = typeof result.total === 'number' ? result.total : components.length;
-    if (offset + list.length < total && list.length > 0) {
-      later(function() { inspectComponents(offset + list.length); }); return;
-    }
-    for (i = 0; i < components.length; i++) {
-      key = components[i].key || ''; kind = key.split(':')[0];
-      if (kind === 'boolean' || kind === 'number' || kind === 'enum' || kind === 'text' || kind === 'button' || kind === 'group') virtualCount++;
-    }
-    for (i = 0; i < POINTS.length; i++) {
-      cfg = Shelly.getComponentConfig(POINTS[i][0].toLowerCase(), pointId(i));
-      if (cfg && cfg.name !== desiredConfig(i).name) { log('STOPPED: ID conflict at ' + pointKey(i)); return; }
-      if (cfg) owned++;
-    }
-    if (virtualCount + POINTS.length - owned > 10) {
-      log('STOPPED: nine free/reusable Virtual Component slots are required. No components were deleted.'); return;
-    }
-    components = []; later(function() { provisionNext(0); });
-  });
+  later(begin, 1);
 }
 
 // SERIAL CONFIGURATION AND PHYSICAL READS
@@ -423,5 +388,5 @@ if (configError !== null) log('STOPPED: ' + configError);
 else {
   log('R32 profile; RTU ' + CONFIG.baud + ' ' + CONFIG.format + '; server ' + CONFIG.slaveId);
   if (CONFIG.enableWrites && CONFIG.expectedControllerVersion === null) log('Set expectedControllerVersion after reading register 131; writes remain blocked.');
-  later(function() { inspectComponents(0); }, 1);
+  later(bindManagedComponents, 1);
 }
