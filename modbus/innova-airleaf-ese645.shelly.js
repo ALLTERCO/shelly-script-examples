@@ -1,4 +1,4 @@
-/* @meta {"vc":{"power":{"type":"boolean","config":{"name":"INNOVA Power","default_value":false}},"room":{"type":"number","config":{"name":"Room temperature","min":0,"max":100,"default_value":0}},"target":{"type":"number","config":{"name":"Target temperature","min":5,"max":40,"default_value":20}},"mode":{"type":"enum","config":{"name":"Operating mode","options":["auto","heating","cooling","unknown"],"default_value":"unknown"}},"fan":{"type":"enum","config":{"name":"Fan mode","options":["auto","silent","night","maximum","unknown"],"default_value":"unknown"}},"aux":{"type":"number","config":{"name":"Actual setpoint","min":0,"max":100,"default_value":0}},"motor":{"type":"number","config":{"name":"Raw program flags","min":0,"max":65535,"default_value":0}},"alarm":{"type":"text","config":{"name":"Modbus diagnostics","default_value":"Starting"}},"online":{"type":"boolean","config":{"name":"Modbus online","default_value":false}}}} */
+/* @meta {"vc":{"power":{"type":"boolean","config":{"name":"INNOVA Power","default_value":false}},"room":{"type":"number","config":{"name":"Room temperature","min":0,"max":100,"default_value":0}},"target":{"type":"number","config":{"name":"Target temperature","min":5,"max":40,"default_value":20}},"mode":{"type":"enum","config":{"name":"Operating mode","options":["auto","heating","cooling","unknown"],"default_value":"unknown"}},"fan":{"type":"enum","config":{"name":"Fan mode","options":["auto","silent","night","maximum","unknown"],"default_value":"unknown"}},"aux":{"type":"number","config":{"name":"Actual setpoint","min":0,"max":100,"default_value":0}},"motor":{"type":"number","config":{"name":"Raw program flags","min":0,"max":65535,"default_value":0}},"alarm":{"type":"text","config":{"name":"Modbus diagnostics","default_value":"Starting"}},"slaveId":{"type":"number","config":{"name":"Modbus Slave ID","min":1,"max":247,"default_value":1,"persisted":true,"meta":{"ui":{"view":"field","step":1}}}}}} */
 /**
  * @title INNOVA AirLeaf ESE645 Modbus RTU
  * @description Read-only by default; nine firmware-managed VCs for documented N273025C controllers.
@@ -8,14 +8,14 @@
 /**
  * SPDX-License-Identifier: Apache-2.0
  * Hardware: The Pill + Modbus RS485 add-on; 9600 8N1 expected, verify on controller.
- * Modbus FC03/FC06, zero-based address notation, slave ID configurable below.
+ * Modbus FC03/FC06; zero-based registers and a persisted managed Slave ID.
  * Managed VCs declared via @meta and resolved with Script.getVcHandle(role).
- * Nine managed roles: power, room, target, mode, fan, aux, motor, alarm, online.
+ * Nine managed roles: power, room, target, mode, fan, aux, motor, alarm, slaveId.
  * power/target/mode/fan are commands ONLY when ENABLE_WRITES=true after commissioning.
  * Safety: read-only by default; no serial auto-configuration; no output on boot.
  * Auxiliary readings vary with controller profile, see README.
  */
-var SLAVE_ID = 1;
+var SLAVE_ID = 1; // Loaded from persisted managed VC on startup.
 var CLIENT_ID = 0;
 var ENABLE_WRITES = false;
 var POLL_MS = 3500;
@@ -28,6 +28,34 @@ var i = 0, busy = false, active = false, online = false, initial = true;
 var reg = {}, desired = {}, failCount = 0, lastSuccess = 0;
 
 function log(s) { print('[INNOVA ' + PROFILE + '] ' + s); }
+function validSlaveId(id) {
+  return typeof id === 'number' && id === Math.floor(id) && id >= 1 && id <= 247;
+}
+function selectSlaveId(id) {
+  // Selects the remote target; does not readdress the remote controller.
+  if (!validSlaveId(id)) {
+    log('Rejected invalid Modbus Slave ID: ' + String(id));
+    VC.slaveId.setValue(SLAVE_ID);
+    return;
+  }
+  if (id === SLAVE_ID) return;
+  var previous = SLAVE_ID;
+  SLAVE_ID = id;
+  // Prevent the previous slave's cached state from authorizing new commands.
+  reg = {}; desired = {}; online = false; initial = true;
+  failCount = 0; lastSuccess = 0; i = 0;
+  log('Modbus slave changed ' + previous + ' -> ' + id);
+  fault('Selecting Modbus slave ' + id + '; awaiting fresh readings');
+  // A request already in flight cannot be cancelled, but its reply is
+  // discarded by the requestSlave/commandSlave guard below.
+  if (active && !busy) readNext();
+}
+function listenSlaveId() {
+  VC.slaveId.on('change', function(ev) {
+    if (ev.source && String(ev.source).indexOf('script:') === 0) return;
+    selectSlaveId(ev.value);
+  });
+}
 function put(role, val) {
   if (!VC[role] || val === undefined || val === null) return;
   desired[role] = val;
@@ -55,22 +83,23 @@ function publishRegister(addr, n) {
 function readNext() {
   if (!active || busy) return;
   busy = true;
-  var addr = scan[i];
-  Shelly.call('MbRtuClient.ReadHoldingRegisters', { id:CLIENT_ID, sid:SLAVE_ID, addr:addr, qty:1 }, function(res, code) {
+  var addr = scan[i], requestSlave = SLAVE_ID;
+  Shelly.call('MbRtuClient.ReadHoldingRegisters', { id:CLIENT_ID, sid:requestSlave, addr:addr, qty:1 }, function(res, code) {
     busy = false;
+    if (requestSlave !== SLAVE_ID) { i = 0; return; }
     if (code === 0 && res && res.values && res.values.length === 1) {
       failCount = 0;
       lastSuccess = Shelly.getUptimeMs();
-      put('online', true);
       online = true;
       publishRegister(addr, res.values[0]);
+      // Accept commands only after a fresh snapshot from the selected slave.
+      if (reg[201] !== undefined && reg[231] !== undefined && reg[233] !== undefined) initial = false;
     } else {
       failCount++;
       if (failCount >= 3) {
         if (online) log('Modbus offline');
         online = false;
-        put('online', false);
-        fault('Modbus communication error');
+        fault('Modbus communication error, slave ' + SLAVE_ID);
       }
     }
     i = (i + 1) % scan.length;
@@ -95,8 +124,11 @@ function verifiedCommand(role, val) {
     addr = 201; data = (reg[201] & (65535 ^ 7)) | mode;
   } else return;
   busy = true;
-  Shelly.call('MbRtuClient.WriteSingleRegister', {id:CLIENT_ID, sid:SLAVE_ID, addr:addr, value:data}, function(res, code) {
+  var commandSlave = SLAVE_ID;
+  Shelly.call('MbRtuClient.WriteSingleRegister', {id:CLIENT_ID, sid:commandSlave, addr:addr, value:data}, function(res, code) {
     busy = false;
+    // An already-sent write cannot be undone; ignore a stale callback.
+    if (commandSlave !== SLAVE_ID) { i = 0; return; }
     if (code !== 0) { log('Write failed at ' + addr + ': ' + code); fault('Write failure'); }
     // Never declare success until a fresh read confirms the device's state.
     i = 0;
@@ -111,14 +143,20 @@ function listen(role) {
 }
 
 function init() {
-  var roles = ['power','room','target','mode','fan','aux','motor','alarm','online'];
+  var roles = ['power','room','target','mode','fan','aux','motor','alarm','slaveId'];
   var j;
   for (j=0; j<roles.length; j++) {
     VC[roles[j]] = Script.getVcHandle(roles[j]);
     if (!VC[roles[j]]) { log('Managed VC missing: ' + roles[j]); return; }
   }
-  put('online', false);
-  fault('Waiting for Modbus');
+  if (!validSlaveId(VC.slaveId.getValue())) {
+    log('Invalid saved Modbus Slave ID; valid range is integer 1..247');
+    fault('Invalid Modbus Slave ID (1..247)');
+    return;
+  }
+  SLAVE_ID = VC.slaveId.getValue();
+  listenSlaveId();
+  fault('Waiting for Modbus slave ' + SLAVE_ID);
   Shelly.call('Serial.GetConfig', {id:CLIENT_ID}, function(cfg, err) {
     if (err !== 0 || !cfg || cfg.mode !== 'mb_client' || !cfg.serial ||
         cfg.serial.baud !== EXPECTED_BAUD || cfg.serial.format !== '8N1') {
@@ -126,7 +164,6 @@ function init() {
       fault('Serial configuration mismatch');
       return;
     }
-    initial = false;
     listen('power'); listen('target'); listen('mode'); listen('fan');
     active = true;
     log('Started READ-ONLY=' + String(!ENABLE_WRITES) + ', slave=' + SLAVE_ID);
