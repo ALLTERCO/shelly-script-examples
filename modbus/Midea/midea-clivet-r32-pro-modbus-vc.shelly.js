@@ -383,10 +383,16 @@ function publishNext() {
 }
 
 // INITIALIZATION
-var configError = configurationError();
-if (configError !== null) log('STOPPED: ' + configError);
-else {
+function init() {
+  var configError = configurationError();
+  if (configError !== null) {
+    log('STOPPED: ' + configError);
+    return;
+  }
   log('R32 profile; RTU ' + CONFIG.baud + ' ' + CONFIG.format + '; server ' + CONFIG.slaveId);
-  if (CONFIG.enableWrites && CONFIG.expectedControllerVersion === null) log('Set expectedControllerVersion after reading register 131; writes remain blocked.');
+  if (CONFIG.enableWrites && CONFIG.expectedControllerVersion === null) {
+    log('Set expectedControllerVersion after reading register 131; writes remain blocked.');
+  }
   later(bindManagedComponents, 1);
 }
+init();
