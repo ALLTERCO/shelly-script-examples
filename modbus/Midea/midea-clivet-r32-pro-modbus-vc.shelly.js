@@ -2,7 +2,7 @@
 /**
  * @title Midea/Clivet R32 Modbus RTU bridge
  * @description Local zone-1, DHW and Silent Mode control with nine Virtual
- *   Components. Requires firmware 2.0.0+ and Shelly Pro Modbus Add-on.
+ *   Components. Requires managed-VC-capable firmware and Pro Modbus Add-on.
  * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/modbus/Midea/midea-clivet-r32-pro-modbus-vc.shelly.js
  */
