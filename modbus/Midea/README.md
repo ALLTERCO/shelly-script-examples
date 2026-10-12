@@ -1,8 +1,8 @@
 # Midea/Clivet R32 via Shelly Pro Modbus Add-on
 
 Local RS485 / Modbus RTU monitoring and control for Midea R32 hydronic heat
-pumps and compatible Clivet controllers. The standalone script provisions
-**exactly nine Virtual Components** and uses the original heat-pump controller.
+pumps and compatible Clivet controllers. The standalone script declares
+**exactly nine firmware-managed Virtual Components** and uses the original heat-pump controller.
 
 A successful real-device test was confirmed by the contributor on 2026-10-10.
 The production profile remains scoped to the controller/register layout below.
@@ -38,28 +38,38 @@ the RS485 add-on in the device configuration and reboot if requested.
 
 ## Nine components
 
-Default `vcBase: 220` produces the following components:
+The nine firmware-managed Virtual Components are declared through first-line
+`@meta` metadata. Firmware assigns their IDs; `Script.getVcHandle(role)`
+retrieves them regardless of their numeric IDs. Do **not** hard-code old IDs.
 
-| Key | Name | Purpose |
+| Role | Type | Description |
 | --- | --- | --- |
-| `boolean:220` | Zone 1 Enable | Water-control enable flag for zone 1 |
-| `boolean:221` | DHW Enable | Domestic hot water request |
-| `boolean:222` | Silent Mode | Silent-mode enable flag |
-| `number:223` | Zone 1 Water Target | Zone-1 target, integer degrees C |
-| `number:224` | DHW Target | Tank target, integer degrees C |
-| `number:225` | Inlet Temperature | Water return temperature |
-| `number:226` | Outlet Temperature | Water leaving temperature |
-| `number:227` | Tank Temperature | T5 sensor, when configured |
-| `text:228` | Status | Online/read-only/control, actual mode, fault and version |
+| `zone` | Boolean | Zone 1 Enable |
+| `dhw` | Boolean | DHW Enable |
+| `silent` | Boolean | Silent Mode |
+| `water` | Number | Zone 1 Water Target |
+| `dhwTarget` | Number | DHW Target |
+| `inlet` | Number | Inlet Temperature |
+| `outlet` | Number | Outlet Temperature |
+| `tank` | Number | Tank Temperature, if equipped |
+| `status` | Text | Operating mode and diagnostics |
 
-Operating mode is selected on the original controller. Its actual operating
-mode is included in Status. Zone 1 Enable is not a mains switch or a global
-override of zone 2. The script does not change the silent-mode level.
+The operating mode is set on the original controller. Zone 1 Enable is
+not a mains switch or zone-2 override. There are no groups; the nine managed
+VCs occupy nine out of ten device-wide slots.
 
-No groups are created. Existing unrelated components are not modified or
-deleted. The script checks capacity before provisioning; nine slots are needed
-within the device's ten-component limit. An ID/name conflict stops setup.
-Change `vcBase` to a free range or dedicate a host to this bridge.
+### Migration from the original self-provisioned bridge
+
+Back up the installed script, scenes, VCs, and external integrations first.
+Stop the old Midea/Clivet script; its manually created VCs (previously at
+220–228) can persist after it stops. Inspect the device and **manually remove
+only confirmed obsolete Midea/Clivet VCs** before enabling this managed
+version. The managed firmware lifecycle does not adopt old manual VCs.
+Do not delete unrelated components. Discover the newly allocated IDs using
+`Shelly.GetComponents` and update any references to old numeric IDs.
+
+The historical real-device test predates this managed-VC change. Run a new
+physical startup and UI/Modbus smoke test before production deployment.
 
 ## Configuration and first synchronization
 
@@ -86,7 +96,8 @@ configured. Otherwise tank-temperature and DHW-limit reads are omitted, DHW
 writes are blocked, and the tank-temperature tile is unused. The default
 zero in that unused tile is not a physical measurement.
 
-Start in read-only mode. The script creates/reuses its components, configures
+Start in read-only mode. Firmware creates/reconciles the nine managed VCs;
+the script binds them by role, configures
 `mode: 'mb_client'`, reads the physical values, and publishes them. It logs:
 
 ```text
@@ -178,6 +189,6 @@ node --check modbus/Midea/midea-clivet-r32-pro-modbus-vc.shelly.js
 node --test modbus/Midea/tests/bridge.test.cjs
 ```
 
-The harness checks nine-component provisioning, fresh bit/byte preservation,
+The harness checks managed role binding and dynamic component IDs, fresh bit/byte preservation,
 signed temperatures, target limits, readback, timeout/reconnect handling and
 UI synchronization. Details are recorded in [TECHNICAL_NOTES.md](TECHNICAL_NOTES.md).
