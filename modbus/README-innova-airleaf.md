@@ -28,9 +28,19 @@ The source document lists common register parameters resident on INN-FR-B32, ESE
 6. Water temperature (B32) / actual setpoint (ESE) — register 1 or 8.
 7. Motor speed **command** (B32) / raw program flags (ESE) — register 15 or 201. **Not measured fan RPM.**
 8. Modbus diagnostics / alarm flags (text) — register 105 and communication errors.
-9. Modbus online (boolean) — tracks read outcomes.
+9. Modbus Slave ID (number, 1–247) — persisted controller address used by the Shelly Modbus client; editable as an integer field in the device UI.
 
 No group component is declared (nine of the ten device-wide VC slots). Firmware creates/reconciles managed components at startup and removes them when their owning script is deleted. Old manually created VCs do not migrate automatically. Never run multiple profiles on the same host.
+
+### Selecting the Modbus slave from the device interface
+
+- The **Modbus Slave ID** VC is a number field with step 1 and range **1..247**; its managed role is `slaveId`, and the configured value uses `persisted: true`.
+- The value selects the address to which the **Shelly Modbus client sends requests**. It **does not program or change the physical INNOVA controller's own Modbus address**. First configure the address on the controller using its supported procedure, then select the matching value in Shelly.
+- On a selection change the script clears all cached registers and previous-device control state, prevents Modbus writes until it has read fresh data, and discards responses from reads addressed to the former slave. Previously transmitted Modbus writes cannot be cancelled.
+- Invalid or fractional values are rejected; the script restores the last valid selection. The existing **Modbus diagnostics** text component reports offline/communication errors. A dedicated **Modbus online** boolean VC is no longer created.
+- The default address is **1** for a fresh installation. On subsequent restarts the firmware restores the saved selection. If the controller uses another slave address, the default will fail to communicate until updated.
+
+
 
 ## First commissioning steps
 
@@ -38,9 +48,9 @@ No group component is declared (nine of the ten device-wide VC slots). Firmware 
 2. Identify the actual INNOVA controller board, its slave address, and its serial settings. *Never* scan/write unknown devices blindly.
 3. Confirm electrical connection A↔A, B↔B, common/reference and termination according to hardware manuals; never connect mains to RS485.
 4. In The Pill, verify the `Serial` mode is `mb_client`, and set the serial settings to **match the INNOVA**. The scripts check but never alter serial config. They expect **9600 8N1**; the Pill previously reported **115200 8N1**, which will cause a deliberate refusal to start polling.
-5. Set `SLAVE_ID` to the actual device ID (default **1**, not verified for your device).
-6. Upload/start the appropriate profile with `ENABLE_WRITES=false`. Firmware creates nine managed VCs from `@meta` and the script obtains role handles without any fixed component IDs.
-7. Confirm room temperature, setpoint, alarm flags, and online status against the physical controller. Allow enough time for each register to be read; each polls at approximately one register per 3.5 s.
+5. Open the managed Virtual Component **Modbus Slave ID** and set the address of the connected INNOVA controller (integer **1–247**, initially **1**). It is saved across Shelly restarts; editing the script is unnecessary.
+6. Upload/start the appropriate profile with `ENABLE_WRITES=false`. Firmware creates nine managed VCs from `@meta`, including **Modbus Slave ID**, and the script obtains role handles without fixed component IDs. Check the selected address before starting communication.
+7. Confirm room temperature, target and alarm/communication diagnostics against the physical controller. The online state remains an internal safety guard rather than a visible VC. Allow enough time for each register to be read; polling advances approximately once per 3.5 s.
 8. Only after checking Modbus scaling, bit maps, terminal wiring, physical reactions, and the installation safety design, consider changing `ENABLE_WRITES=true` to allow four user-facing command VCs. Writes use FC06 and read-back polling. Treat any mismatch as a failed commissioning test.
 
 ## Read-only diagnostics
@@ -55,10 +65,10 @@ Read `Shelly.GetComponents` to verify all nine managed roles exist (the componen
 ## Limitations / safety
 
 - **Not production-certified**. Earlier contributor-reported controller tests do not validate the new VC provisioning on every The Pill firmware; verify on real hardware before production use.
-- The `@meta` declaration must be the first physical line and remain within 1024 characters (B32: 944, ESE645/ESE648: 940).
+- The `@meta` declaration must be the first physical line and remain within 1024 characters (B32: 1017, ESE645/ESE648: 1013). Adding more metadata may exceed the firmware parser's limit.
 - Managed component IDs may differ after migration. Update any external scripts/scenes referring to old IDs.
 - On firmware `2.0.1-ge1a198b`, Shelly The Pill Gen3 has a documented restart problem when starting managed VC scripts. Test on a firmware known to support managed VCs; this code change does not fix firmware crashes.
-- Modbus writes remain explicitly disabled by `ENABLE_WRITES=false` until commissioning and verification.
+- Modbus writes remain explicitly disabled by `ENABLE_WRITES=false` until commissioning and verification. Switching the selected Modbus address only retargets requests; it does not issue an address-changing command to the INNOVA controller.
 - The `power` VC reflects requested standby configuration, not measured electrical power.
 - A successful FC06 reply does not prove the mechanical output changed; poll read-back and physical inspection remain required.
 - Actual setpoint can be modified by local controls and limits. Commission write permissions cautiously.
