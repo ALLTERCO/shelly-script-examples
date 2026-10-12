@@ -31,13 +31,15 @@ function emulator(config = {}, initial = {}) {
   const entries = Object.entries(manifest);
   const baseId = config.mockManagedIdStart || 220;
   const roleIds = {};
+  const managedEvents = {};
   for (let i = 0; i < entries.length; i++) {
     const [role, definition] = entries[i];
     if (role === config.mockMissingManagedRole) continue;
     const id = baseId + i;
     const type = definition.type;
     const cfg = { ...clone(definition.config), id };
-    const value = cfg.default_value === undefined ?
+    const value = role === 'slaveId' && config.mockSavedSlaveId !== undefined ?
+      config.mockSavedSlaveId : cfg.default_value === undefined ?
       (type === 'boolean' ? false : type === 'number' ? 0 : '') : cfg.default_value;
     components.set(type + ':' + id, { config: cfg, value });
     roleIds[role] = { type, id };
@@ -105,7 +107,7 @@ function emulator(config = {}, initial = {}) {
         getConfig: () => item()?.config,
         getValue: () => item()?.value,
         setValue: value => { item().value = value; },
-        on: () => 1
+        on: (name, callback) => { managedEvents[role] = callback; return 1; }
       };
     } },
     Timer: { set: (delay, repeat, callback) => {
@@ -120,7 +122,14 @@ function emulator(config = {}, initial = {}) {
     context, registers, components, logs, trace,
     writes: () => trace.filter(x => /MbRtuClient.Write/.test(x.method)),
     value: (type, id) => components.get(type + ':' + id)?.value,
-    change: (type, id, value) => { components.get(type + ':' + id).value = value; },
+    change: (type, id, value) => {
+      components.get(type + ':' + id).value = value;
+      for (const [role, point] of Object.entries(roleIds)) {
+        if (point.type === type && point.id === id && managedEvents[role]) {
+          managedEvents[role]({ value, source: 'app' });
+        }
+      }
+    },
     offline: value => { offline = value; },
     rejectWrites: value => { rejectWrites = value; },
     failWrite: value => { failWrite = value; },
@@ -189,9 +198,87 @@ test('RMW uses a fresh high byte, not the poll snapshot', () => {
   } });
   e.advance(15000); assert.equal(e.registers[2], (47 << 8) | 40);
 });
-test('Silent Mode preserves all other function bits and the silent level', () => {
-  const e = emulator(control); e.sync(); e.change('boolean', 222, true); e.advance(15000);
-  assert.equal(e.registers[5], 0x1c0);
+test('the third managed component is a persisted Modbus Slave ID', () => {
+  const e = emulator(); e.sync();
+  const point = e.components.get('number:222');
+  assert.equal(point.config.name, 'Modbus Slave ID');
+  assert.equal(point.config.min, 1);
+  assert.equal(point.config.max, 247);
+  assert.equal(point.config.persisted, true);
+  assert.equal(point.config.meta.ui.step, 1);
+  assert.equal(point.value, 1);
+  assert.ok(!e.components.has('boolean:222'));
+});
+test('configured persisted Modbus address is used on startup', () => {
+  const e = emulator({ mockSavedSlaveId: 16 }); e.sync();
+  assert.equal(e.context.CONFIG.slaveId, 16);
+  assert.equal(e.value('number', 222), 16);
+  assert.ok(e.trace.filter(x => /MbRtuClient\./.test(x.method)).every(x => x.params.sid === 16));
+  assert.equal(e.writes().length, 0);
+});
+test('address selection switches targets safely and resynchronizes without replay', () => {
+  const e = emulator(control); e.sync();
+  e.change('number', 223, 40);
+  e.change('number', 222, 17);
+  assert.equal(e.context.CONFIG.slaveId, 17);
+  assert.equal(e.context.ready, false);
+  assert.equal(e.writes().length, 0);
+  e.sync(); e.advance(15000);
+  assert.equal(e.value('number', 222), 17);
+  assert.equal(e.value('number', 223), 35);
+  assert.equal(e.writes().length, 0);
+  assert.match(e.value('text', 228), /SID=17/);
+  assert.ok(e.trace.filter(x => /MbRtuClient\./.test(x.method)).some(x => x.params.sid === 17));
+});
+test('invalid Modbus addresses are rejected without starting new requests', () => {
+  const e = emulator({ mockSavedSlaveId: 16 }); e.sync();
+  for (const invalid of [0, 248, 6.5, '16']) {
+    e.change('number', 222, invalid);
+    assert.equal(e.value('number', 222), 16);
+    assert.equal(e.context.CONFIG.slaveId, 16);
+  }
+  assert.equal(e.writes().length, 0);
+});
+test('invalid saved Modbus address aborts before accessing the physical controller', () => {
+  const e = emulator({ mockSavedSlaveId: 0 });
+  e.advance(1000);
+  assert.ok(e.logs.some(x => /saved Modbus Slave ID/.test(x)));
+  assert.ok(!e.trace.some(x => /MbRtuClient\.|Serial\./.test(x.method)));
+});
+test('stale in-flight reads cannot pollute state after address changes', () => {
+  const e = emulator(control); e.sync();
+  let switched = false;
+  e.hook((method, params) => {
+    if (!switched && method === 'MbRtuClient.ReadHoldingRegisters' &&
+        params.sid === 1 && params.addr === 0) {
+      switched = true;
+      e.change('number', 222, 21);
+    }
+  });
+  e.advance(15000);
+  assert.equal(switched, true);
+  e.sync();
+  assert.equal(e.context.CONFIG.slaveId, 21);
+  assert.equal(e.value('number', 223), 35);
+  assert.equal(e.writes().length, 0);
+  assert.ok(e.trace.some(x => x.method === 'MbRtuClient.ReadHoldingRegisters' && x.params.sid === 21));
+});
+test('switching during pre-write guards cancels pending commands on old slave', () => {
+  const e = emulator(control); e.sync(); e.change('number', 223, 40);
+  let switched = false;
+  e.hook((method, params) => {
+    if (!switched && method === 'MbRtuClient.ReadHoldingRegisters' &&
+        params.sid === 1 && params.addr === 0 && params.qty === 6) {
+      switched = true;
+      e.change('number', 222, 32);
+    }
+  });
+  e.advance(15000);
+  assert.equal(switched, true);
+  e.sync();
+  assert.equal(e.writes().length, 0);
+  assert.equal(e.value('number', 223), 35);
+  assert.equal(e.context.CONFIG.slaveId, 32);
 });
 test('DHW target uses address 4 and integer degrees', () => {
   const e = emulator(control); e.sync(); e.change('number', 224, 55); e.advance(15000);
@@ -213,7 +300,7 @@ test('missing expected version keeps control disabled', () => {
   assert.equal(e.writes().length, 0); assert.match(e.value('text', 228), /READ ONLY/);
 });
 test('room-control profile does not receive writes', () => {
-  const e = emulator(control, { 0: 9 }); e.sync(); e.change('boolean', 222, true); e.advance(15000);
+  const e = emulator(control, { 0: 9 }); e.sync(); e.change('boolean', 220, true); e.advance(15000);
   assert.equal(e.writes().length, 0); assert.match(e.value('text', 228), /ROOM CONTROL/);
 });
 test('factory and configured target limits both apply', () => {
@@ -292,7 +379,7 @@ test('missing managed role aborts safely before Modbus access', () => {
 test('all reads use Holding Registers; no installer or mode register is written', () => {
   const e = emulator(control); e.sync(); e.change('boolean', 220, true); e.change('number', 223, 40); e.advance(20000);
   assert.ok(!e.trace.some(x => /ReadInput|ReadCoils|WriteCoils/.test(x.method)));
-  assert.ok(e.writes().every(x => [0, 2, 4, 5].includes(x.params.addr)));
+  assert.ok(e.writes().every(x => [0, 2, 4].includes(x.params.addr)));
 });
 test('cooling targets require allowCooling and controller cooling limits', () => {
   const e = emulator({ ...control, allowCooling: true }, { 1: 2, 2: (42 << 8) | 20 });
