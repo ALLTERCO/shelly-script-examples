@@ -79,33 +79,18 @@ Shelly.emitEvent("air_quality", {
 
 ---
 
-### sds011_setup.shelly.js
+### sds011-vc-cycle.shelly.js
 
-**Virtual Components Setup** - Run ONCE to create the UI components.
-
-Creates the following virtual components:
-| Component | Description |
-|-----------|-------------|
-| `number:200` | PM2.5 value display (μg/m³) |
-| `number:201` | PM10 value display (μg/m³) |
-| `text:200` | AQI category display |
-| `button:200` | Wake/Sleep toggle |
-
-After running, you can delete or disable this script.
-
----
-
-### sds011_vc.shelly.js
-
-**Virtual Components UI** - Main script with graphical interface.
-
-**Prerequisites:** Run `sds011_setup.shelly.js` first to create components.
+**Virtual Components + Duty Cycle** - Main SDS011 script for Virtual Components.
 
 **Features:**
-- Displays PM2.5 and PM10 on Shelly UI
-- Shows AQI category in real-time
-- Wake/Sleep button for power management
-- Event emission for automation
+- Wake/warmup/collect/sleep cycle for longer sensor lifetime
+- Frame validation, checksum checks, and ACK filtering
+- PM2.5/PM10 averaging with minimum sample threshold
+- Spike clamping and bounds validation for cleaner values
+- Script-owned Virtual Components for PM values, status, timestamp, AQI category, and power control
+- Automatic VC creation, verification, and handle binding at startup
+- Optional boolean power component (`boolean:200`) to enable/disable polling
 
 ---
 
@@ -122,8 +107,10 @@ After running, you can delete or disable this script.
 ## Quick Start
 
 1. Wire the SDS011 sensor to your Shelly device
-2. Upload and run `sds011.shelly.js`
-3. Readings will print automatically every second
+2. Upload and run `sds011-vc-cycle.shelly.js`
+3. Wait for the script to create and bind its Virtual Components:
+   - `number:200`, `number:201`, `text:200`, `text:201`, `enum:200`, `boolean:200`
+4. Enable `boolean:200` to start the polling cycle
 
 **Example Output:**
 ```

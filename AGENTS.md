@@ -155,19 +155,54 @@ Shelly.addEventHandler(function(ev) {
 main();
 ```
 
+### Managed Virtual Component Script Pattern
+
+Scripts that declare firmware-managed Virtual Components have a stricter
+production layout than ordinary scripts. Use this order:
+
+1. Managed VC `@meta` JSON comment
+2. Standard machine-readable JSDoc header
+3. Detailed human-readable documentation block
+4. Configuration constants
+5. State, helpers, main logic, and event handlers
+6. Initialization function
+7. Final `init();` call as the last executable statement
+
+The managed metadata comment has firmware parsing constraints:
+
+- It must be the first non-empty line and first comment in the file.
+- It must occupy exactly one physical line using `/* @meta {...} */` syntax.
+- The complete line, including `/* @meta ` and ` */`, must be no longer than
+  1024 characters. Do not rely on formatting whitespace being ignored.
+- Keep the `group` role last in the `vc` object, but ensure its closing JSON and
+  comment delimiter are still within the 1024-character limit.
+- Access managed components only through `Script.getVcHandle(role)`. Never
+  hard-code firmware-assigned managed component IDs.
+- The detailed documentation must list every declared role, explain the
+  1024-character constraint, and document control sequences and safety limits.
+
+Validate the first line before considering a managed-VC script complete:
+
+```bash
+python3 -c "from pathlib import Path; line=Path('path/to/script.shelly.js').read_text().splitlines()[0]; assert line.startswith('/* @meta {') and line.endswith('} */') and len(line) <= 1024; print(len(line))"
+```
+
+The repository integrity checker enforces these rules for every `.shelly.js`
+file containing a managed `@meta` declaration.
+
 ### Header Guidelines
 
 | Header Type | Purpose | Required |
 |-------------|---------|----------|
-| `@title` | Short name for manifest/index | Yes |
+| `@title` | Short name for manifest | Yes |
 | `@description` | Brief description (1-2 sentences) | Yes |
 | `@status` | `production` or `under development` | Yes |
 | `@link` | URL to file on ALLTERCO GitHub repo | Yes |
 | Detailed block | Hardware, protocol, components | For hardware/complex scripts |
 
 **Note:** Only files with `@status production` are included in the manifest
-(`examples-manifest.json`) and the index (`SHELLY_MJS.md`). Files with
-`@status under development` are excluded from both.
+(`examples-manifest.json`). Files with `@status under development` are
+excluded.
 
 **When to include detailed documentation:**
 - Hardware interfacing scripts (UART, SPI, I2C devices)
@@ -289,7 +324,7 @@ The `examples-manifest.json` is the central registry for all production scripts.
 ### After Adding a Script
 1. Add the standard JSDoc header with `@status production`
 2. CI/CD checks run on PR: headers, sync, and status validation
-3. After merge: `sync-manifest-md.py` syncs the manifest, `sync-manifest-json.py` regenerates `SHELLY_MJS.md`
+3. After merge: `sync-manifest-md.py` synchronizes the manifest
 
 ---
 
@@ -298,13 +333,50 @@ The `examples-manifest.json` is the central registry for all production scripts.
 ### Branching Strategy
 - **main**: Production-ready code, only receives merges from dev
 - **dev**: Development/integration branch, receives merges from feature branches
-- **feature branches**: `feature/<short-description>` - created from dev
-- **bug fixes**: `fix/<short-description>` - created from dev
+- **topic branches**: `<topic-name>` (e.g., `modbus`) - created from dev for large features
+- **feature branches**: `feature/<short-description>` - created from dev or topic branch
+- **bug fixes**: `fix/<short-description>` - created from dev or topic branch
 
 ```
 main ←── dev ←── feature/xyz
               ←── fix/abc
+              ←── modbus ←── feature/modbus-polling
+                          ←── feature/modbus-entities
 ```
+
+### Topic Branches (Large Feature Groups)
+
+When working on a large group of related functionality (e.g., `modbus`, `lora`, `bluetooth`):
+
+1. **Create a topic branch from dev:**
+   ```bash
+   git checkout dev
+   git checkout -b <topic-name>
+   ```
+
+2. **Create feature branches from the topic branch:**
+   ```bash
+   git checkout <topic-name>
+   git checkout -b feature/<topic>-<description>
+   ```
+
+3. **Merge features into the topic branch (not dev):**
+   ```bash
+   git checkout <topic-name>
+   git merge feature/<topic>-<description> --no-ff
+   ```
+
+4. **When all features are complete, merge topic branch to dev:**
+   ```bash
+   git checkout dev
+   git merge <topic-name> --no-ff -m "Merge <topic-name> into dev"
+   ```
+
+**Rules for topic branches:**
+- All related features branch from and merge back to the topic branch
+- The topic branch is merged to dev only when the full feature group is complete
+- Topic branches follow the same "ask before merge/push" rules
+- Delete the topic branch after merging to dev
 
 ### IMPORTANT: Always Ask Before Git Operations
 
@@ -317,16 +389,20 @@ main ←── dev ←── feature/xyz
 Example prompts:
 - "Changes are ready. May I commit them?"
 - "Feature branch is complete. May I merge to dev?"
+- "Feature branch is complete. May I merge to the modbus topic branch?"
+- "Topic branch modbus is complete. May I merge to dev?"
 - "Tests passed. May I merge dev to main and push?"
 
 ### Commit Workflow (Step by Step)
 
-1. **Checkout dev branch:**
+1. **Checkout the base branch (dev or topic branch):**
    ```bash
    git checkout dev
+   # OR for large feature groups:
+   git checkout <topic-name>
    ```
 
-2. **Create feature branch from dev:**
+2. **Create feature branch from the base:**
    ```bash
    git checkout -b feature/<short-description>
    ```
@@ -539,7 +615,6 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 ### CI/CD & Manifest
 - `tools/check-manifest-integrity.py` - Check-only integrity validation (CI gate)
 - `tools/sync-manifest-md.py` - Syncs manifest JSON with production files on disk
-- `tools/sync-manifest-json.py` - Generates SHELLY_MJS.md from manifest
 
 ### Tool Reference
 
@@ -548,7 +623,6 @@ Shelly.call('Switch.Set', { id: 0, on: true }, function(result, error_code, erro
 | `put_script.py` | Upload script to device | `python tools/put_script.py <host> <slot_id> <file>` |
 | `check-manifest-integrity.py` | Validate headers and sync (CI gate) | `python tools/check-manifest-integrity.py --check-headers --check-sync` |
 | `sync-manifest-md.py` | Add/remove manifest entries from file headers | `python tools/sync-manifest-md.py --extract-metadata` |
-| `sync-manifest-json.py` | Regenerate SHELLY_MJS.md from manifest | `python tools/sync-manifest-json.py ./examples-manifest.json` |
 
 ---
 
@@ -579,17 +653,7 @@ python tools/sync-manifest-md.py --extract-metadata
 - **Fix:** If a file is missing its header, add the standard JSDoc header
   to the file and re-run
 
-#### 2. Regenerate SHELLY_MJS.md
-
-```bash
-python tools/sync-manifest-json.py ./examples-manifest.json
-```
-
-- Reads `examples-manifest.json` and writes `SHELLY_MJS.md`
-- **Important:** Use `./examples-manifest.json` (forward-slash relative
-  path) to avoid Windows path issues
-
-#### 3. Run integrity checks
+#### 2. Run integrity checks
 
 ```bash
 python tools/check-manifest-integrity.py --check-headers --check-sync
@@ -601,7 +665,7 @@ python tools/check-manifest-integrity.py --check-headers --check-sync
   a corresponding manifest entry and vice-versa
 - **This is the same check that CI runs on pull requests**
 
-#### 4. Report results
+#### 3. Report results
 
 After all steps complete, report to the user:
 - Total number of manifest entries
@@ -617,7 +681,6 @@ After all steps complete, report to the user:
 | Missing header | New script without JSDoc | Add the standard two-header block to the file |
 | Sync mismatch | File on disk but not in manifest | Run `sync-manifest-md.py --extract-metadata` |
 | Manifest entry but no file | File was deleted or renamed | Run `sync-manifest-md.py --remove-missing` |
-| Windows path error in `sync-manifest-json.py` | Backslash path passed as argument | Use `./examples-manifest.json` (forward slashes) |
 
 ---
 
@@ -635,4 +698,3 @@ After all steps complete, report to the user:
 ### Community
 - [Shelly Support Forum](https://www.shelly-support.eu/)
 - [GitHub Issues](https://github.com/ALLTERCO/shelly-script-examples/issues)
-

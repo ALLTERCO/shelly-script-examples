@@ -8,14 +8,14 @@
 # >   3. Checking that all entries have non-empty titles
 # >   4. Checking that all .shelly.js files are listed in the manifest
 # >   5. Optionally verifying that doc files exist (if specified)
-# >   6. Optionally verifying that SHELLY_MJS.md is in sync with the manifest
-# >   7. Optionally checking standardized headers in script files
-# >   8. Optionally checking 2-space indentation in script files
+# >   6. Optionally checking standardized headers in script files
+# >   7. Optionally checking 2-space indentation in script files
+# >   8. Checking managed VC metadata placement, format, JSON, and length
 
 # How to run it?
 # > Run from anywhere (uses default paths):
 # > python tools/check-manifest-integrity.py
-# > Full CI check: python tools/check-manifest-integrity.py --check-headers --check-indent --check-index --check-sync
+# > Full CI check: python tools/check-manifest-integrity.py --check-headers --check-indent --check-sync
 # > Exit code 0 = all checks passed, exit code 1 = errors found
 
 # Standard header format:
@@ -53,6 +53,49 @@ HEADER_PATTERN = re.compile(
 
 # Valid @status values
 VALID_STATUSES = {"production", "under development"}
+MANAGED_META_PREFIX = "/* @meta "
+MANAGED_META_SUFFIX = " */"
+MANAGED_META_MAX_LENGTH = 1024
+
+
+def check_managed_metadata(content):
+    """Validate a managed VC @meta declaration when one is present.
+
+    Returns (is_managed, issues). The firmware reads at most the first 1024
+    characters, so managed metadata must be the complete first physical line.
+    """
+    if not re.search(r"/\*\s*@meta\s+\{", content):
+        return False, []
+
+    issues = []
+    first_line = content.splitlines()[0] if content else ""
+    if not first_line.startswith(MANAGED_META_PREFIX):
+        return True, ["Managed @meta must be the first non-empty line and first comment"]
+    if not first_line.endswith(MANAGED_META_SUFFIX):
+        return True, ["Managed @meta must be contained on one physical line"]
+    if len(first_line) > MANAGED_META_MAX_LENGTH:
+        issues.append(
+            f"Managed @meta is {len(first_line)} characters "
+            f"(maximum {MANAGED_META_MAX_LENGTH})"
+        )
+
+    json_text = first_line[len(MANAGED_META_PREFIX):-len(MANAGED_META_SUFFIX)]
+    try:
+        metadata = json.loads(json_text)
+    except json.JSONDecodeError as error:
+        issues.append(f"Managed @meta contains invalid JSON: {error}")
+        return True, issues
+
+    roles = metadata.get("vc") if isinstance(metadata, dict) else None
+    if not isinstance(roles, dict) or not roles:
+        issues.append("Managed @meta must contain a non-empty 'vc' object")
+    elif "group" in roles and list(roles)[-1] != "group":
+        issues.append("Managed VC role 'group' must be declared last")
+
+    if not content.rstrip().endswith("init();"):
+        issues.append("Managed VC script must end with an init(); call")
+
+    return True, issues
 
 
 def extract_status_from_file(file_path):
@@ -89,19 +132,15 @@ def find_shelly_scripts(repo_root, production_only=False):
     return sorted(scripts)
 
 
-def generate_index_content(json_data):
-    """Generate the expected SHELLY_MJS.md content from manifest data."""
-    lines = []
-    for data in json_data:
-        lines.append(data["fname"] + ": " + data["title"] + "\n===\n" + data["description"] + "\n\n")
-    return "".join(lines)
-
-
 def check_header(content):
     """Check if file has a standard header.
 
     Returns (has_header, title, description, status, link).
     """
+    first_line_end = content.find("\n") + 1
+    if content.startswith(MANAGED_META_PREFIX) and first_line_end > 0:
+        content = content[first_line_end:].lstrip("\r\n")
+
     match = HEADER_PATTERN.match(content)
     if match:
         title = match.group(1).strip()
@@ -183,7 +222,6 @@ def main():
         help="Base directory for script files (default: directory containing manifest)"
     )
     argparser.add_argument("--check-docs", action="store_true", help="Verify doc files exist")
-    argparser.add_argument("--check-index", action="store_true", help="Verify SHELLY_MJS.md is in sync")
     argparser.add_argument("--check-headers", action="store_true", help="Check scripts for standard headers")
     argparser.add_argument("--check-indent", action="store_true", help="Check scripts for 2-space indentation")
     argparser.add_argument("--check-sync", action="store_true", help="Check that all .shelly.js files are in the manifest")
@@ -217,6 +255,7 @@ def main():
     warnings = []
     header_results = {"has_header": [], "missing_header": [], "bad_status": [], "missing_link": []}
     indent_results = {"valid": [], "invalid": []}
+    managed_results = {"valid": [], "invalid": []}
 
     for idx, entry in enumerate(json_data):
         entry_id = f"Entry {idx + 1}"
@@ -310,20 +349,24 @@ def main():
                 else:
                     errors.append(f"Manifest entry has no file on disk: {fname}")
 
-    # Check SHELLY_MJS.md is in sync
-    if args.check_index:
-        index_path = os.path.join(base_dir, "SHELLY_MJS.md")
-        if not os.path.isfile(index_path):
-            errors.append("SHELLY_MJS.md not found")
-        else:
+    # Managed metadata applies to production and under-development scripts.
+    if args.check_headers:
+        for fname in find_shelly_scripts(base_dir, production_only=False):
+            script_path = os.path.join(base_dir, fname)
             try:
-                with open(index_path, mode="r", encoding="utf-8") as f:
-                    actual_content = f.read()
-                expected_content = generate_index_content(json_data)
-                if actual_content != expected_content:
-                    errors.append("SHELLY_MJS.md is out of sync with manifest")
+                with open(script_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                is_managed, issues = check_managed_metadata(content)
+                if not is_managed:
+                    continue
+                if issues:
+                    managed_results["invalid"].append((fname, issues))
+                    for issue in issues:
+                        errors.append(f"[{fname}]: {issue}")
+                else:
+                    managed_results["valid"].append(fname)
             except Exception as e:
-                errors.append(f"Failed to read SHELLY_MJS.md: {e}")
+                errors.append(f"[{fname}]: Failed to check managed metadata: {e}")
 
     # Print results
     print(f"\nManifest Integrity Check: {args.file}")
@@ -338,6 +381,13 @@ def main():
         if header_results["missing_header"]:
             for fname in sorted(header_results["missing_header"]):
                 print(f"    [X] {fname}")
+
+        print(f"\nManaged VC Metadata Check:")
+        print(f"  Files with valid managed metadata: {len(managed_results['valid'])}")
+        print(f"  Files with invalid managed metadata: {len(managed_results['invalid'])}")
+        if managed_results["invalid"]:
+            for fname, issues in sorted(managed_results["invalid"], key=lambda x: x[0]):
+                print(f"    [X] {fname} ({len(issues)} issues)")
 
     # Indentation results
     if args.check_indent:

@@ -1,0 +1,116 @@
+{
+  "exportedAt": "2026-05-03T06:24:04.960Z",
+  "plantId": "84",
+  "inverterType": "generic",
+  "map": {
+    "categories": {
+      "pv": {
+        "name": "PV",
+        "icon": "☀️",
+        "readonly": true,
+        "order": 0,
+        "registers": [
+          {
+            "name": "PV Power",
+            "addr": 0,
+            "rtype": "holding",
+            "itype": "u16",
+            "scale": 1,
+            "unit": "W",
+            "bo": "BE",
+            "wo": "BE",
+            "mapping": "pv",
+            "writable": false,
+            "bool": false,
+            "enum": null,
+            "notes": ""
+          }
+        ]
+      },
+      "grid": {
+        "name": "Grid",
+        "icon": "⚡",
+        "readonly": true,
+        "order": 1,
+        "registers": [
+          {
+            "name": "Grid Power",
+            "addr": 0,
+            "rtype": "holding",
+            "itype": "i16",
+            "scale": 1,
+            "unit": "W",
+            "bo": "BE",
+            "wo": "BE",
+            "mapping": "grid",
+            "writable": false,
+            "bool": false,
+            "enum": null,
+            "notes": ""
+          }
+        ]
+      },
+      "load": {
+        "name": "Load",
+        "icon": "🏠",
+        "readonly": true,
+        "order": 2,
+        "registers": [
+          {
+            "name": "Load Power",
+            "addr": 0,
+            "rtype": "holding",
+            "itype": "u16",
+            "scale": 1,
+            "unit": "W",
+            "bo": "BE",
+            "wo": "BE",
+            "mapping": "consumption",
+            "writable": false,
+            "bool": false,
+            "enum": null,
+            "notes": ""
+          }
+        ]
+      },
+      "battery": {
+        "name": "Battery",
+        "icon": "🔋",
+        "readonly": true,
+        "order": 3,
+        "registers": [
+          {
+            "name": "Battery SOC",
+            "addr": 0,
+            "rtype": "holding",
+            "itype": "u16",
+            "scale": 1,
+            "unit": "%",
+            "bo": "BE",
+            "wo": "BE",
+            "mapping": "batterySOC",
+            "writable": false,
+            "bool": false,
+            "enum": null,
+            "notes": ""
+          },
+          {
+            "name": "Battery Power",
+            "addr": 0,
+            "rtype": "holding",
+            "itype": "i16",
+            "scale": 1,
+            "unit": "W",
+            "bo": "BE",
+            "wo": "BE",
+            "mapping": "batteryPower",
+            "writable": false,
+            "bool": false,
+            "enum": null,
+            "notes": ""
+          }
+        ]
+      }
+    }
+  }
+}

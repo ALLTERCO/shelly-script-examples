@@ -176,9 +176,22 @@ def main():
             continue
 
         if fname in existing_entries:
-            # Keep existing entry
-            new_entries.append(existing_entries[fname])
-            unchanged.append(fname)
+            entry = existing_entries[fname]
+            if args.extract_metadata and (
+                entry.get("title", "").startswith("TODO") or
+                entry.get("description", "").startswith("TODO")
+            ):
+                extracted_title, extracted_desc = extract_metadata_from_file(file_path)
+                if extracted_title and entry.get("title", "").startswith("TODO"):
+                    entry = dict(entry)
+                    entry["title"] = extracted_title
+                if extracted_desc and entry.get("description", "").startswith("TODO"):
+                    entry = dict(entry)
+                    entry["description"] = extracted_desc
+                added.append(fname)
+            else:
+                unchanged.append(fname)
+            new_entries.append(entry)
         else:
             # New production file - create entry
             title = "TODO: Add title"

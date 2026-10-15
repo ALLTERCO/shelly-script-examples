@@ -1,0 +1,5 @@
+Devices:
+ - SG01HP3
+ - SG02LP1
+ - SG03LP1
+ - SG04LP3

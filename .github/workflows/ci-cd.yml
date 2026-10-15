@@ -31,7 +31,7 @@ jobs:
           --check-headers \
           --check-sync
 
-  # Runs after PR is merged - generates JSON and MD files
+  # Runs after PR is merged - synchronizes the manifest
   generate:
     if: >
       github.event_name == 'pull_request_target' &&
@@ -52,12 +52,11 @@ jobs:
           --check-headers \
           --check-sync
 
-    - name: Generate JSON and MD files
+    - name: Synchronize manifest
       run: |
         python ./tools/sync-manifest-md.py --extract-metadata --remove-missing
-        python ./tools/sync-manifest-json.py ./examples-manifest.json
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add .
-        git diff --cached --quiet || git commit -m "Sync manifest and update legacy docs (${{ github.event.pull_request.title }})"
+        git diff --cached --quiet || git commit -m "Sync manifest (${{ github.event.pull_request.title }})"
         git push

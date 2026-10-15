@@ -11,6 +11,7 @@ Use these to publish device state and control Shelly devices from MQTT/Home Assi
 - `mqtt-announce-control.shelly.js`
 - `mqtt-discovery.shelly.js`
 - `mqtt-discovery-sensors.shelly.js`
+- `mqtt-jaalee-jht-bridge.shelly.js`
 - `mqtt-switch-status.shelly.js`
 - `mqtt-switch-status-announce.shelly.js`
 - `shelly1p-mqtt-autodiscover.shelly.js`

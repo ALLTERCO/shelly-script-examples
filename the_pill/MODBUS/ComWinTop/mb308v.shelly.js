@@ -1,118 +1,381 @@
 /**
  * @title CWT-MB308V MODBUS example
- * @description Example integration for the ComWinTop MB308V IO module over
- *   MODBUS-RTU.
- * @status under development
+ * @description Example integration for the ComWinTop MB308V IO module over MODBUS-RTU.
+ * @status production
  * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/the_pill/MODBUS/mb308v.shelly.js
- */
-
-/**
- * CWT-MB308V MODBUS IO Module Example
- *
- * Example script demonstrating communication with ComWinTop CWT-MB308V
- * GPIO expander module via MODBUS-RTU protocol.
- *
- * CWT-MB308V Specifications:
- * - 8 Analog Inputs (AI): 4-20mA / 0-5V / 0-10V (configurable)
- * - 4 Analog Outputs (AO): 0-10V / 4-20mA
- * - 8 Digital Inputs (DI): Dry contact / NPN
- * - 12 Digital Outputs (DO): Relay outputs
- *
- * Hardware connection:
- * - RS485 Module A (D+) -> MB308V A (D+)
- * - RS485 Module B (D-) -> MB308V B (D-)
- * - RS485 Module RO -> Shelly RX (GPIO)
- * - RS485 Module DI -> Shelly TX (GPIO)
- * - Power: 7-35VDC to MB308V
- *
- * Default settings: 9600 baud, 8N1, Slave ID: 1
- *
- * Reference: https://github.com/bgerp/ztm/blob/master/Zontromat/devices/vendors/cwt/mb308v/mb308v.py
  */
 
 /* === CONFIG === */
 var CONFIG = {
-    // UART settings
     BAUD_RATE: 9600,
     MODE: "8N1",
-
-    // MODBUS settings
-    SLAVE_ID: 1,
     RESPONSE_TIMEOUT: 1000,
-
-    // Polling interval (ms)
     POLL_INTERVAL: 5000,
-
-    // Debug mode
     DEBUG: true
 };
 
-/* === CWT-MB308V REGISTER MAP === */
-var MB308V = {
-    // Digital Outputs (Relays) - 12 coils
-    DO_COUNT: 12,
-    DO_START_ADDR: 0,
+// ============================================================================
+// VIRTUAL COMPONENT STANDARD HELPER
+// ============================================================================
 
-    // Digital Inputs - 8 inputs
-    DI_COUNT: 8,
-    DI_START_ADDR: 0,
+function ensureVirtualComponents(manifest, done) {
+    var VC_HELPER_DELAY_MS = 150;
+    var state2 = {
+        existing: [],
+        ids: {},
+        keys: {},
+        handles: {},
+        ok: true
+    };
 
-    // Analog Outputs - 4 registers (0-24000 = 0-10V or 4-20mA)
-    AO_COUNT: 4,
-    AO_START_ADDR: 0,
-    AO_MAX_VALUE: 24000,
+    function log(msg) {
+        print('[VC] ' + msg);
+    }
 
-    // Analog Inputs - 8 registers (0-10216 typical for 4-20mA)
-    AI_COUNT: 8,
-    AI_START_ADDR: 0,
-    AI_MAX_VALUE: 10216
+    function componentKey(type, id) {
+        return type + ':' + String(id);
+    }
+
+    function shallowConfigMatches(desired, current) {
+        var k;
+
+        if (!desired || !current) return false;
+
+        for (k in desired) {
+            if (k === 'meta') {
+                if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
+            } else if (typeof desired[k] === 'object' && desired[k] !== null) {
+                if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
+            } else if (desired[k] !== current[k]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function normalizeComponent(spec) {
+        if (!spec.config) spec.config = {};
+        if (!spec.config.name) spec.config.name = spec.key;
+        return spec;
+    }
+
+    function findExistingByName(type, name) {
+        var i;
+        var c;
+
+        for (i = 0; i < state2.existing.length; i++) {
+            c = state2.existing[i];
+            if (c.type === type && c.name === name) return c;
+        }
+
+        return null;
+    }
+
+    function remember(spec, id) {
+        var key = componentKey(spec.type, id);
+        state2.ids[spec.key] = id;
+        state2.keys[spec.key] = key;
+        state2.handles[spec.key] = Virtual.getHandle(key);
+    }
+
+    function getConfig(type, id) {
+        return Shelly.getComponentConfig(type, id);
+    }
+
+    function deleteComponent(key, cb) {
+        Shelly.call('Virtual.Delete', { key: key }, function(res, errCode, errMsg) {
+            if (errCode !== 0) {
+                log('Virtual.Delete skipped for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
+            }
+            Timer.set(VC_HELPER_DELAY_MS, false, cb);
+        });
+    }
+
+    function addComponent(spec, cb) {
+        var params = { type: spec.type, config: spec.config };
+        var id;
+
+        if (spec.id !== undefined && spec.id !== null) params.id = spec.id;
+
+        Shelly.call('Virtual.Add', params, function(res, errCode, errMsg) {
+            if (errCode !== 0) {
+                log('Virtual.Add failed for ' + spec.key + ': ' + String(errCode) + ' ' + String(errMsg));
+                state2.ok = false;
+                cb(false);
+                return;
+            }
+
+            id = spec.id;
+            if ((id === undefined || id === null) && res && res.id !== undefined) id = res.id;
+            if (id === undefined || id === null) {
+                log('Virtual.Add did not return id for ' + spec.key);
+                state2.ok = false;
+                cb(false);
+                return;
+            }
+
+            remember(spec, id);
+            log('Created ' + state2.keys[spec.key] + ' ' + spec.config.name);
+            Timer.set(VC_HELPER_DELAY_MS, false, function() {
+                cb(true);
+            });
+        });
+    }
+
+    function ensureOne(spec, cb) {
+        var current;
+        var existing;
+        var key;
+
+        spec = normalizeComponent(spec);
+
+        if (spec.id !== undefined && spec.id !== null) {
+            current = getConfig(spec.type, spec.id);
+            key = componentKey(spec.type, spec.id);
+
+            if (current) {
+                if (shallowConfigMatches(spec.config, current)) {
+                    remember(spec, spec.id);
+                    cb(true);
+                    return;
+                }
+
+                log('Recreating mismatched ' + key + ' ' + spec.config.name);
+                deleteComponent(key, function() {
+                    addComponent(spec, cb);
+                });
+                return;
+            }
+
+            addComponent(spec, cb);
+            return;
+        }
+
+        existing = findExistingByName(spec.type, spec.config.name);
+        if (existing && shallowConfigMatches(spec.config, existing.config)) {
+            remember(spec, existing.id);
+            cb(true);
+            return;
+        }
+
+        if (existing) {
+            log('Existing ' + existing.key + ' does not fit ' + spec.config.name + '; creating a new one');
+        }
+        addComponent(spec, cb);
+    }
+
+    function ensureList(index, cb) {
+        var list = manifest.components || [];
+        if (index >= list.length) {
+            cb();
+            return;
+        }
+
+        ensureOne(list[index], function() {
+            Timer.set(VC_HELPER_DELAY_MS, false, function() {
+                ensureList(index + 1, cb);
+            });
+        });
+    }
+
+    function createGroupConfig(name) {
+        return { name: name, meta: { ui: { view: 'group' } } };
+    }
+
+    function groupMembers(group) {
+        var members = [];
+        var i;
+        var logicalKey;
+
+        for (i = 0; i < group.components.length; i++) {
+            logicalKey = group.components[i];
+            if (state2.keys[logicalKey]) members.push(state2.keys[logicalKey]);
+        }
+
+        return members;
+    }
+
+    function ensureGroup(index, cb) {
+        var groups = manifest.groups || [];
+        var group;
+        var cfg;
+        var current;
+        var key;
+
+        if (index >= groups.length) {
+            cb();
+            return;
+        }
+
+        group = groups[index];
+        cfg = createGroupConfig(group.name);
+        key = componentKey('group', group.id);
+        current = getConfig('group', group.id);
+
+        function setMembersAndContinue() {
+            Shelly.call('Group.Set', { id: group.id, value: groupMembers(group) }, function(res, errCode, errMsg) {
+                if (errCode !== 0) {
+                    log('Group.Set failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
+                    state2.ok = false;
+                }
+                Timer.set(VC_HELPER_DELAY_MS, false, function() {
+                    ensureGroup(index + 1, cb);
+                });
+            });
+        }
+
+        function addGroup() {
+            Shelly.call('Virtual.Add', { type: 'group', id: group.id, config: cfg }, function(res, errCode, errMsg) {
+                if (errCode !== 0) {
+                    log('Virtual.Add group failed for ' + key + ': ' + String(errCode) + ' ' + String(errMsg));
+                    state2.ok = false;
+                    Timer.set(VC_HELPER_DELAY_MS, false, function() {
+                        ensureGroup(index + 1, cb);
+                    });
+                    return;
+                }
+                setMembersAndContinue();
+            });
+        }
+
+        if (current && shallowConfigMatches(cfg, current)) {
+            setMembersAndContinue();
+            return;
+        }
+
+        if (current) {
+            deleteComponent(key, addGroup);
+        } else {
+            addGroup();
+        }
+    }
+
+    function readExistingPage(offset, cb) {
+        Shelly.call('Shelly.GetComponents', { dynamic_only: true, offset: offset }, function(res, errCode, errMsg) {
+            var raw;
+            var total;
+            var i;
+            var c;
+            var cfg;
+            var keyParts;
+
+            if (errCode !== 0) {
+                log('Shelly.GetComponents failed: ' + String(errCode) + ' ' + String(errMsg));
+                state2.ok = false;
+                cb();
+                return;
+            }
+
+            raw = (res && res.components) ? res.components : [];
+            total = res ? (res.total || raw.length) : raw.length;
+
+            for (i = 0; i < raw.length; i++) {
+                c = raw[i];
+                cfg = c.config || {};
+                keyParts = (c.key || '').split(':');
+                state2.existing.push({
+                    key: c.key || componentKey(c.type || keyParts[0], cfg.id),
+                    type: c.type || keyParts[0],
+                    id: cfg.id,
+                    name: cfg.name,
+                    config: cfg
+                });
+            }
+
+            if (offset + raw.length < total && raw.length > 0) {
+                readExistingPage(offset + raw.length, cb);
+            } else {
+                cb();
+            }
+        });
+    }
+
+    readExistingPage(0, function() {
+        ensureList(0, function() {
+            ensureGroup(0, function() {
+                done(state2.ok, {
+                    ids: state2.ids,
+                    keys: state2.keys,
+                    handles: state2.handles
+                });
+            });
+        });
+    });
+}
+
+// ============================================================================
+// DYNAMIC MODBUS SLAVE ID
+// ============================================================================
+// The Modbus slave/unit ID must never be hardcoded into script logic. It is
+// exposed as a persisted Virtual Component (number:299, range 1-247) so it
+// can be reconfigured from an app/config UI without redeploying code.
+// getSlaveId() reads the component live on every use, clamps it into range,
+// and writes the clamped value back if it was out of range.
+//
+// This device does not respond to a fixed default: init() auto-scans slave
+// IDs 1-4 at startup, writing each candidate straight into the Virtual
+// Component (so getSlaveId() reflects the ID actually being probed) and
+// keeping whichever one responds.
+
+var MIN_SLAVE_ID = 1;
+var MAX_SLAVE_ID = 247;
+var DEFAULT_SLAVE_ID = 2;
+var slaveIdHandle = null;
+
+function getSlaveId() {
+    var value = DEFAULT_SLAVE_ID;
+
+    if (slaveIdHandle) value = Number(slaveIdHandle.getValue());
+    if (value !== value) value = DEFAULT_SLAVE_ID; // NaN guard
+    value = Math.round(value);
+    if (value < MIN_SLAVE_ID) value = MIN_SLAVE_ID;
+    if (value > MAX_SLAVE_ID) value = MAX_SLAVE_ID;
+
+    if (slaveIdHandle && slaveIdHandle.getValue() !== value) {
+        slaveIdHandle.setValue(value);
+    }
+
+    return value;
+}
+
+// ============================================================================
+// VIRTUAL COMPONENT MANIFEST
+// ============================================================================
+// This script prints all values to the console; only the Modbus Slave ID is
+// backed by a Virtual Component (it is configuration, not sensor data).
+
+var VIRTUAL_COMPONENTS = {
+    components: [
+        {
+            key: 'slaveId',
+            type: 'number',
+            id: 299,
+            config: {
+                name: 'Modbus Slave ID',
+                min: MIN_SLAVE_ID,
+                max: MAX_SLAVE_ID,
+                default_value: DEFAULT_SLAVE_ID,
+                persisted: true,
+                meta: { ui: { view: 'input' }, cloud: ['status'], role: 'modbus_id' }
+            }
+        }
+    ],
+    groups: [
+        { id: 299, name: 'CWT-MB308V Slave ID', components: ['slaveId'] }
+    ]
 };
 
-/* === MODBUS FUNCTION CODES === */
-var FC = {
-    READ_COILS: 0x01,
-    READ_DISCRETE_INPUTS: 0x02,
-    READ_HOLDING_REGISTERS: 0x03,
-    READ_INPUT_REGISTERS: 0x04,
-    WRITE_SINGLE_COIL: 0x05,
-    WRITE_SINGLE_REGISTER: 0x06
-};
+var vcHandles = null;
 
-/* === CRC-16 TABLE (MODBUS polynomial 0xA001) === */
-var CRC_TABLE = [
-    0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
-    0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
-    0xCC01, 0x0CC0, 0x0D80, 0xCD41, 0x0F00, 0xCFC1, 0xCE81, 0x0E40,
-    0x0A00, 0xCAC1, 0xCB81, 0x0B40, 0xC901, 0x09C0, 0x0880, 0xC841,
-    0xD801, 0x18C0, 0x1980, 0xD941, 0x1B00, 0xDBC1, 0xDA81, 0x1A40,
-    0x1E00, 0xDEC1, 0xDF81, 0x1F40, 0xDD01, 0x1DC0, 0x1C80, 0xDC41,
-    0x1400, 0xD4C1, 0xD581, 0x1540, 0xD701, 0x17C0, 0x1680, 0xD641,
-    0xD201, 0x12C0, 0x1380, 0xD341, 0x1100, 0xD1C1, 0xD081, 0x1040,
-    0xF001, 0x30C0, 0x3180, 0xF141, 0x3300, 0xF3C1, 0xF281, 0x3240,
-    0x3600, 0xF6C1, 0xF781, 0x3740, 0xF501, 0x35C0, 0x3480, 0xF441,
-    0x3C00, 0xFCC1, 0xFD81, 0x3D40, 0xFF01, 0x3FC0, 0x3E80, 0xFE41,
-    0xFA01, 0x3AC0, 0x3B80, 0xFB41, 0x3900, 0xF9C1, 0xF881, 0x3840,
-    0x2800, 0xE8C1, 0xE981, 0x2940, 0xEB01, 0x2BC0, 0x2A80, 0xEA41,
-    0xEE01, 0x2EC0, 0x2F80, 0xEF41, 0x2D00, 0xEDC1, 0xEC81, 0x2C40,
-    0xE401, 0x24C0, 0x2580, 0xE541, 0x2700, 0xE7C1, 0xE681, 0x2640,
-    0x2200, 0xE2C1, 0xE381, 0x2340, 0xE101, 0x21C0, 0x2080, 0xE041,
-    0xA001, 0x60C0, 0x6180, 0xA141, 0x6300, 0xA3C1, 0xA281, 0x6240,
-    0x6600, 0xA6C1, 0xA781, 0x6740, 0xA501, 0x65C0, 0x6480, 0xA441,
-    0x6C00, 0xACC1, 0xAD81, 0x6D40, 0xAF01, 0x6FC0, 0x6E80, 0xAE41,
-    0xAA01, 0x6AC0, 0x6B80, 0xAB41, 0x6900, 0xA9C1, 0xA881, 0x6840,
-    0x7800, 0xB8C1, 0xB981, 0x7940, 0xBB01, 0x7BC0, 0x7A80, 0xBA41,
-    0xBE01, 0x7EC0, 0x7F80, 0xBF41, 0x7D00, 0xBDC1, 0xBC81, 0x7C40,
-    0xB401, 0x74C0, 0x7580, 0xB541, 0x7700, 0xB7C1, 0xB681, 0x7640,
-    0x7200, 0xB2C1, 0xB381, 0x7340, 0xB101, 0x71C0, 0x7080, 0xB041,
-    0x5000, 0x90C1, 0x9181, 0x5140, 0x9301, 0x53C0, 0x5280, 0x9241,
-    0x9601, 0x56C0, 0x5780, 0x9741, 0x5500, 0x95C1, 0x9481, 0x5440,
-    0x9C01, 0x5CC0, 0x5D80, 0x9D41, 0x5F00, 0x9FC1, 0x9E81, 0x5E40,
-    0x5A00, 0x9AC1, 0x9B81, 0x5B40, 0x9901, 0x59C0, 0x5880, 0x9841,
-    0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40,
-    0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
-    0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
-    0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
-];
+/* === REGISTER MAP (all start at address 0) === */
+var DI_COUNT = 8;   // FC 0x02
+var DO_COUNT = 12;  // FC 0x01
+var AI_COUNT = 8;   // FC 0x04
+var AO_COUNT = 4;   // FC 0x03
+
+var AI_MAX_VALUE = 10216;
+var AO_MAX_VALUE = 24000;
 
 /* === STATE === */
 var state = {
@@ -132,44 +395,39 @@ function toHex(n) {
 }
 
 function bytesToHex(bytes) {
-    var hex = "";
+    var s = "";
     for (var i = 0; i < bytes.length; i++) {
-        hex += toHex(bytes[i]);
-        if (i < bytes.length - 1) hex += " ";
+        s += toHex(bytes[i]);
+        if (i < bytes.length - 1) s += " ";
     }
-    return hex;
+    return s;
 }
 
 function debug(msg) {
-    if (CONFIG.DEBUG) {
-        print("[MB308V] " + msg);
-    }
+    if (CONFIG.DEBUG) print("[MB308V] " + msg);
 }
 
+// CRC-16/MODBUS — bitwise (no lookup table)
 function calcCRC(bytes) {
     var crc = 0xFFFF;
     for (var i = 0; i < bytes.length; i++) {
-        var index = (crc ^ bytes[i]) & 0xFF;
-        crc = (crc >> 8) ^ CRC_TABLE[index];
+        crc ^= bytes[i] & 0xFF;
+        for (var b = 0; b < 8; b++) {
+            crc = (crc & 1) ? ((crc >> 1) ^ 0xA001) : (crc >> 1);
+        }
     }
     return crc;
 }
 
 function bytesToStr(bytes) {
     var s = "";
-    for (var i = 0; i < bytes.length; i++) {
-        s += String.fromCharCode(bytes[i] & 0xFF);
-    }
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i] & 0xFF);
     return s;
 }
 
-function buildFrame(slaveAddr, functionCode, data) {
-    var frame = [slaveAddr & 0xFF, functionCode & 0xFF];
-    if (data) {
-        for (var i = 0; i < data.length; i++) {
-            frame.push(data[i] & 0xFF);
-        }
-    }
+var buildFrame = function(fc, data) {
+    var frame = [getSlaveId() & 0xFF, fc & 0xFF];
+    for (var i = 0; i < data.length; i++) frame.push(data[i] & 0xFF);
     var crc = calcCRC(frame);
     frame.push(crc & 0xFF);
     frame.push((crc >> 8) & 0xFF);
@@ -178,23 +436,14 @@ function buildFrame(slaveAddr, functionCode, data) {
 
 /* === MODBUS CORE === */
 
-function sendRequest(functionCode, data, callback) {
-    if (!state.isReady) {
-        callback("Not initialized", null);
-        return;
-    }
-    if (state.pendingRequest) {
-        callback("Request pending", null);
-        return;
-    }
+var sendRequest = function(fc, data, callback) {
+    if (!state.isReady)        { callback("not ready", null); return; }
+    if (state.pendingRequest)  { callback("busy", null); return; }
 
-    var frame = buildFrame(CONFIG.SLAVE_ID, functionCode, data);
+    var frame = buildFrame(fc, data);
     debug("TX: " + bytesToHex(frame));
 
-    state.pendingRequest = {
-        functionCode: functionCode,
-        callback: callback
-    };
+    state.pendingRequest = { fc: fc, callback: callback };
     state.rxBuffer = [];
 
     state.responseTimer = Timer.set(CONFIG.RESPONSE_TIMEOUT, false, function() {
@@ -202,7 +451,7 @@ function sendRequest(functionCode, data, callback) {
             var cb = state.pendingRequest.callback;
             state.pendingRequest = null;
             debug("Timeout");
-            cb("Timeout", null);
+            cb("timeout", null);
         }
     });
 
@@ -211,339 +460,215 @@ function sendRequest(functionCode, data, callback) {
 
 function onReceive(data) {
     if (!data || data.length === 0) return;
-
-    for (var i = 0; i < data.length; i++) {
-        state.rxBuffer.push(data.charCodeAt(i) & 0xFF);
-    }
-
+    for (var i = 0; i < data.length; i++) state.rxBuffer.push(data.charCodeAt(i) & 0xFF);
     processResponse();
 }
 
 function processResponse() {
-    if (!state.pendingRequest) {
-        state.rxBuffer = [];
-        return;
-    }
-
-    if (state.rxBuffer.length < 5) return;
+    if (!state.pendingRequest || state.rxBuffer.length < 4) return;
 
     var fc = state.rxBuffer[1];
 
-    // Check exception
     if (fc & 0x80) {
         if (state.rxBuffer.length >= 5) {
-            var excFrame = state.rxBuffer.slice(0, 5);
-            var crc = calcCRC(excFrame.slice(0, 3));
-            var recvCrc = excFrame[3] | (excFrame[4] << 8);
-            if (crc === recvCrc) {
-                clearTimeout();
+            var exc = state.rxBuffer[2];
+            var crc = calcCRC(state.rxBuffer.slice(0, 3));
+            var rcrc = state.rxBuffer[3] | (state.rxBuffer[4] << 8);
+            if (crc === rcrc) {
+                Timer.clear(state.responseTimer); state.responseTimer = null;
                 var cb = state.pendingRequest.callback;
-                state.pendingRequest = null;
-                state.rxBuffer = [];
-                cb("Exception: 0x" + toHex(state.rxBuffer[2]), null);
+                state.pendingRequest = null; state.rxBuffer = [];
+                cb("exception 0x" + toHex(exc), null);
             }
         }
         return;
     }
 
-    var expectedLen = getExpectedLength(fc);
-    if (expectedLen === 0 || state.rxBuffer.length < expectedLen) return;
-
-    var frame = state.rxBuffer.slice(0, expectedLen);
-    var crc = calcCRC(frame.slice(0, expectedLen - 2));
-    var recvCrc = frame[expectedLen - 2] | (frame[expectedLen - 1] << 8);
-
-    if (crc !== recvCrc) {
-        debug("CRC error");
-        return;
+    var expLen = 0;
+    if (fc === 0x01 || fc === 0x02 || fc === 0x03 || fc === 0x04) {
+        if (state.rxBuffer.length >= 3) expLen = 3 + state.rxBuffer[2] + 2;
+    } else if (fc === 0x05 || fc === 0x06) {
+        expLen = 8;
     }
+
+    if (expLen === 0 || state.rxBuffer.length < expLen) return;
+
+    var frame = state.rxBuffer.slice(0, expLen);
+    var crc = calcCRC(frame.slice(0, expLen - 2));
+    var rcrc = frame[expLen - 2] | (frame[expLen - 1] << 8);
+
+    if (crc !== rcrc) { debug("CRC error"); return; }
 
     debug("RX: " + bytesToHex(frame));
-    clearTimeout();
+    Timer.clear(state.responseTimer); state.responseTimer = null;
 
-    var responseData = frame.slice(2, expectedLen - 2);
+    var payload = frame.slice(2, expLen - 2);
     var cb = state.pendingRequest.callback;
-    state.pendingRequest = null;
-    state.rxBuffer = [];
-    cb(null, responseData);
-}
-
-function getExpectedLength(fc) {
-    switch (fc) {
-        case FC.READ_COILS:
-        case FC.READ_DISCRETE_INPUTS:
-        case FC.READ_HOLDING_REGISTERS:
-        case FC.READ_INPUT_REGISTERS:
-            if (state.rxBuffer.length >= 3) {
-                return 3 + state.rxBuffer[2] + 2;
-            }
-            return 0;
-        case FC.WRITE_SINGLE_COIL:
-        case FC.WRITE_SINGLE_REGISTER:
-            return 8;
-        default:
-            return 0;
-    }
-}
-
-function clearTimeout() {
-    if (state.responseTimer) {
-        Timer.clear(state.responseTimer);
-        state.responseTimer = null;
-    }
+    state.pendingRequest = null; state.rxBuffer = [];
+    cb(null, payload);
 }
 
 /* === MB308V API === */
 
-/**
- * Read all Digital Inputs (8 inputs)
- * @param {function} callback - callback(error, inputs[8])
- */
 function readDigitalInputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.DI_COUNT];
-    sendRequest(FC.READ_DISCRETE_INPUTS, data, function(err, response) {
-        if (err) {
-            callback(err, null);
-            return;
-        }
-        var inputs = [];
-        for (var i = 0; i < MB308V.DI_COUNT; i++) {
-            var byteIdx = Math.floor(i / 8) + 1;
-            var bitIdx = i % 8;
-            if (byteIdx < response.length) {
-                inputs.push((response[byteIdx] >> bitIdx) & 0x01);
-            }
-        }
-        callback(null, inputs);
+    sendRequest(0x02, [0x00, 0x00, 0x00, DI_COUNT], function(err, r) {
+        if (err) { callback(err, null); return; }
+        var out = [];
+        for (var i = 0; i < DI_COUNT; i++)
+            out.push((r[1 + Math.floor(i / 8)] >> (i % 8)) & 1);
+        callback(null, out);
     });
 }
 
-/**
- * Read all Digital Outputs / Relays (12 coils)
- * @param {function} callback - callback(error, relays[12])
- */
 function readDigitalOutputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.DO_COUNT];
-    sendRequest(FC.READ_COILS, data, function(err, response) {
-        if (err) {
-            callback(err, null);
-            return;
-        }
-        var relays = [];
-        for (var i = 0; i < MB308V.DO_COUNT; i++) {
-            var byteIdx = Math.floor(i / 8) + 1;
-            var bitIdx = i % 8;
-            if (byteIdx < response.length) {
-                relays.push((response[byteIdx] >> bitIdx) & 0x01);
-            }
-        }
-        callback(null, relays);
+    sendRequest(0x01, [0x00, 0x00, 0x00, DO_COUNT], function(err, r) {
+        if (err) { callback(err, null); return; }
+        var out = [];
+        for (var i = 0; i < DO_COUNT; i++)
+            out.push((r[1 + Math.floor(i / 8)] >> (i % 8)) & 1);
+        callback(null, out);
     });
 }
 
-/**
- * Write single Digital Output / Relay
- * @param {number} channel - Relay channel (0-11)
- * @param {boolean} value - true = ON, false = OFF
- * @param {function} callback - callback(error, success)
- */
-function writeDigitalOutput(channel, value, callback) {
-    if (channel < 0 || channel >= MB308V.DO_COUNT) {
-        callback("Invalid channel: " + channel, false);
-        return;
-    }
-    var data = [0x00, channel & 0xFF, value ? 0xFF : 0x00, 0x00];
-    sendRequest(FC.WRITE_SINGLE_COIL, data, function(err, response) {
+function writeDigitalOutput(ch, val, callback) {
+    if (ch < 0 || ch >= DO_COUNT) { callback("invalid ch", false); return; }
+    sendRequest(0x05, [0x00, ch & 0xFF, val ? 0xFF : 0x00, 0x00], function(err, r) {
         callback(err, !err);
     });
 }
 
-/**
- * Read all Analog Inputs (8 channels)
- * @param {function} callback - callback(error, values[8])
- */
 function readAnalogInputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.AI_COUNT];
-    sendRequest(FC.READ_INPUT_REGISTERS, data, function(err, response) {
-        if (err) {
-            callback(err, null);
-            return;
-        }
-        var values = [];
-        for (var i = 1; i < response.length - 1; i += 2) {
-            var value = (response[i] << 8) | response[i + 1];
-            values.push(value);
-        }
-        callback(null, values);
+    sendRequest(0x04, [0x00, 0x00, 0x00, AI_COUNT], function(err, r) {
+        if (err) { callback(err, null); return; }
+        var out = [];
+        for (var i = 0; i < AI_COUNT; i++) out.push((r[1 + i * 2] << 8) | r[2 + i * 2]);
+        callback(null, out);
     });
 }
 
-/**
- * Read all Analog Outputs (4 channels)
- * @param {function} callback - callback(error, values[4])
- */
 function readAnalogOutputs(callback) {
-    var data = [0x00, 0x00, 0x00, MB308V.AO_COUNT];
-    sendRequest(FC.READ_HOLDING_REGISTERS, data, function(err, response) {
-        if (err) {
-            callback(err, null);
-            return;
-        }
-        var values = [];
-        for (var i = 1; i < response.length - 1; i += 2) {
-            var value = (response[i] << 8) | response[i + 1];
-            values.push(value);
-        }
-        callback(null, values);
+    sendRequest(0x03, [0x00, 0x00, 0x00, AO_COUNT], function(err, r) {
+        if (err) { callback(err, null); return; }
+        var out = [];
+        for (var i = 0; i < AO_COUNT; i++) out.push((r[1 + i * 2] << 8) | r[2 + i * 2]);
+        callback(null, out);
     });
 }
 
-/**
- * Write single Analog Output
- * @param {number} channel - AO channel (0-3)
- * @param {number} value - Value (0-24000)
- * @param {function} callback - callback(error, success)
- */
-function writeAnalogOutput(channel, value, callback) {
-    if (channel < 0 || channel >= MB308V.AO_COUNT) {
-        callback("Invalid channel: " + channel, false);
-        return;
-    }
-    if (value < 0) value = 0;
-    if (value > MB308V.AO_MAX_VALUE) value = MB308V.AO_MAX_VALUE;
-
-    var data = [0x00, channel & 0xFF, (value >> 8) & 0xFF, value & 0xFF];
-    sendRequest(FC.WRITE_SINGLE_REGISTER, data, function(err, response) {
+function writeAnalogOutput(ch, val, callback) {
+    if (ch < 0 || ch >= AO_COUNT) { callback("invalid ch", false); return; }
+    val = Math.max(0, Math.min(AO_MAX_VALUE, val));
+    sendRequest(0x06, [0x00, ch & 0xFF, (val >> 8) & 0xFF, val & 0xFF], function(err, r) {
         callback(err, !err);
     });
 }
 
-/**
- * Convert raw AI value to milliamps (4-20mA mode)
- * @param {number} raw - Raw value (0-10216)
- * @returns {number} Current in mA
- */
-function aiToMilliamps(raw) {
-    // 0 = 4mA, 10216 = 20mA (typical)
-    return 4.0 + (raw / MB308V.AI_MAX_VALUE) * 16.0;
-}
+function aiToMilliamps(raw) { return 4.0 + (raw / AI_MAX_VALUE) * 16.0; }
+function aiToVoltage(raw)   { return (raw / AI_MAX_VALUE) * 10.0; }
+function milliampsToAo(mA)  { mA = Math.max(4, Math.min(20, mA)); return Math.round(((mA - 4) / 16.0) * AO_MAX_VALUE); }
+function voltageToAo(v)     { return Math.round((Math.max(0, Math.min(10, v)) / 10.0) * AO_MAX_VALUE); }
 
-/**
- * Convert raw AI value to voltage (0-10V mode)
- * @param {number} raw - Raw value
- * @returns {number} Voltage in V
- */
-function aiToVoltage(raw) {
-    return (raw / MB308V.AI_MAX_VALUE) * 10.0;
-}
+/* === POLLING === */
 
-/**
- * Convert milliamps to raw AO value (4-20mA mode)
- * @param {number} mA - Current in mA (4-20)
- * @returns {number} Raw value
- */
-function milliampsToAo(mA) {
-    if (mA < 4) mA = 4;
-    if (mA > 20) mA = 20;
-    return Math.round(((mA - 4) / 16.0) * MB308V.AO_MAX_VALUE);
-}
-
-/**
- * Convert voltage to raw AO value (0-10V mode)
- * @param {number} volts - Voltage (0-10)
- * @returns {number} Raw value
- */
-function voltageToAo(volts) {
-    if (volts < 0) volts = 0;
-    if (volts > 10) volts = 10;
-    return Math.round((volts / 10.0) * MB308V.AO_MAX_VALUE);
-}
-
-/* === DEMO POLLING === */
+var relayToggle = false;
 
 function pollAllInputs() {
-    debug("--- Polling MB308V ---");
+    debug("--- poll ---");
 
-    // Read Digital Inputs
     readDigitalInputs(function(err, inputs) {
-        if (err) {
-            debug("DI Error: " + err);
-            return;
+        if (err) { debug("DI err: " + err); }
+        else {
+            var s = "";
+            for (var i = 0; i < inputs.length; i++) s += "DI" + i + ":" + inputs[i] + " ";
+            print("[DI] " + s);
         }
-        var diStr = "";
-        for (var i = 0; i < inputs.length; i++) {
-            diStr += "DI" + i + ":" + inputs[i] + " ";
-        }
-        print("[DI] " + diStr);
 
-        // Chain: Read Analog Inputs
         Timer.set(100, false, function() {
-            readAnalogInputs(function(err, values) {
-                if (err) {
-                    debug("AI Error: " + err);
-                    return;
+            readAnalogInputs(function(err, vals) {
+                if (err) { debug("AI err: " + err); }
+                else {
+                    var s = "";
+                    for (var i = 0; i < vals.length; i++)
+                        s += "AI" + i + ":" + aiToMilliamps(vals[i]).toFixed(2) + "mA ";
+                    print("[AI] " + s);
                 }
-                var aiStr = "";
-                for (var i = 0; i < values.length; i++) {
-                    var mA = aiToMilliamps(values[i]).toFixed(2);
-                    aiStr += "AI" + i + ":" + mA + "mA ";
-                }
-                print("[AI] " + aiStr);
+
+                Timer.set(100, false, function() {
+                    relayToggle = !relayToggle;
+                    writeDigitalOutput(0, relayToggle, function(err, ok) {
+                        if (err) { debug("DO err: " + err); return; }
+                        print("[DO] relay0=" + (relayToggle ? "ON" : "OFF"));
+
+                        Timer.set(100, false, function() {
+                            readDigitalOutputs(function(err, relays) {
+                                if (err) { debug("DO read err: " + err); return; }
+                                var s = "";
+                                for (var i = 0; i < relays.length; i++) s += "DO" + i + ":" + relays[i] + " ";
+                                print("[DO] " + s);
+                            });
+                        });
+                    });
+                });
             });
         });
     });
 }
 
-/* === INITIALIZATION === */
+/* === INIT === */
 
 function init() {
-    print("CWT-MB308V MODBUS IO Module");
-    print("===========================");
-    print("8AI + 4AO + 8DI + 12DO");
-    print("");
+    ensureVirtualComponents(VIRTUAL_COMPONENTS, function(ok, readyVc) {
+        if (!ok) {
+            print("ERROR: Virtual component setup failed");
+            return;
+        }
+        vcHandles = readyVc.handles;
+        slaveIdHandle = readyVc.handles.slaveId;
 
-    state.uart = UART.get();
-    if (!state.uart) {
-        print("ERROR: UART not available");
-        return;
-    }
+        print("CWT-MB308V init");
 
-    if (!state.uart.configure({
-        baud: CONFIG.BAUD_RATE,
-        mode: CONFIG.MODE
-    })) {
-        print("ERROR: UART configuration failed");
-        return;
-    }
+        state.uart = UART.get();
+        if (!state.uart) { print("ERROR: no UART"); return; }
+        if (!state.uart.configure({ baud: CONFIG.BAUD_RATE, mode: CONFIG.MODE })) {
+            print("ERROR: UART configure failed"); return;
+        }
 
-    state.uart.recv(onReceive);
-    state.isReady = true;
+        state.uart.recv(onReceive);
+        state.isReady = true;
+        print("UART ready " + CONFIG.BAUD_RATE + " " + CONFIG.MODE);
 
-    debug("UART: " + CONFIG.BAUD_RATE + " baud, " + CONFIG.MODE);
-    debug("Slave ID: " + CONFIG.SLAVE_ID);
-    print("");
+        // Scan slave IDs 1-4, use first that responds. Each candidate is written
+        // straight into the slave-ID Virtual Component so getSlaveId() (used by
+        // buildFrame()) picks it up immediately for that probe.
+        var scanIds = [1, 2, 3, 4];
+        var scanIdx = 0;
 
-    // Start polling
-    print("Starting input polling every " + (CONFIG.POLL_INTERVAL / 1000) + "s...");
-    print("");
+        function scanNext() {
+            if (scanIdx >= scanIds.length) {
+                print("[SCAN] no slave found - check wiring/baud");
+                state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, pollAllInputs);
+                return;
+            }
+            slaveIdHandle.setValue(scanIds[scanIdx++]);
+            print("[SCAN] slave " + getSlaveId() + "...");
+            writeDigitalOutput(0, true, function(err, ok) {
+                if (err) {
+                    print("[SCAN] slave " + getSlaveId() + ": " + err);
+                    Timer.set(200, false, scanNext);
+                } else {
+                    print("[SCAN] slave " + getSlaveId() + " found! relay0=ON");
+                    Timer.set(1000, false, function() {
+                        writeDigitalOutput(0, false, function(e, o) {
+                            print("[SCAN] relay0=OFF " + (e ? "err:" + e : "ok"));
+                        });
+                    });
+                    state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, pollAllInputs);
+                }
+            });
+        }
 
-    // Initial poll
-    Timer.set(500, false, pollAllInputs);
-
-    // Periodic polling
-    state.pollTimer = Timer.set(CONFIG.POLL_INTERVAL, true, pollAllInputs);
-
-    // Example usage
-    print("API Functions:");
-    print("  readDigitalInputs(cb)        - Read 8 DI");
-    print("  readDigitalOutputs(cb)       - Read 12 DO");
-    print("  writeDigitalOutput(ch, val, cb) - Set relay");
-    print("  readAnalogInputs(cb)         - Read 8 AI");
-    print("  readAnalogOutputs(cb)        - Read 4 AO");
-    print("  writeAnalogOutput(ch, val, cb)  - Set AO");
-    print("");
-    print("Example: Turn on relay 0");
-    print("  writeDigitalOutput(0, true, function(e,s){print(s);});");
+        scanNext();
+    });
 }
 
 init();

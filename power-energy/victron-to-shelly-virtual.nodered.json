@@ -1,0 +1,526 @@
+[
+    {
+        "id": "tab_victron_shelly",
+        "type": "tab",
+        "label": "Victron → Shelly Virtual",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "http_shelly",
+        "type": "http request",
+        "z": "tab_victron_shelly",
+        "name": "Number.Set → Shelly",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://10.101.7.56/rpc/Number.Set",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 760,
+        "y": 500,
+        "wires": [
+            [
+                "debug_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "debug_shelly",
+        "type": "debug",
+        "z": "tab_victron_shelly",
+        "name": "Response",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 960,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "vic_battery_soc",
+        "type": "victron-input-battery",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.battery/2",
+        "path": "/Soc",
+        "serviceObj": {
+            "service": "com.victronenergy.battery/2",
+            "name": "Lynx Smart BMS HQ2342KAJU6",
+            "communityTag": "battery"
+        },
+        "pathObj": {
+            "path": "/Soc",
+            "type": "float",
+            "name": "State of charge (%)"
+        },
+        "name": "Battery SOC",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 190,
+        "y": 100,
+        "wires": [
+            [
+                "bp_220"
+            ]
+        ]
+    },
+    {
+        "id": "bp_220",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 220 – Battery SOC",
+        "func": "// Prepare Shelly Number.Set payload for Battery SOC (%)\n// msg.payload contains the live state-of-charge value from Victron (float, 0–100 %)\nmsg.payload = {\n    id: 220,           // Shelly virtual Number component ID\n    value: msg.payload // Battery SOC in %\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 100,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "vic_battery_power",
+        "type": "victron-input-battery",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.battery/2",
+        "path": "/Dc/0/Power",
+        "serviceObj": {
+            "service": "com.victronenergy.battery/2",
+            "name": "Lynx Smart BMS HQ2342KAJU6",
+            "communityTag": "battery"
+        },
+        "pathObj": {
+            "path": "/Dc/0/Power",
+            "type": "float",
+            "name": "Battery power (W)"
+        },
+        "name": "Battery Power",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 190,
+        "y": 200,
+        "wires": [
+            [
+                "bp_221"
+            ]
+        ]
+    },
+    {
+        "id": "bp_221",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 221 – Battery Power",
+        "func": "// Prepare Shelly Number.Set payload for Battery Power (W)\n// msg.payload contains the live DC power value from Victron (float, negative = charging)\nmsg.payload = {\n    id: 221,           // Shelly virtual Number component ID\n    value: msg.payload // Battery power in W (+ discharge, - charge)\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 200,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_222",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 222 – Total Grid Power",
+        "func": "// Prepare Shelly Number.Set payload for Total Grid Power (W)\n// msg.payload contains the live AC grid power from Victron (float, negative = export)\nmsg.payload = {\n    id: 222,           // Shelly virtual Number component ID\n    value: msg.payload // Total grid power in W (+ import, - export)\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_223",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 223 – Grid Voltage L1",
+        "func": "// Prepare Shelly Number.Set payload for Grid Voltage L1 (V)\n// msg.payload contains the live L1 AC voltage from Victron (float, 0–1000 V)\nmsg.payload = {\n    id: 223,           // Shelly virtual Number component ID\n    value: msg.payload // Grid voltage L1 in V\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 400,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_224",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 224 – Current L1",
+        "func": "// Prepare Shelly Number.Set payload for Current L1 (A)\n// msg.payload contains the live L1 AC current from Victron (float, negative = export)\nmsg.payload = {\n    id: 224,           // Shelly virtual Number component ID\n    value: msg.payload // Grid current L1 in A (+ import, - export)\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 500,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_225",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 225 – AC Frequency",
+        "func": "// Prepare Shelly Number.Set payload for AC Frequency (Hz)\n// msg.payload contains the live grid frequency from Victron (float, 0–100 Hz)\nmsg.payload = {\n    id: 225,           // Shelly virtual Number component ID\n    value: msg.payload // AC frequency in Hz\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 600,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_226",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 226 – PV1 Power",
+        "func": "// Prepare Shelly Number.Set payload for PV1 Power (W)\n// msg.payload contains the live solar charger yield power from Victron (float, 0–100000 W)\nmsg.payload = {\n    id: 226,           // Shelly virtual Number component ID\n    value: msg.payload // PV1 generated power in W\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 700,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "bp_227",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 227 – PV1 Voltage",
+        "func": "// Prepare Shelly Number.Set payload for PV1 Voltage (V)\n// msg.payload contains the live PV panel voltage from Victron (float, 0–1000 V)\nmsg.payload = {\n    id: 227,           // Shelly virtual Number component ID\n    value: msg.payload // PV1 panel voltage in V\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 800,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "vic_total_power",
+        "type": "victron-input-vebus",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.vebus/276",
+        "path": "/Ac/ActiveIn/ActiveInput",
+        "serviceObj": {
+            "service": "com.victronenergy.vebus/276",
+            "name": "MultiPlus-II 24/5000/120-50",
+            "communityTag": "vebus"
+        },
+        "pathObj": {
+            "path": "/Ac/ActiveIn/ActiveInput",
+            "type": "enum",
+            "name": "Active input",
+            "enum": {
+                "0": "AC Input 1",
+                "1": "AC Input 2",
+                "240": "Disconnected"
+            }
+        },
+        "name": "Total Power",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 190,
+        "y": 900,
+        "wires": [
+            [
+                "bp_228"
+            ]
+        ]
+    },
+    {
+        "id": "bp_228",
+        "type": "function",
+        "z": "tab_victron_shelly",
+        "name": "VC 228 – Total Power",
+        "func": "// Prepare Shelly Number.Set payload for Total Power (W)\n// msg.payload contains the live total AC output power from Victron VE.Bus (float, 0–100000 W)\nmsg.payload = {\n    id: 228,           // Shelly virtual Number component ID\n    value: msg.payload // Total AC consumption power in W\n};\n// Content-Type header required for Shelly RPC HTTP POST to accept the body\nmsg.headers = { 'Content-Type': 'application/json' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 900,
+        "wires": [
+            [
+                "http_shelly"
+            ]
+        ]
+    },
+    {
+        "id": "c8e2a28ec8e08fb5",
+        "type": "victron-input-vebus",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.vebus/276",
+        "path": "/Ac/ActiveIn/L1/F",
+        "serviceObj": {
+            "service": "com.victronenergy.vebus/276",
+            "name": "MultiPlus-II 24/5000/120-50",
+            "communityTag": "vebus"
+        },
+        "pathObj": {
+            "path": "/Ac/ActiveIn/L1/F",
+            "type": "float",
+            "name": "Input frequency phase 1 (Hz)"
+        },
+        "name": "Frequency",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 180,
+        "y": 600,
+        "wires": [
+            [
+                "bp_225"
+            ]
+        ]
+    },
+    {
+        "id": "9c421b37d1edbb3f",
+        "type": "victron-input-vebus",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.vebus/276",
+        "path": "/Ac/ActiveIn/L1/I",
+        "serviceObj": {
+            "service": "com.victronenergy.vebus/276",
+            "name": "MultiPlus-II 24/5000/120-50",
+            "communityTag": "vebus"
+        },
+        "pathObj": {
+            "path": "/Ac/ActiveIn/L1/I",
+            "type": "float",
+            "name": "Input current phase 1 (A)"
+        },
+        "name": "Current L1",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 180,
+        "y": 500,
+        "wires": [
+            [
+                "bp_224"
+            ]
+        ]
+    },
+    {
+        "id": "f495c8ab4f9a620f",
+        "type": "victron-input-vebus",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.vebus/276",
+        "path": "/Ac/ActiveIn/L1/V",
+        "name": "Voltage L1",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 180,
+        "y": 400,
+        "wires": [
+            [
+                "bp_223"
+            ]
+        ]
+    },
+    {
+        "id": "565ca8e51280a82d",
+        "type": "victron-input-vebus",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.vebus/276",
+        "path": "/Ac/ActiveIn/L1/P",
+        "serviceObj": {
+            "service": "com.victronenergy.vebus/276",
+            "name": "MultiPlus-II 24/5000/120-50",
+            "communityTag": "vebus"
+        },
+        "pathObj": {
+            "path": "/Ac/ActiveIn/L1/P",
+            "type": "float",
+            "name": "Input power phase 1 (W)"
+        },
+        "name": "Tolal Power L1",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "",
+        "outputFalse": "",
+        "debounce": "2000",
+        "x": 200,
+        "y": 300,
+        "wires": [
+            [
+                "bp_222"
+            ]
+        ]
+    },
+    {
+        "id": "56e819a1e7bcd35a",
+        "type": "victron-input-solarcharger",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.solarcharger/279",
+        "path": "/Dc/0/Voltage",
+        "serviceObj": {
+            "service": "com.victronenergy.solarcharger/279",
+            "name": "SmartSolar Charger MPPT 150/35",
+            "communityTag": "solarcharger"
+        },
+        "pathObj": {
+            "path": "/Dc/0/Voltage",
+            "type": "float",
+            "name": "Battery voltage (V)"
+        },
+        "name": "MPPT Voltage",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "true",
+        "outputFalse": "false",
+        "debounce": "2000",
+        "x": 190,
+        "y": 800,
+        "wires": [
+            [
+                "bp_227"
+            ]
+        ]
+    },
+    {
+        "id": "cf2295f7daa7632c",
+        "type": "victron-input-solarcharger",
+        "z": "tab_victron_shelly",
+        "service": "com.victronenergy.solarcharger/279",
+        "path": "/Yield/Power",
+        "serviceObj": {
+            "service": "com.victronenergy.solarcharger/279",
+            "name": "SmartSolar Charger MPPT 150/35",
+            "communityTag": "solarcharger"
+        },
+        "pathObj": {
+            "path": "/Yield/Power",
+            "type": "float",
+            "name": "PV Power (W)"
+        },
+        "name": "MPPT Power",
+        "onlyChanges": false,
+        "roundValues": "2",
+        "rateLimit": "0.2",
+        "outputs": 1,
+        "conditionalMode": false,
+        "outputTrue": "true",
+        "outputFalse": "false",
+        "debounce": "2000",
+        "x": 190,
+        "y": 700,
+        "wires": [
+            [
+                "bp_226"
+            ]
+        ]
+    },
+    {
+        "id": "10a2541f8efbd13c",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@victronenergy/node-red-contrib-victron": "1.6.64"
+        }
+    }
+]

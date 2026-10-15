@@ -1,8 +1,8 @@
 /**
  * @title Store select events from "ble-shelly-blu.shelly.js" in KVS
  * @description Use KVS to persist measurements made by ble devices,
- *   emitted by "ble-shelly-blu.shelly.js" script. (Requires firmware 
- *   version: 1.0.0-beta or newer.) KVS is stored in flash memory which 
+ *   emitted by "ble-shelly-blu.shelly.js" script. (Requires firmware
+ *   version: 1.0.0-beta or newer.) KVS is stored in flash memory which
  *   can degrade with too frequent writes. Don't use this script for
  *   measurements you need near realtime.
  */
@@ -12,19 +12,21 @@
  */
 
 // Config is specified in KVS. Create entries that start with "events-to-kvs"
-// Each can be an array (though might be hard to fit more than one entry 
+// Each can be an array (though might be hard to fit more than one entry
 // per with the 253 char limit). The keys are abbreviated to save space.
-// 
-// prop: a list of properties to take from an event and store in KVS
+//
+// prop: a list of properties to take from an event and store in KVS, or "all"
 // has:  properties that must be present, or event is ignored
 // mch:  property/value pairs that must match in event
 // par:  parent record in KVS, to accumulate properties
 // pre:  prefix added to propery names
 // mac:  prefix mac address of the sending ble device
 // who:  write hold-off, in minutes, default 60
+// en:   enable rule (1=on), default 1
+// log:  enable logging (when rule is matched)
 
 // The write hold-off defaults to limiting writes to 60 minutes apart to save
-// your shelly from damage. Read about flash write and erase vs. lifeftime 
+// your shelly from damage. Read about flash write and erase vs. lifetime
 // before lowering the write delay.
 
 // [{"has":["wind speed"],"mch":[{"address":"nn:nn:nn:nn:nn:nn"}],
@@ -52,7 +54,7 @@ function init_rules(cb) {
     },
     function (res, err) {
       if (err) {
-        print("KVS.GetMany failed:", JSON.stringify(err));
+        console.log("KVS.GetMany failed:", JSON.stringify(err));
         if (cb) cb(err);
         return;
       }
@@ -65,7 +67,7 @@ function init_rules(cb) {
         try {
           parsed = JSON.parse(item.value);
         } catch (e) {
-          print("Invalid JSON in KVS:", item.key);
+          console.log("Invalid JSON in KVS:", item.key);
           continue;
         }
 
@@ -77,6 +79,7 @@ function init_rules(cb) {
 
           let rule = {
             enabled: (r.en !== undefined) ? !!r.en : true,
+            log: (r.log !== undefined) ? !!r.log : false,
             has: Array.isArray(r.has) ? r.has : null,
             matches: Array.isArray(r.mch) ? r.mch : null,
             properties: Array.isArray(r.prop) ? r.prop: null,
@@ -98,7 +101,7 @@ function init_rules(cb) {
         }
       }
 
-      print("Loaded rules:", RULES.length);
+      console.log("Loaded rules:", RULES.length);
       if (cb) cb(null, RULES);
       for (let key in objects) {
         Shelly.call(
@@ -110,7 +113,7 @@ function init_rules(cb) {
                 // no existing value → leave empty
                 return;
               }
-      
+
               let parsed;
               try {
                 parsed = JSON.parse(res.value);
@@ -118,9 +121,9 @@ function init_rules(cb) {
                 // invalid JSON → ignore
                 return;
               }
-      
+
               if (typeof parsed === "object" && parsed !== null) {
-                print("Loaded ", k);
+                console.log("Loaded ", k);
                 for (let p in parsed) {
                   objects[k][p] = parsed[p];
                 }
@@ -203,12 +206,11 @@ function rule_matches_event(rule, event) {
     }
     if (!matched) return false;
   }
-
   return true;
 }
 
 function check_rules(event) {
-  let now = Date.now();
+  let now = Math.floor(Date.now()) / 1000;
   let items = [];
   let parents = {};
 
@@ -217,11 +219,13 @@ function check_rules(event) {
 
     if (!rule_matches_event(rule, event)) continue;
 
-    let props;
-    if (!rule.properties || rule.properties.length === 0) {
-      props = [];
+    if (rule.log) {
+        logger(["New data received", JSON.stringify(event)], "Info");
+    }
+    let props = []
+    if (rule.properties == "all") {
       for (let k in event) props.push(k);
-    } else {
+    } else if (rule.properties) {
       props = rule.properties;
     }
 
@@ -235,45 +239,39 @@ function check_rules(event) {
       base_prefix += sanitize_mac(event.address);
     }
 
-    if (rule.parent) {
-      for (let i = 0; i < props.length; i++) {
-        let p = props[i];
-        if (!event.hasOwnProperty(p)) continue;
+    for (let i = 0; i < props.length; i++) {
+      let p = props[i];
+      if (!event.hasOwnProperty(p)) continue;
 
-        let key = base_prefix;
-        if (key) key += "_";
-        key += sanitize_name(p);
+      let key = base_prefix;
+      if (key) key += "_";
+      key += sanitize_name(p);
 
-        if ( !(key in holdoffs) || holdoffs[ key ] < now ) {
+
+      if ( !(key in holdoffs) || holdoffs[ key ] < now ) {
+        if (rule.parent) {
+          if ( key in objects[rule.parent] && objects[rule.parent][key].v == event[p] ) continue;
           objects[rule.parent][key] = {
             v: event[p],
             t: now
           }
-          holdoffs[ key ] = now + rule.hold_off * 60 * 1000;
+          parents[rule.parent] = 1
+          holdoffs[ key ] = now + rule.hold_off * 60;
+        } else {
+            if ( key in cache && cache[key] == event[p] ) continue;
+            cache[key] = event[p];
+            items.push({
+              key: key,
+              value: JSON.stringify({
+                v: event[p],
+                t: now
+              })
+            });
         }
-      }
-      parents[rule.parent] = 1
-    } else {
-      for (let i = 0; i < props.length; i++) {
-        let p = props[i];
-        if (!event.hasOwnProperty(p)) continue;
-
-        let key = base_prefix;
-        if (key) key += "_";
-        key += sanitize_name(p);
-
-        if ( !(key in holdoffs) || holdoffs[ key ] < now ) {
-          items.push({
-            key: key,
-            value: JSON.stringify({
-              v: event[p],
-              t: now
-            })
-          });
-          holdoffs[ key ] = now + rule.hold_off * 60 * 1000;
-        }
-      }
+      } else
+         console.log("held off " + key + " for " + ( holdoffs[ key ] - now ))
     }
+
     for (let p in parents) {
       if (Object.keys(objects[p]).length > 0) {
         items.push({
@@ -328,7 +326,6 @@ let KVSManager = {
 
   // Process new data and check if any scenes should be executed
   onNewData: function (data) {
-    //logger(["New data received", JSON.stringify(data)], "Info");
     check_rules(data);
   },
 

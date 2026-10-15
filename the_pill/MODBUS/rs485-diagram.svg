@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="360">
+  <!-- Definitions -->
+  <defs>
+    <style>
+      .bg { fill: #f8f9fa; }
+      .box { fill: #ffffff; stroke: #343a40; stroke-width: 3; }
+      .housing { fill: #e9ecef; stroke: #adb5bd; stroke-width: 2; }
+      .wire-bus { stroke: #495057; stroke-width: 8; stroke-linecap: round; }
+      .wire { fill: none; stroke: #495057; stroke-width: 3; }
+      .wire-a { fill: none; stroke: #d63384; stroke-width: 3; }
+      .wire-b { fill: none; stroke: #20c997; stroke-width: 3; }
+      .pin { fill: #343a40; }
+      .text-title { font-family: sans-serif; font-size: 18px; font-weight: bold; fill: #212529; text-anchor: middle; }
+      .text-label { font-family: monospace; font-size: 14px; font-weight: bold; fill: #212529; }
+      .text-sub { font-family: sans-serif; font-size: 12px; fill: #6c757d; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" class="bg" />
+
+  <!-- Connector Housing -->
+  <path d="M 260,90 L 290,60 L 350,60 L 350,300 L 290,300 L 260,270 Z" class="housing" />
+
+  <!-- The Pill -->
+  <rect x="30" y="140" width="140" height="80" rx="40" class="box" />
+  <text x="100" y="186" class="text-title">The Pill</text>
+
+  <!-- Bus Wire -->
+  <line x1="170" y1="180" x2="260" y2="180" class="wire-bus" />
+
+  <!-- Fanning Wires -->
+  <path d="M 260,180 C 300,180 300,100 350,100" class="wire" />
+  <path d="M 260,180 C 300,180 300,140 350,140" class="wire" />
+  <line x1="260" y1="180" x2="350" y2="180" class="wire" />
+  <path d="M 260,180 C 300,180 300,220 350,220" class="wire" />
+  <path d="M 260,180 C 300,180 300,260 350,260" class="wire" />
+
+  <!-- RS485 Module -->
+  <rect x="350" y="40" width="180" height="280" class="box" />
+  
+  <!-- Left Pins & Labels -->
+  <circle cx="350" cy="100" r="4" class="pin" /> <text x="365" y="105" class="text-label">GND</text>
+  <circle cx="350" cy="140" r="4" class="pin" /> <text x="365" y="145" class="text-label">TX</text>
+  <circle cx="350" cy="180" r="4" class="pin" /> <text x="365" y="185" class="text-label">RX</text>
+  <circle cx="350" cy="220" r="4" class="pin" /> <text x="365" y="225" class="text-label">RE/DE</text>
+  <circle cx="350" cy="260" r="4" class="pin" /> <text x="365" y="265" class="text-label">+5V</text>
+
+  <!-- Right Pins & Labels -->
+  <circle cx="530" cy="60" r="4" class="pin" /> <text x="515" y="65" text-anchor="end" class="text-label">VCC</text>
+  <circle cx="530" cy="100" r="4" class="pin" /> <text x="515" y="105" text-anchor="end" class="text-label">GND</text>
+  <circle cx="530" cy="140" r="4" class="pin" /> <text x="515" y="145" text-anchor="end" class="text-label">+5V</text>
+  <circle cx="530" cy="180" r="4" class="pin" /> <text x="515" y="185" text-anchor="end" class="text-label">A</text>
+  <circle cx="530" cy="220" r="4" class="pin" /> <text x="515" y="225" text-anchor="end" class="text-label">B</text>
+  <circle cx="530" cy="260" r="4" class="pin" /> <text x="515" y="265" text-anchor="end" class="text-label">A</text>
+  <circle cx="530" cy="300" r="4" class="pin" /> <text x="515" y="305" text-anchor="end" class="text-label">B</text>
+
+  <!-- Twisted Pair Wires -->
+  <path d="M 530,180 L 560,180 C 590,180 610,220 640,220 C 670,220 690,180 720,180 L 740,180" class="wire-a" />
+  <path d="M 530,220 L 560,220 C 590,220 610,180 640,180 C 670,180 690,220 720,220 L 740,220" class="wire-b" />
+
+  <!-- Slave Device -->
+  <rect x="740" y="80" width="140" height="200" rx="10" class="box" />
+  <text x="810" y="130" class="text-title">SLAVE</text>
+  <text x="810" y="155" class="text-title">DEVICE</text>
+  
+  <circle cx="740" cy="180" r="4" class="pin" /> <text x="755" y="185" class="text-label">A</text>
+  <circle cx="740" cy="220" r="4" class="pin" /> <text x="755" y="225" class="text-label">B</text>
+
+</svg>
