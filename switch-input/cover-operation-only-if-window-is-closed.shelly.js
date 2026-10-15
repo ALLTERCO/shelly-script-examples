@@ -8,7 +8,7 @@
  *   + Set the buttons to DETACHED state
  *   + Install the script and set it to autostart.
  * @status production
- * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/cover-operation-only-if-window-is-closed.js
+ * @link https://github.com/ALLTERCO/shelly-script-examples/blob/main/switch-input/cover-operation-only-if-window-is-closed.shelly.js
  */
 
 let CONFIG = {
