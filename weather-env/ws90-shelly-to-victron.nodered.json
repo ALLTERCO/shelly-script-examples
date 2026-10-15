@@ -1,0 +1,242 @@
+[
+    {
+        "id": "ws90_victron_tab",
+        "type": "tab",
+        "label": "WS90 → Shelly → Victron",
+        "disabled": false,
+        "info": "Reads Ecowitt WS90 BTHome advertisements through two Shelly BLE gateways, selects the freshest observation, merges alternating packets, and publishes supported values to Victron virtual Temperature and Meteo devices.",
+        "env": []
+    },
+    {
+        "id": "ws90_poll",
+        "type": "inject",
+        "z": "ws90_victron_tab",
+        "name": "Poll gateways every 5 s",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "ws90_http_a",
+                "ws90_http_b"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_http_a",
+        "type": "http request",
+        "z": "ws90_victron_tab",
+        "name": "BLE.CloudRelay.ListInfos — Shelly A",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.106/rpc/BLE.CloudRelay.ListInfos",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 420,
+        "y": 90,
+        "wires": [
+            [
+                "ws90_source_a"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_http_b",
+        "type": "http request",
+        "z": "ws90_victron_tab",
+        "name": "BLE.CloudRelay.ListInfos — Shelly B",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.107/rpc/BLE.CloudRelay.ListInfos",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 420,
+        "y": 150,
+        "wires": [
+            [
+                "ws90_source_b"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_source_a",
+        "type": "change",
+        "z": "ws90_victron_tab",
+        "name": "Source = shelly-a",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ws90_gateway",
+                "pt": "msg",
+                "to": "shelly-a",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 690,
+        "y": 90,
+        "wires": [
+            [
+                "ws90_decode"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_source_b",
+        "type": "change",
+        "z": "ws90_victron_tab",
+        "name": "Source = shelly-b",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ws90_gateway",
+                "pt": "msg",
+                "to": "shelly-b",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 690,
+        "y": 150,
+        "wires": [
+            [
+                "ws90_decode"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_decode",
+        "type": "function",
+        "z": "ws90_victron_tab",
+        "name": "Freshest gateway + BTHome decode + merge",
+        "func": "// Ecowitt WS90 via Shelly BLE Cloud Relay.\n// Configure this MAC for your WS90:\nconst WS90_MAC = \"aa:bb:cc:dd:ee:ff\".toLowerCase();\n\nfunction u16le(b, i) {\n    return b[i] | (b[i + 1] << 8);\n}\nfunction s16le(b, i) {\n    let v = u16le(b, i);\n    return v & 0x8000 ? v - 0x10000 : v;\n}\nfunction u24le(b, i) {\n    return b[i] | (b[i + 1] << 8) | (b[i + 2] << 16);\n}\n\nfunction decodeBTHome(base64) {\n    const b = Buffer.from(base64, \"base64\");\n    if (!b || b.length < 2) return {};\n\n    // BTHome v2 device-info byte. WS90 uses unencrypted advertisements.\n    let i = 1;\n    const out = {};\n    let speedCount = 0;\n\n    while (i < b.length) {\n        const id = b[i++];\n        switch (id) {\n            case 0x00: // packet id\n                if (i + 1 > b.length) return out;\n                out.packet_id = b[i++];\n                break;\n            case 0x01: // battery %\n                if (i + 1 > b.length) return out;\n                out.battery = b[i++];\n                break;\n            case 0x04: // pressure, 0.01 hPa\n                if (i + 3 > b.length) return out;\n                out.pressure = u24le(b, i) * 0.01; i += 3;\n                break;\n            case 0x05: // illuminance, 0.01 lux\n                if (i + 3 > b.length) return out;\n                out.illuminance = u24le(b, i) * 0.01; i += 3;\n                break;\n            case 0x08: // dew point, 0.01 C\n                if (i + 2 > b.length) return out;\n                out.dew_point = s16le(b, i) * 0.01; i += 2;\n                break;\n            case 0x0c: // capacitor voltage, 0.001 V\n                if (i + 2 > b.length) return out;\n                out.capacitor_voltage = u16le(b, i) * 0.001; i += 2;\n                break;\n            case 0x20: // rain binary state\n                if (i + 1 > b.length) return out;\n                out.rain = b[i++] !== 0;\n                break;\n            case 0x2e: // relative humidity, 1 %\n                if (i + 1 > b.length) return out;\n                out.humidity = b[i++];\n                break;\n            case 0x3a: // button/event byte\n                if (i + 1 > b.length) return out;\n                out.button = b[i++];\n                break;\n            case 0x44: { // speed, 0.01 m/s; WS90 sends wind then gust\n                if (i + 2 > b.length) return out;\n                const v = u16le(b, i) * 0.01; i += 2;\n                if (speedCount++ === 0) out.wind_speed = v;\n                else out.wind_gust = v;\n                break;\n            }\n            case 0x45: // temperature, 0.1 C\n                if (i + 2 > b.length) return out;\n                out.temperature = s16le(b, i) * 0.1; i += 2;\n                break;\n            case 0x46: // UV index, 0.1\n                if (i + 1 > b.length) return out;\n                out.uv_index = b[i++] * 0.1;\n                break;\n            case 0x5e: // wind direction, 0.01 degrees\n                if (i + 2 > b.length) return out;\n                out.wind_direction = u16le(b, i) * 0.01; i += 2;\n                break;\n            case 0x5f: // precipitation, 0.1 mm\n                if (i + 2 > b.length) return out;\n                out.precipitation = u16le(b, i) * 0.1; i += 2;\n                break;\n            default:\n                // Unknown BTHome object length cannot be inferred safely.\n                // Stop this packet but preserve all already decoded fields.\n                return out;\n        }\n    }\n    return out;\n}\n\nconst body = msg.payload && msg.payload.params ? msg.payload.params : msg.payload;\nconst devices = body && body.devices ? body.devices : {};\nlet ws = null;\n\nObject.keys(devices).some(function(mac) {\n    if (String(mac).toLowerCase() === WS90_MAC) {\n        ws = devices[mac];\n        return true;\n    }\n    return false;\n});\n\nif (!ws || !ws.sdata || !ws.sdata.fcd2) return null;\n\nconst candidate = {\n    source: msg.ws90_gateway || \"unknown\",\n    last_seen: Number(ws.last_seen || 0),\n    sdata: ws.sdata.fcd2\n};\n\nflow.set(\"ws90_candidate_\" + candidate.source, candidate);\n\nconst a = flow.get(\"ws90_candidate_shelly-a\");\nconst b = flow.get(\"ws90_candidate_shelly-b\");\nconst candidates = [a, b].filter(Boolean);\nif (!candidates.length) return null;\n\ncandidates.sort(function(x, y) { return y.last_seen - x.last_seen; });\nconst freshest = candidates[0];\n\nconst fingerprint = freshest.last_seen + \":\" + freshest.sdata;\nif (flow.get(\"ws90_last_fingerprint\") === fingerprint) return null;\nflow.set(\"ws90_last_fingerprint\", fingerprint);\n\nconst decoded = decodeBTHome(freshest.sdata);\nconst state = flow.get(\"ws90_state\") || {};\n\nObject.keys(decoded).forEach(function(k) {\n    state[k] = decoded[k];\n});\n\nstate.source = freshest.source;\nstate.last_seen = freshest.last_seen;\nstate.updated_at = Date.now();\nflow.set(\"ws90_state\", state);\n\nmsg.payload = state;\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 120,
+        "wires": [
+            [
+                "ws90_build"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_build",
+        "type": "function",
+        "z": "ws90_victron_tab",
+        "name": "Build Victron payloads",
+        "func": "const s = msg.payload || {};\n\nfunction put(obj, key, value) {\n    if (value !== undefined && value !== null && Number.isFinite(Number(value))) {\n        obj[key] = Number(value);\n    }\n}\n\n// Victron virtual Temperature device exposes temperature, humidity and pressure.\nconst temp = {};\nput(temp, \"Temperature\", s.temperature);\nput(temp, \"Humidity\", s.humidity);\nput(temp, \"Pressure\", s.pressure);\n\n// Victron virtual Meteo device natively exposes wind speed/direction.\n// Do not map WS90 illuminance (lux) to Victron Irradiance (W/m2).\nconst meteo = {};\nput(meteo, \"WindSpeed\", s.wind_speed);\nif (s.wind_direction !== undefined && s.wind_direction !== null) {\n    meteo.WindDirection = Math.round(Number(s.wind_direction));\n}\n\nconst debug = {\n    payload: s,\n    topic: \"ws90/state\"\n};\n\nreturn [\n    Object.keys(temp).length ? { payload: temp } : null,\n    Object.keys(meteo).length ? { payload: meteo } : null,\n    debug\n];",
+        "outputs": 3,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1290,
+        "y": 120,
+        "wires": [
+            [
+                "ws90_temp_virtual"
+            ],
+            [
+                "ws90_meteo_virtual"
+            ],
+            [
+                "ws90_debug"
+            ]
+        ]
+    },
+    {
+        "id": "ws90_temp_virtual",
+        "type": "victron-virtual",
+        "z": "ws90_victron_tab",
+        "name": "WS90 Outdoor Temperature",
+        "outputs": 1,
+        "device": "temperature",
+        "default_values": false,
+        "temperature_type": 4,
+        "include_humidity": true,
+        "include_pressure": true,
+        "include_temp_battery": false,
+        "temp_battery_voltage": 3.3,
+        "start_disconnected": false,
+        "x": 1580,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ws90_meteo_virtual",
+        "type": "victron-virtual",
+        "z": "ws90_victron_tab",
+        "name": "WS90 Weather Station",
+        "outputs": 1,
+        "device": "meteo",
+        "default_values": false,
+        "start_disconnected": false,
+        "x": 1570,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "ws90_debug",
+        "type": "debug",
+        "z": "ws90_victron_tab",
+        "name": "WS90 merged state",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1560,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "ws90_global_config",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@victronenergy/node-red-contrib-victron": "1.7.28"
+        }
+    }
+]

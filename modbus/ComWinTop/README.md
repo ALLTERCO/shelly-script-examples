@@ -1,0 +1,2 @@
+Devices:
+ - MB308V

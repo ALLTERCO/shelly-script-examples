@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen name="gauges">
+    <view width="122" height="250" flex_flow="column">
+        <!-- Header -->
+        <lv_obj id="header" width="100%" height="24">
+            <lv_label id="title" text="Sensors" x="4" y="4"/>
+        </lv_obj>
+
+        <!-- Temperature gauge -->
+        <lv_obj id="temp_section" width="100%" height="100" y="24">
+            <lv_arc id="temp_gauge" value="23" range_min="-10" range_max="50"
+                    x="20" y="5" width="80" height="80"/>
+            <lv_label id="temp_value" text="23C" x="45" y="35"/>
+            <lv_label text="Temperature" x="25" y="85"/>
+        </lv_obj>
+
+        <!-- Humidity gauge -->
+        <lv_obj id="humidity_section" width="100%" height="100" y="124">
+            <lv_arc id="humidity_gauge" value="65" range_min="0" range_max="100"
+                    x="20" y="5" width="80" height="80"/>
+            <lv_label id="humidity_value" text="65%" x="45" y="35"/>
+            <lv_label text="Humidity" x="30" y="85"/>
+        </lv_obj>
+
+        <!-- Footer -->
+        <lv_obj id="footer" width="100%" height="24" y="226">
+            <lv_label id="conn_status" text="OK" x="4" y="4"/>
+        </lv_obj>
+    </view>
+</screen>

@@ -1,0 +1,16 @@
+Midea/Clivet R32 Modbus RTU bridge
+Copyright 2026 Georgi Germanov and contributors
+SPDX-License-Identifier: Apache-2.0
+
+This standalone script adapts the transport, deferred-callback, startup
+synchronization and readback architecture of lg-therma-v-pro-em50_vc.shelly.js
+published in drHouse-gif/lg-therma-v-shelly and ALLTERCO/shelly-script-examples.
+The Midea register handling, fresh masked writes, nine-component layout,
+non-destructive provisioning and test harness were added for this solution.
+
+The register data was cross-checked against the R32 profile maintained in
+Mosibi/Midea-heat-pump-ESPHome and the 171H120F device configuration in
+timlaing/modbus_local_gateway. Technical references are listed in
+TECHNICAL_NOTES.md. No manufacturer endorsement is implied.
+
+Distributed under the repository's Apache License, Version 2.0.
