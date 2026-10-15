@@ -2132,7 +2132,7 @@
   {
     "fname": "weather-env/turn-on-weather.shelly.js",
     "title": "turn-on-weather.shelly.js",
-    "description": "Turn on when temperature is below CONFIG.tempBelowTurnOn.\n\nTurn off when temperature is above CONFIG.tempAboveTurnOff.\n\nFor getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy\nthe key and paste it here."
+    "description": "Turn on when temperature is below CONFIG.tempBelowTurnOn.\n\nTurn off when temperature is above CONFIG.tempAboveTurnOff.\n\nFor getting an API-KEY from Accuweather follow the instructions on their site for registering a new application, copy\nthe key and paste it here.",
     "tags": ["weather", "sensors", "temperature", "accuweather"]
   },
   {
