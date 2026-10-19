@@ -37,3 +37,13 @@ LG THERMA V generations and controller PCBs differ. The connector name, Modbus e
 The runtime bridge performs a physical read before enabling writes and follows supported writes with readback. It must not be used to bypass manufacturer safety logic.
 
 Work inside HVAC electrical equipment requires appropriate isolation and competence. RS-485 terminals must never be connected to mains voltage.
+
+## LG KCHH020LDGC chillers
+
+- [`lg-kchh020ldgc-pro-rs485-vc.shelly.js`](lg-kchh020ldgc-pro-rs485-vc.shelly.js)
+  provides nine managed Virtual Components, FC05 enable control, FC06 mode/setpoints,
+  water temperatures, fault reporting, readback and a persistent Modbus address selector.
+- [KCHH020LDGC setup, register profile and validation](KCHH020LDGC.md).
+- This is a separate KCHH profile. Do not transfer the THERMA V map or its slave ID.
+- A real-device test was reported by the contributor; deterministic RTU/UI fault tests
+  are included under `tests/kchh020-bridge.test.cjs`.
