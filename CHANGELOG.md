@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-10
+- Add an LG KCHH020LDGC chiller bridge with nine managed Virtual Components, a persistent Modbus address selector, FC05/FC06 commands, confirmed readback, installation documentation and deterministic RTU/UI fault tests; contributor-reported physical test on 2026-10-19
 - Restore the Midea/Clivet R32 README, technical notes and test harness to the managed-VC versions: upstream rolled them back to the original fixed-ID docs (`vcBase: 220`, Silent Mode) while keeping the newer script, which uses firmware-managed roles and a persisted Modbus Slave ID in place of Silent Mode
 - Add experimental INNOVA AirLeaf B32, ESE645 and ESE648 Modbus RTU profiles (`@status under development`, contributor-reported hardware tests)
 - Add a hardware-tested Midea/Clivet R32 Modbus RTU bridge with exactly nine Virtual Components, guarded zone-1/DHW/Silent Mode control, fresh masked writes, physical readback, setup documentation and 33 RPC/Modbus tests
