@@ -28,6 +28,10 @@
  *   - venus-host: Hostname or IP of Venus device (e.g., "venus.local")
  *   - (optional) venus-password: GX password, cleared after successful auth
  *   Either put your GX device in pairing mode (preferred), or set venus-password.
+ *
+ * Virtual Component metadata comparison ignores null-valued properties added
+ * by affected Shelly firmware versions, so existing components are reused
+ * after a restart instead of being duplicated.
  */
 
 /************ USER CONFIG ************/
@@ -469,6 +473,26 @@ function ensureVirtualComponents(manifest, done) {
         return type + ":" + String(id);
     }
 
+    // Avoid recursion because deeply nested metadata can exceed the mJS stack.
+    function stripNulls(value) {
+        var str = JSON.stringify(value);
+        var i;
+        var start;
+        var end;
+
+        while ((i = str.indexOf('":null')) >= 0) {
+            start = str.lastIndexOf('"', i - 1);
+            end = i + 6;
+
+            if (str[start - 1] === ',') start--;
+            else if (str[end] === ',') end++;
+
+            str = str.slice(0, start) + str.slice(end);
+        }
+
+        return str;
+    }
+
     function shallowConfigMatches(desired, current) {
         var k;
 
@@ -476,7 +500,7 @@ function ensureVirtualComponents(manifest, done) {
 
         for (k in desired) {
             if (k === "meta") {
-                if (JSON.stringify(desired.meta) !== JSON.stringify(current.meta || {})) return false;
+                if (stripNulls(desired.meta) !== stripNulls(current.meta || {})) return false;
             } else if (typeof desired[k] === "object" && desired[k] !== null) {
                 if (JSON.stringify(desired[k]) !== JSON.stringify(current[k])) return false;
             } else if (desired[k] !== current[k]) {
@@ -594,7 +618,10 @@ function ensureVirtualComponents(manifest, done) {
         }
 
         if (existing) {
-            log("Existing " + existing.key + " does not fit " + spec.config.name + "; creating a new one");
+            log("Existing " + existing.key + " does not fit " + spec.config.name + "; refusing to create a duplicate");
+            state.ok = false;
+            cb(false);
+            return;
         }
         addComponent(spec, cb);
     }

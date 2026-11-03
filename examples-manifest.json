@@ -1203,6 +1203,20 @@
     ]
   },
   {
+    "fname": "modbus/LG/lg-kchh020ldgc-pro-rs485-vc.shelly.js",
+    "title": "LG KCHH020LDGC chiller with nine managed Virtual Components",
+    "description": "Local RS485/Modbus RTU chiller control with FC05 enable, FC06 mode/setpoints, confirmed readback and a persisted Modbus address.",
+    "doc": "modbus/LG/KCHH020LDGC.md",
+    "tags": [
+      "modbus",
+      "lg",
+      "kchh020ldgc",
+      "hvac",
+      "chiller",
+      "virtual-components"
+    ]
+  },
+  {
     "fname": "modbus/LG/lg-therma-v-pro-em50_vc.shelly.js",
     "title": "LG THERMA V Modbus bridge for Shelly Pro EM-50",
     "description": "Self-contained RS-485/Modbus RTU bridge for compatible LG THERMA V",
