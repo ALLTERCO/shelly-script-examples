@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-11
+- Fix Victron BLE Bridge restarts on firmware that stores null Virtual Component metadata, and prevent incompatible same-name components from consuming duplicate VC slots
+
 ## 2026-10
 - Add an LG KCHH020LDGC chiller bridge with nine managed Virtual Components, a persistent Modbus address selector, FC05/FC06 commands, confirmed readback, installation documentation and deterministic RTU/UI fault tests; contributor-reported physical test on 2026-10-19
 - Restore the Midea/Clivet R32 README, technical notes and test harness to the managed-VC versions: upstream rolled them back to the original fixed-ID docs (`vcBase: 220`, Silent Mode) while keeping the newer script, which uses firmware-managed roles and a persisted Modbus Slave ID in place of Silent Mode
