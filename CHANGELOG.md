@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## 2026-11
+- Fix the WS90 weather-station Node-RED flow publishing nothing at all: `BLE.CloudRelay.ListInfos` returns `devices` as an array of single-key objects rather than a MAC-keyed map, so the flow's `Object.keys()` lookup compared array indices against the configured MAC and never matched; also replace the BTHome decoder's `* 0.1` / `* 0.01` / `* 0.001` scaling with division, which was pushing binary floating-point artifacts such as `7.1000000000000005` °C and `114.80000000000001` mm onto the Victron dbus. Verified end to end on Venus OS Large with `node-red-contrib-victron` 1.7.29, a Shelly Plug S Gen3 BLE gateway and a live Ecowitt WS90
 - Fix Victron BLE Bridge restarts on firmware that stores null Virtual Component metadata, and prevent incompatible same-name components from consuming duplicate VC slots
 
 ## 2026-10
