@@ -430,6 +430,13 @@
     "tags": ["lora", "encryption"]
   },
   {
+    "fname": "lora/lora-gateway/lora-gateway.shelly.js",
+    "title": "LoRa gateway for a Shelly with no network",
+    "description": "One script, two roles. On a device that still has a network it mirrors a second, network-less Shelly reached only over LoRa into virtual components and confirms every command it sends; on the network-less device it reports its switch and metering and executes those commands, including one that brings WiFi back. Check README.md before use. (Requires firmware version: 2.0 or newer and LoRa Add-on hardware installed)",
+    "doc": "lora/lora-gateway/README.md",
+    "tags": ["lora", "virtual-components", "switch", "automation"]
+  },
+  {
     "fname": "lora/lora-lightcontrol-receiver/lora-lightcontrol-receiver.shelly.js",
     "title": "Receive light control commands over LoRa",
     "description": "Example how to handle commands over LoRa to control Light device. Check README.md before use. (Requires firmware version: 1.6 or newer and LoRa Add-on hardware installed)",
