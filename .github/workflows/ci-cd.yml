@@ -53,10 +53,12 @@ jobs:
           --check-sync
 
     - name: Synchronize manifest
+      env:
+        PR_TITLE: ${{ github.event.pull_request.title }}
       run: |
         python ./tools/sync-manifest-md.py --extract-metadata --remove-missing
         git config user.name github-actions
         git config user.email github-actions@github.com
         git add .
-        git diff --cached --quiet || git commit -m "Sync manifest (${{ github.event.pull_request.title }})"
+        git diff --cached --quiet || git commit -m "Sync manifest ($PR_TITLE)"
         git push
